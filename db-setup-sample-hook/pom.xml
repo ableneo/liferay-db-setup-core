@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <parent>
-        <groupId>com.mimacom.liferay</groupId>
-        <artifactId>build-parent</artifactId>
-        <version>1.1.1</version>
-    </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.mimacom</groupId>
+    <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-sample-hook</artifactId>
     <packaging>war</packaging>
     <name>DB Setup Sample Hook</name>
@@ -19,6 +14,8 @@
 
 
     <properties>
+        <liferay.ce.version>6.2.5</liferay.ce.version>
+        <liferay.maven.plugin.version>${liferay.ce.version}</liferay.maven.plugin.version>
         <liferay.home>${}</liferay.home>
         <liferay.app.server.tomcat.dir>${liferay.home}/tomcat-7.0.62</liferay.app.server.tomcat.dir>
         <liferay.auto.deploy.dir>${liferay.home}/deploy</liferay.auto.deploy.dir>
@@ -63,9 +60,9 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>com.mimacom.liferay</groupId>
+            <groupId>com.ableneo.liferay</groupId>
             <artifactId>db-setup-core</artifactId>
-            <version>1.1.2</version>
+            <version>1.2.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.liferay.portal</groupId>

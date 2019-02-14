@@ -12,14 +12,14 @@ We didn't publish binary yet so you'll need to build the jar yourself. Here are 
 1. grab jar from <code>db-setup-core/target</code> or use as a dependency in your maven project
 ```xml
 <dependency>
-    <groupId>com.mimacom.liferay</groupId>
+    <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-core</artifactId>
     <version>1.1.2</version>
 </dependency>
 ```
 
 ## Integration
-Run <code>com.mimacom.liferay.portal.setup.LiferaySetup#setup(java.io.File)</code> with following xml configuration:
+Run <code>com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)</code> with following xml configuration:
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <setup xmlns="https://raw.githubusercontent.com/mimacom/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.1.xsd">
