@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,10 +27,6 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-
-
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -38,14 +34,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.ReadOnlyException;
-import javax.portlet.ValidatorException;
 
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
 import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
-import com.ableneo.liferay.portal.setup.LiferaySetup;
 import com.ableneo.liferay.portal.setup.core.util.TitleMapUtil;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
-import com.ableneo.liferay.portal.setup.domain.Organization;
 import com.ableneo.liferay.portal.setup.domain.Page;
 import com.ableneo.liferay.portal.setup.domain.PageTemplate;
 import com.ableneo.liferay.portal.setup.domain.PageTemplates;
@@ -53,8 +46,8 @@ import com.ableneo.liferay.portal.setup.domain.Pageportlet;
 import com.ableneo.liferay.portal.setup.domain.PortletPreference;
 import com.ableneo.liferay.portal.setup.domain.PrivatePages;
 import com.ableneo.liferay.portal.setup.domain.PublicPages;
+import com.ableneo.liferay.portal.setup.domain.Site;
 import com.ableneo.liferay.portal.setup.domain.Theme;
-
 import com.liferay.portal.NoSuchLayoutException;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
@@ -62,6 +55,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -74,13 +68,13 @@ import com.liferay.portal.model.LayoutTemplate;
 import com.liferay.portal.model.LayoutTypePortlet;
 import com.liferay.portal.model.Portlet;
 import com.liferay.portal.model.PortletConstants;
+import com.liferay.portal.model.PortletPreferences;
 import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.LayoutLocalServiceUtil;
 import com.liferay.portal.service.LayoutPrototypeLocalServiceUtil;
-import com.liferay.portal.service.LayoutServiceUtil;
 import com.liferay.portal.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.service.LayoutTemplateLocalServiceUtil;
 import com.liferay.portal.service.PortletPreferencesLocalServiceUtil;
@@ -89,7 +83,6 @@ import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
 import com.liferay.portal.service.permission.PortletPermissionUtil;
 import com.liferay.portal.util.PortletKeys;
-import com.liferay.portlet.PortletPreferencesFactoryUtil;
 
 public final class SetupPages {
     private static final Log LOG = LogFactoryUtil.getLog(SetupPages.class);
@@ -113,120 +106,32 @@ public final class SetupPages {
 
         actionsOwner.add(ActionKeys.UPDATE_DISCUSSION);
 
-        DEFAULT_PERMISSIONS_PUBLIC.put(RoleConstants.OWNER, actionsOwner);
+        DEFAULT_PERMISSIONS_PRIVATE.put(RoleConstants.OWNER, actionsOwner);
 
         List<String> actionsUser = new ArrayList<>();
         actionsUser.add(ActionKeys.ADD_DISCUSSION);
         actionsUser.add(ActionKeys.CUSTOMIZE);
         actionsUser.add(ActionKeys.VIEW);
 
-        DEFAULT_PERMISSIONS_PUBLIC.put(RoleConstants.SITE_MEMBER, actionsUser);
+        DEFAULT_PERMISSIONS_PRIVATE.put(RoleConstants.SITE_MEMBER, actionsUser);
 
-        DEFAULT_PERMISSIONS_PRIVATE.putAll(DEFAULT_PERMISSIONS_PUBLIC);
+        DEFAULT_PERMISSIONS_PUBLIC.putAll(DEFAULT_PERMISSIONS_PRIVATE);
         List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
-        DEFAULT_PERMISSIONS_PRIVATE.put(RoleConstants.GUEST, actionsGuest);
+        DEFAULT_PERMISSIONS_PUBLIC.put(RoleConstants.GUEST, actionsGuest);
     }
 
-    private SetupPages() {
+    private final SetupContext setupContext;
 
-    }
-
-    /**
-     * @param organization organization entity defined in xml descriptor
-     * @param groupId liferay site scope
-     * @param company liferay instance scope
-     * @param userid run as user
-     * @param runAsUserId
-     * @throws SystemException
-     * @throws PortalException
-     */
-    public static void setupOrganizationPages(final Organization organization, final long groupId,
-                                              final long company, final long userid, long runAsUserId) throws SystemException, PortalException {
-
-        PublicPages publicPages = organization.getPublicPages();
-        if (publicPages != null) {
-            if (publicPages.getTheme() != null) {
-                setupTheme(groupId, publicPages.getTheme(), false);
-            }
-            if (publicPages.isDeleteExistingPages()) {
-                LOG.info("Setup: Deleting pages from organization " + organization.getName());
-                deletePages(groupId);
-            }
-            addPages(publicPages.getPage(), groupId, false, 0, company, userid, runAsUserId);
-        }
-
-        PrivatePages privatePages = organization.getPrivatePages();
-        if (privatePages != null) {
-            if (privatePages.getTheme() != null) {
-                setupTheme(groupId, privatePages.getTheme(), true);
-            }
-            if (privatePages.isDeleteExistingPages()) {
-                LOG.info("Setup: Deleting pages from organization " + organization.getName());
-                deletePages(groupId);
-            }
-
-            addPages(privatePages.getPage(), groupId, true, 0, company, userid, runAsUserId);
-        }
-    }
-
-    /**
-     * Set the page templates up. As this is heavily based on page (layout).
-     *  @param pageTemplates
-     *            The page template definitions that are imported.
-     * @param groupId
-     *            The group id of the site where to import the
-     * @param company
- *            The id of the company to which the templates are imported.
-     * @param userid
-     * @param runAsUserId
-     */
-    public static void setupPageTemplates(final PageTemplates pageTemplates, final long groupId,
-                                          final long company, final long userid, long runAsUserId) {
-        try {
-            for (PageTemplate pageTemplate : pageTemplates.getPageTemplate()) {
-                String name = pageTemplate.getName();
-                if (name != null) {
-
-                    LayoutPrototype lp;
-                    DynamicQuery dq = LayoutPrototypeLocalServiceUtil.dynamicQuery()
-                            .add(PropertyFactoryUtil.forName("name").like("%" + name + "%"));
-                    List<LayoutPrototype> listLayoutPrototype = LayoutPrototypeLocalServiceUtil
-                            .dynamicQuery(dq);
-                    if (listLayoutPrototype != null && listLayoutPrototype.size() > 0) {
-                        lp = listLayoutPrototype.get(0);
-                    } else {
-                        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(
-                                pageTemplate.getTitleTranslation(), groupId, name,
-                                " Page template  " + name);
-                        lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(userid, company,
-                                titleMap, name, true, new ServiceContext());
-                    }
-                    if (lp != null) {
-                        Layout layout = lp.getLayout();
-                        if (pageTemplate.getPage() != null) {
-                            Page page = pageTemplate.getPage();
-                            if (page.getFriendlyURL() != null
-                                    && !page.getFriendlyURL().equals("")) {
-                                LOG.error("The page of page template " + name + " may not have a "
-                                        + "friendly URL! Will ignore it!");
-                            }
-                            setupLiferayPage(layout, page, groupId, false, company, userid, name, runAsUserId);
-                        }
-                    } else {
-                        LOG.error("Could not create or find the page template " + name);
-                    }
-                }
-            }
-        } catch (PortalException | SystemException e) {
-            LOG.error("Problem during creating page templates ", e);
-        }
+    public SetupPages(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
     /**
      * @param groupId
      * @param theme
      * @param isPrivate
+     *
      * @throws SystemException
      * @throws PortalException
      */
@@ -244,95 +149,6 @@ public final class SetupPages {
         LayoutSetLocalServiceUtil.updateLayoutSet(set);
     }
 
-    /**
-     * @param pages list of pages defined in xml descriptor
-     * @param groupId Liferay site scope
-     * @param isPrivate should page be added in private pages?
-     * @param parentLayoutId layout id of parent page
-     * @param company Liferay instance scope
-     * @param userId run as user
-     * @param runAsUserId
-     * @throws SystemException
-     * @throws PortalException
-     */
-    private static void addPages(final List<Page> pages, final long groupId,
-                                 final boolean isPrivate, final long parentLayoutId, final long company,
-                                 final long userId, long runAsUserId) throws SystemException, PortalException {
-
-        for (Page page : pages) {
-
-            Layout layout = null;
-            try {
-                layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, isPrivate,
-                        page.getFriendlyURL());
-                LOG.info("Setup: Page " + page.getName() + " already exist, not creating...");
-                if (layout != null && page.isDeleteExistingPages()) {
-                    LayoutLocalServiceUtil.deleteLayout(layout);
-                    if (page.getLinkToURL() == null || page.getLinkToURL().equals("")) {
-                        layout = createPage(groupId, page, parentLayoutId, isPrivate, runAsUserId);
-                    } else {
-                        layout = createLinkPage(page, groupId, parentLayoutId, userId);
-                    }
-                } else if (layout != null
-                        && (page.getLinkToURL() != null && !page.getLinkToURL().equals(""))) {
-                    updateLinkPage(page, groupId);
-                }
-            } catch (NoSuchLayoutException e) {
-                if (page.getLinkToURL() == null || page.getLinkToURL().equals("")) {
-                    layout = createPage(groupId, page, parentLayoutId, isPrivate, runAsUserId);
-                } else {
-                    layout = createLinkPage(page, groupId, parentLayoutId, userId);
-                }
-                LOG.info("Setup: Page " + page.getName() + " created...");
-            } catch (Exception ex) {
-                LOG.error(ex);
-            }
-            setupLiferayPage(layout, page, groupId, isPrivate, company, userId, null, runAsUserId);
-        }
-    }
-
-    private static void setupLiferayPage(final Layout layout, final Page page, final long groupId,
-                                         final boolean isPrivate, final long company, final long userId,
-                                         final String pageTemplateName, long runAsUserId) throws SystemException, PortalException {
-        if (page.getTheme() != null) {
-            setPageTheme(layout, page);
-        }
-        if (page.getLayout() != null) {
-            setLayoutTemplate(layout, page, userId);
-        }
-
-        List<Pageportlet> portlets = page.getPageportlet();
-        if (portlets != null && !portlets.isEmpty()) {
-            for (Pageportlet portlet : portlets) {
-                try {
-                    addPortletIntoPage(page, layout, portlet, company, groupId, runAsUserId);
-
-                } catch (ValidatorException | IOException e) {
-                    LOG.error(e);
-                }
-            }
-        }
-
-        List<Page> subPages = page.getPage();
-        if (subPages != null && !subPages.isEmpty()) {
-            if (pageTemplateName != null && !pageTemplateName.equals("")) {
-                LOG.error("Page template " + pageTemplateName + " may not have any sub-pages! "
-                        + "Will ignore them!");
-            } else {
-                addPages(subPages, groupId, isPrivate, layout.getLayoutId(), company, userId, runAsUserId);
-            }
-        }
-
-        if (page.getCustomFieldSetting() != null && !page.getCustomFieldSetting().isEmpty()) {
-            setCustomFields(userId, groupId, company, page, layout);
-        }
-
-        updatePage(layout, page, groupId);
-        SetupPermissions.updatePermission("Page " + page.getFriendlyURL(), groupId, company,
-                layout.getPlid(), Layout.class, page.getRolePermissions(),
-                getDefaultPermissions(isPrivate));
-    }
-
     private static HashMap<String, List<String>> getDefaultPermissions(final boolean isPrivate) {
         if (isPrivate) {
             return DEFAULT_PERMISSIONS_PRIVATE;
@@ -340,8 +156,305 @@ public final class SetupPages {
         return DEFAULT_PERMISSIONS_PUBLIC;
     }
 
-    private static Layout createLinkPage(final Page p, final long groupId,
-            final long parentLayoutId, final long userId) {
+    private static void setPageTarget(final Page page, final Layout layout) {
+        UnicodeProperties props = layout.getTypeSettingsProperties();
+        props.put("target", page.getTarget());
+        layout.setTypeSettingsProperties(props);
+        try {
+            LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+                    layout.getTypeSettings());
+        } catch (PortalException | SystemException e) {
+            LOG.error("Can not set target attribute value '" + page.getTarget() + "' to page with layoutId:"
+                    + layout.getLayoutId() + ".", e);
+        }
+    }
+
+    private static void setPageTheme(final Layout layout, final Page page) throws SystemException {
+
+        Theme theme = page.getTheme();
+        if (theme != null) {
+            layout.setThemeId(theme.getName());
+            try {
+                LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+                        layout.getTypeSettings());
+            } catch (PortalException e) {
+                LOG.error(e);
+            }
+            LOG.info("setting theme on page: " + page.getName() + " : " + theme.getName());
+        }
+    }
+
+    public static void setLayoutTemplate(final Layout layout, final Page page, final long userid) {
+        if (layout.getLayoutType() instanceof LayoutTypePortlet) {
+            LayoutTypePortlet portletLayout = (LayoutTypePortlet) layout.getLayoutType();
+
+            if (page.isClearPage()) {
+                if (page.getPageportlet() != null && page.getPageportlet().size() > 0 && page.getLinkToURL() != null
+                        && !page.getLinkToURL().equals("")) {
+                    LOG.error("This is a link page! It cannot be cleared. If you intend to use " + "this page for "
+                            + "portlets, please" + " delete this page, or remove the link from the page!");
+                } else {
+                    removeAllPortlets(userid, portletLayout, layout);
+                }
+            }
+            String themeId = null;
+            try {
+
+                if (page.getLayoutContainedInThemeWithId() != null
+                        && !page.getLayoutContainedInThemeWithId().equals("")) {
+                    themeId = page.getLayoutContainedInThemeWithId();
+                }
+                LayoutTemplate layoutTemplate =
+                        LayoutTemplateLocalServiceUtil.getLayoutTemplate(page.getLayout(), false, themeId);
+
+                if (layoutTemplate != null) {
+                    LOG.info("Setting layout to " + page.getLayout() + " for page " + page.getName());
+                    if (themeId != null) {
+                        LOG.info("Layout was looked up in theme " + themeId);
+                    }
+                    portletLayout.setLayoutTemplateId(UserLocalServiceUtil.getDefaultUserId(layout.getCompanyId()),
+                            layoutTemplate.getLayoutTemplateId());
+                    LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(),
+                            layout.getLayoutId(), layout.getTypeSettings());
+                } else {
+                    LOG.error("Layout template " + page.getLayout() + " not found !");
+                    if (themeId != null) {
+                        LOG.error("Layout was looked up in theme " + themeId);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error("Error by setting layout template : " + page.getLayout(), e);
+                if (themeId != null) {
+                    LOG.error("Layout was looked up in theme " + themeId);
+                }
+            }
+
+        }
+    }
+
+    private static void removeAllPortlets(final long runasUser, final LayoutTypePortlet layoutTypePortlet,
+            final Layout layout) {
+        List<Portlet> portlets = null;
+        try {
+            portlets = layoutTypePortlet.getAllPortlets();
+        } catch (SystemException | PortalException e1) {
+            LOG.error(e1);
+        }
+        if (portlets != null) {
+            for (Portlet portlet : portlets) {
+
+                String portletId = portlet.getPortletId();
+
+                try {
+                    if (layoutTypePortlet.hasPortletId(portletId)) {
+                        LOG.debug("Removing portlet " + portletId);
+                        layoutTypePortlet.removePortletId(runasUser, portletId);
+                        String rootPortletId = PortletConstants.getRootPortletId(portletId);
+                        LOG.debug("Root portletId: " + rootPortletId);
+                        ResourceLocalServiceUtil.deleteResource(layout.getCompanyId(), rootPortletId,
+                                ResourceConstants.SCOPE_INDIVIDUAL,
+                                PortletPermissionUtil.getPrimaryKey(layout.getPlid(), portletId));
+                        LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(),
+                                layout.getLayoutId(), layout.getTypeSettings());
+                        List<PortletPreferences> list = PortletPreferencesLocalServiceUtil.getPortletPreferences(
+                                PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(), portletId);
+                        for (PortletPreferences p : list) {
+                            PortletPreferencesLocalServiceUtil.deletePortletPreferences(p);
+                        }
+                    }
+                } catch (PortalException | SystemException e) {
+                    LOG.error(e);
+                }
+            }
+        }
+    }
+
+    private static void deletePages(final long groupId, boolean privatePages) {
+
+        ServiceContext serviceContext = new ServiceContext();
+        try {
+            LayoutLocalServiceUtil.deleteLayouts(groupId, privatePages, serviceContext);
+            LOG.info("Setup: Pages removed.");
+        } catch (PortalException | SystemException e) {
+            LOG.error("cannot remove pages: " + e);
+        }
+    }
+
+    /**
+     * @param site
+     *
+     * @throws SystemException
+     * @throws PortalException
+     */
+    public void setupSitePages(final Site site) throws SystemException, PortalException {
+
+        long groupId = setupContext.getRunInGroupId();
+        if (groupId == -1l) {
+            Group liferayGroup = GroupLocalServiceUtil.getGroup(setupContext.getRunInCompanyId(), site.getName());
+            setupContext.setRunInGroupId(liferayGroup.getGroupId());
+            groupId = liferayGroup.getGroupId();
+        }
+        PublicPages publicPages = site.getPublicPages();
+        if (publicPages != null) {
+            if (publicPages.getTheme() != null) {
+                setupTheme(groupId, publicPages.getTheme(), false);
+            }
+            if (publicPages.isDeleteExistingPages()) {
+                LOG.info("Setup: Deleting pages from site " + site.getName());
+                deletePages(groupId, false);
+            }
+            addPages(publicPages.getPage(), publicPages.getDefaultLayout(),
+                    publicPages.getDefaultLayoutContainedInThemeWithId(), false, 0);
+            if (publicPages.getVirtualHost() != null) {
+                LayoutSetLocalServiceUtil.updateVirtualHost(groupId, false, publicPages.getVirtualHost());
+            }
+        }
+
+        PrivatePages privatePages = site.getPrivatePages();
+        if (privatePages != null) {
+            if (privatePages.getTheme() != null) {
+                setupTheme(groupId, privatePages.getTheme(), true);
+            }
+            if (privatePages.isDeleteExistingPages()) {
+                LOG.info("Setup: Deleting pages from site " + site.getName());
+                deletePages(groupId, true);
+            }
+            addPages(privatePages.getPage(), privatePages.getDefaultLayout(),
+                    privatePages.getDefaultLayoutContainedInThemeWithId(), true, 0);
+            if (privatePages.getVirtualHost() != null) {
+                LayoutSetLocalServiceUtil.updateVirtualHost(groupId, true, privatePages.getVirtualHost());
+            }
+        }
+    }
+
+    /**
+     * Set the page templates up. As this is heavily based on page (layout).
+     *
+     * @param pageTemplates The page template definitions that are imported.
+     */
+    public void setupPageTemplates(final PageTemplates pageTemplates) {
+        try {
+            for (PageTemplate pageTemplate : pageTemplates.getPageTemplate()) {
+                String name = pageTemplate.getName();
+                if (name != null) {
+
+                    LayoutPrototype lp;
+                    DynamicQuery dq = LayoutPrototypeLocalServiceUtil.dynamicQuery()
+                            .add(PropertyFactoryUtil.forName("name").like("%" + name + "%"));
+                    List<LayoutPrototype> listLayoutPrototype = LayoutPrototypeLocalServiceUtil.dynamicQuery(dq);
+                    if (listLayoutPrototype != null && listLayoutPrototype.size() > 0) {
+                        lp = listLayoutPrototype.get(0);
+                    } else {
+                        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(pageTemplate.getTitleTranslation(),
+                                setupContext.getRunInGroupId(), name, " Page template  " + name);
+                        lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(setupContext.getRunAsUserId(),
+                                setupContext.getRunInCompanyId(), titleMap, name, true, new ServiceContext());
+                    }
+                    if (lp != null) {
+                        Layout layout = lp.getLayout();
+                        if (pageTemplate.getPage() != null) {
+                            Page page = pageTemplate.getPage();
+                            if (page.getFriendlyURL() != null && !page.getFriendlyURL().equals("")) {
+                                LOG.error("The page of page template " + name + " may not have a "
+                                        + "friendly URL! Will ignore it!");
+                            }
+                            setupLiferayPage(layout, page, null, null, false, name);
+                        }
+                    } else {
+                        LOG.error("Could not create or find the page template " + name);
+                    }
+                }
+            }
+        } catch (PortalException | SystemException e) {
+            LOG.error("Problem during creating page templates ", e);
+        }
+    }
+
+    /**
+     * @param pages
+     * @param isPrivate
+     * @param parentLayoutId
+     *
+     * @throws SystemException
+     * @throws PortalException
+     */
+    private void addPages(final List<Page> pages, String defaultLayout, String defaultLayoutContainedInThemeWithId, final boolean isPrivate, final long parentLayoutId) throws SystemException, PortalException {
+
+        for (Page page : pages) {
+            Layout layout = null;
+            try {
+                layout = LayoutLocalServiceUtil.getFriendlyURLLayout(setupContext.getRunInGroupId(), isPrivate, page.getFriendlyURL());
+                LOG.info("Setup: Page " + page.getFriendlyURL() + " already exist, not creating...");
+                if (layout != null && page.isDeleteExistingPages()) {
+                    LayoutLocalServiceUtil.deleteLayout(layout);
+                    if (page.getLinkToURL() == null || page.getLinkToURL().equals("")) {
+                        layout = createPage(page, parentLayoutId, isPrivate);
+                    } else {
+                        layout = createLinkPage(page, parentLayoutId);
+                    }
+                } else if (layout != null && (page.getLinkToURL() != null && !page.getLinkToURL().equals(""))) {
+                    updateLinkPage(page);
+                }
+            } catch (NoSuchLayoutException e) {
+                if (page.getLinkToURL() == null || page.getLinkToURL().equals("")) {
+                    layout = createPage(page, parentLayoutId, isPrivate);
+                } else {
+                    layout = createLinkPage(page, parentLayoutId);
+                }
+                LOG.info("Setup: Page " + page.getName() + " created...");
+            } catch (Exception ex) {
+                LOG.error(ex);
+            }
+            // If the page has not a layout set, set the default one. Otherwise set that layout as the default for the
+            // subtree
+            if (page.getLayout() == null) {
+                page.setLayout(defaultLayout);
+                page.setLayoutContainedInThemeWithId(defaultLayoutContainedInThemeWithId);
+            } else {
+                defaultLayout = page.getLayout();
+                defaultLayoutContainedInThemeWithId = page.getLayoutContainedInThemeWithId();
+            }
+            setupLiferayPage(layout, page, defaultLayout, defaultLayoutContainedInThemeWithId, isPrivate, null);
+        }
+    }
+
+    private void setupLiferayPage(final Layout layout, final Page page, final String defaultLayout,
+            final String defaultLayoutContainedInThemeWithId, final boolean isPrivate, final String pageTemplateName)
+            throws SystemException, PortalException {
+        if (page.getTheme() != null) {
+            setPageTheme(layout, page);
+        }
+        if (page.getLayout() != null) {
+            setLayoutTemplate(layout, page, setupContext.getRunAsUserId());
+        }
+
+        setPageTarget(page, layout);
+
+        List<Pageportlet> portlets = page.getPageportlet();
+        if (portlets != null && !portlets.isEmpty()) {
+            for (Pageportlet portlet : portlets) {
+                addPortletIntoPage(page, layout, portlet);
+            }
+        }
+
+        List<Page> subPages = page.getPage();
+        if (subPages != null && !subPages.isEmpty()) {
+            if (pageTemplateName != null && !pageTemplateName.equals("")) {
+                LOG.error("Page template " + pageTemplateName + " may not have any sub-pages! " + "Will ignore them!");
+            } else {
+                addPages(subPages, defaultLayout, defaultLayoutContainedInThemeWithId, isPrivate, layout.getLayoutId());
+            }
+        }
+
+        if (page.getCustomFieldSetting() != null && !page.getCustomFieldSetting().isEmpty()) {
+            setCustomFields(page, layout);
+        }
+
+        (new SetupPermissions(setupContext.clone())).updatePermission("Page " + page.getFriendlyURL(), layout.getPlid(),
+                Layout.class, page.getRolePermissions(), getDefaultPermissions(isPrivate));
+    }
+
+    private Layout createLinkPage(final Page p, final long parentLayoutId) {
         // all values are usually retrieved via special methods from our code
         // for better readability I have added the real values here
 
@@ -353,93 +466,88 @@ public final class SetupPages {
         // add the layout
         Layout layout = null;
         try {
-            layout = LayoutLocalServiceUtil.addLayout(userId, groupId, false, parentLayoutId, title,
-                    title, StringPool.BLANK, layoutType, hidden, friendlyURL, serviceContext);
+            long userId = setupContext.getRunAsUserId();
+            long groupId = setupContext.getRunInGroupId();
+            layout = LayoutLocalServiceUtil.addLayout(userId, groupId, false, parentLayoutId, title, title,
+                    StringPool.BLANK, layoutType, hidden, friendlyURL, serviceContext);
 
             String linkToPageUrl = p.getLinkToURL();
             // set the value of the "link to page"
             UnicodeProperties props = layout.getTypeSettingsProperties();
             props.put("url", linkToPageUrl);
             layout.setTypeSettingsProperties(props);
-            LayoutLocalServiceUtil.updateLayout(layout);
+            LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+                    layout.getTypeSettings());
         } catch (PortalException | SystemException e) {
-            LOG.error("Could not create link page " + p.getFriendlyURL() + " with link to url "
-                    + p.getLinkToURL(), e);
+            LOG.error("Could not create link page " + p.getFriendlyURL() + " with link to url " + p.getLinkToURL(), e);
         }
         return layout;
     }
 
-    private static void updateLinkPage(final Page page, final long groupId) {
+    private void updateLinkPage(final Page page) {
+        long groupId = setupContext.getRunInGroupId();
         try {
-            Layout layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, false,
-                    page.getFriendlyURL());
+            Layout layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, false, page.getFriendlyURL());
             if (layout.getLayoutType().getTypeSettingsProperties().get("url") == null) {
-                LOG.error("Could not update link page " + page.getFriendlyURL()
-                        + " with link to url" + " " + page.getLinkToURL()
-                        + " because page is not a link type page! "
-                        + " Maybe it has been imported before as non link type page. Please "
-                        + "delete it and rerun!");
+                LOG.error("Could not update link page " + page.getFriendlyURL() + " with link to url" + " "
+                        + page.getLinkToURL() + " because page is not a link type page! "
+                        + " Maybe it has been imported before as non link type page. Please " + "delete it and rerun!");
             } else {
                 UnicodeProperties props = layout.getTypeSettingsProperties();
                 props.put("url", page.getLinkToURL());
                 layout.setTypeSettingsProperties(props);
                 layout.setHidden(page.isHidden());
-                LayoutLocalServiceUtil.updateLayout(layout);
+                LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+                        layout.getTypeSettings());
             }
         } catch (PortalException | SystemException e) {
-            LOG.error("Could not update link page " + page.getFriendlyURL() + " with link to url "
-                    + page.getLinkToURL(), e);
+            LOG.error(
+                    "Could not update link page " + page.getFriendlyURL() + " with link to url " + page.getLinkToURL(),
+                    e);
         }
     }
 
-    private static void updatePage(final Layout layout, final Page page, final long groupId) {
-        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(page.getTitleTranslation(), groupId,
-                page.getName(), " Page with title " + page.getFriendlyURL());
-        try {
-            if (titleMap != null) {
-                layout.setTitleMap(titleMap);
-                layout.setNameMap(titleMap);
-            }
-            LayoutLocalServiceUtil.updateLayout(layout);
-        } catch (SystemException e) {
-            LOG.error(e);
-        }
+    private Layout createPage(final Page currentPage, final long parentLayoutId, final boolean isPrivate)
+            throws SystemException, PortalException {
+
+        Map<Locale, String> titleMap =
+                TitleMapUtil.getTitleMap(currentPage.getTitleTranslation(), setupContext.getRunInGroupId(),
+                        currentPage.getName(), " Page with title " + currentPage.getFriendlyURL());
+
+        Locale locale = LocaleUtil.getSiteDefault();
+
+        Map<Locale, String> descriptionMap = new HashMap<>();
+        descriptionMap.put(locale, StringPool.BLANK);
+
+        Map<Locale, String> friendlyURLMap = new HashMap<>();
+        friendlyURLMap.put(locale, currentPage.getFriendlyURL());
+
+        return LayoutLocalServiceUtil.addLayout(setupContext.getRunAsUserId(), setupContext.getRunInGroupId(),
+                isPrivate, parentLayoutId, titleMap, titleMap, null, null, null, currentPage.getType(),
+                StringPool.BLANK, currentPage.isHidden(), friendlyURLMap, new ServiceContext());
     }
 
-    private static void setCustomFields(final long runAsUserId, final long groupId,
-            final long company, final Page page, final Layout layout) {
+    private void setCustomFields(final Page page, final Layout layout) {
         Class clazz = Layout.class;
-        String resolverHint = "Resolving customized value for page " + page.getFriendlyURL() + " "
-                + "failed for key " + "%%key%% and value %%value%%";
+        String resolverHint = "Resolving customized value for page " + page.getFriendlyURL() + " " + "failed for key "
+                + "%%key%% and value %%value%%";
         for (CustomFieldSetting cfs : page.getCustomFieldSetting()) {
             String key = cfs.getKey();
             String value = cfs.getValue();
-            CustomFieldSettingUtil.setExpandoValue(
-                    resolverHint.replace("%%key%%", key).replace("%%value%%", value), runAsUserId,
-                    groupId, company, clazz, layout.getPlid(), key, value);
+            CustomFieldSettingUtil.setExpandoValue(setupContext,
+                    resolverHint.replace("%%key%%", key).replace("%%value%%", value), clazz, layout.getPlid(), key,
+                    value);
         }
     }
 
-    private static void setPageTheme(final Layout layout, final Page page) throws SystemException {
-
-        Theme theme = page.getTheme();
-        if (theme != null) {
-            layout.setThemeId(theme.getName());
-            LayoutLocalServiceUtil.updateLayout(layout);
-
-            LOG.info("setting theme on page: " + page.getName() + " : " + theme.getName());
-        }
-    }
-
-    private static void addPortletIntoPage(final Page page, final Layout layout,
-                                           final Pageportlet portlet, final long company, final long groupId, long runAsUserId)
-                    throws SystemException, ValidatorException, IOException, PortalException {
+    private void addPortletIntoPage(final Page page, final Layout layout, final Pageportlet portlet)
+            throws SystemException, PortalException {
         if (page.getLinkToURL() != null && !page.getLinkToURL().equals("")) {
             LOG.error("This is a link page! It cannot be cleared. If you intend to use this page "
-                    + "for portlets, please"
-                    + " delete this page, or remove the link from the page!");
+                    + "for portlets, please" + " delete this page, or remove the link from the page!");
         } else {
             long plid = layout.getPlid();
+            long ownerId = PortletKeys.PREFS_OWNER_ID_DEFAULT;
             int ownerType = PortletKeys.PREFS_OWNER_TYPE_LAYOUT;
 
             LayoutTypePortlet layoutTypePortlet = (LayoutTypePortlet) layout.getLayoutType();
@@ -449,47 +557,37 @@ public final class SetupPages {
 
             String portletIdInc = "";
             try {
-                portletIdInc = layoutTypePortlet.addPortletId(runAsUserId, portletId, column, -1);
+                int columnPos = portlet.getColumnPosition();
+                portletIdInc = layoutTypePortlet.addPortletId(setupContext.getRunAsUserId(), portletId, column,
+                        columnPos, false);
                 if (portletIdInc == null) {
                     portletIdInc = portletId;
                 }
-            } catch (PortalException | SystemException e) {
+            } catch (SystemException e) {
                 LOG.error("Add portlet error ", e);
             }
 
-            javax.portlet.PortletPreferences preferences = PortletPreferencesFactoryUtil
-                    .getLayoutPortletSetup(layout, portletId);
-            addPortletPreferences(preferences, portlet, company, groupId, runAsUserId);
-            try {
-                preferences.store();
-                PortletPreferencesLocalServiceUtil.updatePreferences(runAsUserId, ownerType, plid,
-                        portletIdInc, preferences);
-            } catch (Exception ex) {
-                LOG.error("Something went wrong when storing preferences for portlet " + portletId,
-                        ex);
+            javax.portlet.PortletPreferences preferences = PortletPreferencesLocalServiceUtil
+                    .getPreferences(setupContext.getRunInCompanyId(), ownerId, ownerType, plid, portletIdInc);
+            List<PortletPreference> prefsList = portlet.getPortletPreference();
+            for (PortletPreference p : prefsList) {
+                try {
+                    preferences.setValue(p.getKey(),
+                            resolvePortletPrefValue(p.getKey(), p.getValue(), portlet, setupContext.getRunInCompanyId(),
+                                    setupContext.getRunInGroupId(), setupContext.getRunAsUserId()));
+                } catch (ReadOnlyException e) {
+                    LOG.error("Portlet preferences (" + p.getKey() + ", " + p.getValue() + ") of " + "portlet "
+                            + portlet.getPortletId() + " caused an excpetion! ");
+                }
             }
+            PortletPreferencesLocalServiceUtil.updatePreferences(ownerId, ownerType, plid, portletIdInc, preferences);
 
             if (Validator.isNotNull(column) && Validator.isNotNull(portletIdInc)) {
-
-                layoutTypePortlet.movePortletId(runAsUserId, portletIdInc, column, 2);
+                layoutTypePortlet.movePortletId(setupContext.getRunAsUserId(), portletIdInc, column,
+                        portlet.getColumnPosition());
             }
-            LayoutServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(),
-                    layout.getLayoutId(), layout.getTypeSettings());
-        }
-    }
-
-    private static void addPortletPreferences(final javax.portlet.PortletPreferences prefs,
-            final Pageportlet portlet, final long company, final long groupId,
-            final long runAsUserId) {
-        List<PortletPreference> prefsList = portlet.getPortletPreference();
-        for (PortletPreference p : prefsList) {
-            try {
-                prefs.setValue(p.getKey(), resolvePortletPrefValue(p.getKey(), p.getValue(),
-                        portlet, company, groupId, runAsUserId));
-            } catch (ReadOnlyException e) {
-                LOG.error("Portlet preferences (" + p.getKey() + ", " + p.getValue() + ") of "
-                        + "portlet " + portlet.getPortletId() + " caused an excpetion! ");
-            }
+            LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
+                    layout.getTypeSettings());
         }
     }
 
@@ -513,133 +611,19 @@ public final class SetupPages {
      * of path and title of the refered document &gt; }}</li>
      * </ul>
      *
-     * @param key
-     *            The portlet key.
-     * @param value
-     *            The defined value which should be parametrized.
-     * @param portlet
-     *            The pageportlet definition.
-     * @param company
-     *            Id of the company.
-     * @param groupId
-     *            The group id.
-     * @param runAsUserId
-     *            The user id which import the data.
+     * @param key The portlet key.
+     * @param value The defined value which should be parametrized.
+     * @param portlet The pageportlet definition.
+     * @param company Id of the company.
+     * @param groupId The group id.
+     * @param runAsUserId The user id which import the data.
+     *
      * @return
      */
-    private static String resolvePortletPrefValue(final String key, final String value,
-            final Pageportlet portlet, final long company, final long groupId,
-            final long runAsUserId) {
+    private String resolvePortletPrefValue(final String key, final String value, final Pageportlet portlet,
+            final long company, final long groupId, final long runAsUserId) throws SystemException {
         String locationHint = "Key: " + key + " of portlet " + portlet.getPortletId();
-        return ResolverUtil.lookupAll(runAsUserId, groupId, company, value, locationHint);
-    }
-
-    public static void setLayoutTemplate(final Layout layout, final Page page, final long userid) {
-        if (layout.getLayoutType() instanceof LayoutTypePortlet) {
-            LayoutTypePortlet portletLayout = (LayoutTypePortlet) layout.getLayoutType();
-
-            if (page.isClearPage()) {
-                if (page.getPageportlet() != null && page.getPageportlet().size() > 0
-                        && page.getLinkToURL() != null && !page.getLinkToURL().equals("")) {
-                    LOG.error("This is a link page! It cannot be cleared. If you intend to use "
-                            + "this page for " + "portlets, please"
-                            + " delete this page, or remove the link from the page!");
-                } else {
-                    removeAllPortlets(userid, portletLayout, layout);
-                }
-            }
-            String themeId = null;
-            try {
-
-                if (page.getLayoutContainedInThemeWithId() != null
-                        && !page.getLayoutContainedInThemeWithId().equals("")) {
-                    themeId = page.getLayoutContainedInThemeWithId();
-                }
-                LayoutTemplate layoutTemplate = LayoutTemplateLocalServiceUtil
-                        .getLayoutTemplate(page.getLayout(), false, themeId);
-
-                if (layoutTemplate != null) {
-                    LOG.info("Setting layout to " + page.getLayout() + " for page "
-                            + page.getName());
-                    if (themeId != null) {
-                        LOG.info("Layout was looked up in theme " + themeId);
-                    }
-                    portletLayout.setLayoutTemplateId(
-                            UserLocalServiceUtil.getDefaultUserId(layout.getCompanyId()),
-                            layoutTemplate.getLayoutTemplateId());
-                    LayoutLocalServiceUtil.updateLayout(layout);
-                } else {
-                    LOG.error("Layout template " + page.getLayout() + " not found !");
-                    if (themeId != null) {
-                        LOG.error("Layout was looked up in theme " + themeId);
-                    }
-                }
-            } catch (Exception e) {
-                LOG.error("Error by setting layout template : " + page.getLayout(), e);
-                if (themeId != null) {
-                    LOG.error("Layout was looked up in theme " + themeId);
-                }
-            }
-
-        }
-    }
-
-    private static void removeAllPortlets(final long runasUser,
-            final LayoutTypePortlet layoutTypePortlet, final Layout layout) {
-        List<Portlet> portlets = null;
-        try {
-            portlets = layoutTypePortlet.getAllPortlets();
-        } catch (PortalException | SystemException e1) {
-            LOG.error(e1);
-        }
-        if (portlets != null) {
-            for (Portlet portlet : portlets) {
-
-                String portletId = portlet.getPortletId();
-
-                try {
-                    if (layoutTypePortlet.hasPortletId(portletId)) {
-                        LOG.debug("Removing portlet " + portletId);
-                        layoutTypePortlet.removePortletId(runasUser, portletId);
-                        String rootPortletId = PortletConstants.getRootPortletId(portletId);
-                        LOG.debug("Root portletId: " + rootPortletId);
-                        ResourceLocalServiceUtil.deleteResource(layout.getCompanyId(),
-                                rootPortletId, ResourceConstants.SCOPE_INDIVIDUAL,
-                                PortletPermissionUtil.getPrimaryKey(layout.getPlid(), portletId));
-                        LayoutLocalServiceUtil.updateLayout(layoutTypePortlet.getLayout());
-                        List<com.liferay.portal.model.PortletPreferences> list = PortletPreferencesLocalServiceUtil
-                                .getPortletPreferences(PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
-                                        layout.getPlid(), portletId);
-                        for (com.liferay.portal.model.PortletPreferences p : list) {
-                            PortletPreferencesLocalServiceUtil.deletePortletPreferences(p);
-                        }
-                    }
-                } catch (PortalException | SystemException e) {
-                    LOG.error(e);
-                }
-            }
-        }
-    }
-
-    private static void deletePages(final long groupId) {
-
-        ServiceContext serviceContext = new ServiceContext();
-        try {
-            LayoutLocalServiceUtil.deleteLayouts(groupId, false, serviceContext);
-            LOG.info("Setup: Pages removed.");
-        } catch (PortalException | SystemException e) {
-            LOG.error("cannot remove pages: " + e);
-        }
-    }
-
-    private static Layout createPage(final long groupId, final Page currentPage,
-                                     final long parentLayoutId, final boolean isPrivate, long runAsUserId)
-                    throws SystemException, PortalException {
-
-        return LayoutLocalServiceUtil.addLayout(runAsUserId, groupId, isPrivate,
-                parentLayoutId, currentPage.getName(), currentPage.getName(),
-                LiferaySetup.DESCRIPTION, currentPage.getType(), currentPage.isHidden(),
-                currentPage.getFriendlyURL(), new ServiceContext());
+        return ResolverUtil.lookupAll(setupContext, value, locationHint);
     }
 
 }

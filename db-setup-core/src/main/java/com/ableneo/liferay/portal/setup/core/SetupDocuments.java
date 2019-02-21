@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,22 +27,17 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-
-
-
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
 import com.ableneo.liferay.portal.setup.core.util.DocumentUtil;
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
 import com.ableneo.liferay.portal.setup.domain.Document;
-import com.ableneo.liferay.portal.setup.domain.Organization;
-
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -81,68 +76,49 @@ public final class SetupDocuments {
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
 
-    private SetupDocuments() {
+    private final SetupContext setupContext;
 
+    public SetupDocuments(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupOrganizationDocuments(final Organization organization,
-                                                  final long groupId, final long company, long runAsUserId) {
-        for (Document doc : organization.getDocument()) {
+    public void setupSiteDocuments(final Site site) throws SystemException {
+        for (Document doc : site.getDocument()) {
             String folderPath = doc.getDocumentFolderName();
             String documentName = doc.getDocumentFilename();
             String documentTitle = doc.getDocumentTitle();
             String extension = doc.getExtension();
             String filenameInFilesystem = doc.getFileSystemName();
-            long repoId = groupId;
             Long folderId = 0L;
             Folder f = null;
+            final long company = setupContext.getRunInCompanyId();
+            final long groupId = setupContext.getRunInGroupId();
+            long repoId = groupId;
             if (folderPath != null && !folderPath.equals("")) {
-                f = FolderUtil.findFolder(company, groupId, repoId, runAsUserId, folderPath, true);
+                f = (new FolderUtil(setupContext.clone())).findFolder(repoId, folderPath, true);
                 folderId = f.getFolderId();
             }
-            FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, company,
-                    groupId, runAsUserId);
-            if (fe == null) {
-
-                fe = DocumentUtil.createDocument(company, groupId, folderId, documentName,
-                        documentTitle, runAsUserId, repoId, getDocumentContent(filenameInFilesystem));
-                LOG.info(documentName + " is not found! It will be created! ");
-            } else {
-                LOG.info(documentName + " is found! Content will be updated! ");
-                DocumentUtil.updateFile(fe, getDocumentContent(filenameInFilesystem), runAsUserId,
-                        documentName);
-            }
-            SetupPermissions.updatePermission("Document " + folderPath + "/" + documentName,
-                    groupId, company, fe.getFileEntryId(), DLFileEntry.class,
-                    doc.getRolePermissions(), DEFAULT_PERMISSIONS);
-        }
-    }
-
-    public static byte[] getDocumentContent(final String filesystemPath) {
-        byte[] content = new byte[0];
-        InputStream is = SetupDocuments.class.getClassLoader().getResourceAsStream(filesystemPath);
-        byte[] buf = new byte[BUFFER_SIZE];
-        int readBytes = 0;
-        if (is != null) {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            FileEntry fe = (new DocumentUtil(setupContext.clone())).findDocument(documentName, folderPath, repoId);
+            byte[] fileBytes = null;
             try {
-                while ((readBytes = is.read(buf)) != -1) {
-                    baos.write(buf, 0, readBytes);
-                }
-                content = baos.toByteArray();
+                fileBytes = ResourcesUtil.getFileBytes(filenameInFilesystem);
             } catch (IOException e) {
-                LOG.error(e);
-            } finally {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    LOG.error(e);
-                }
+                LOG.error("Can not read file: " + filenameInFilesystem + ". Skipping file");
+                continue;
             }
-        } else {
-            // error file not found
-            LOG.error(filesystemPath + ": document in file system not found! Error in XML file! ");
+            if (fileBytes != null) {
+                if (fe == null) {
+                    fe = (new DocumentUtil(setupContext.clone())).createDocument(folderId, documentName, documentTitle,
+                            repoId, fileBytes);
+                    LOG.info(documentName + " is not found! It will be created! ");
+                } else {
+                    LOG.info(documentName + " is found! Content will be updated! ");
+                    (new DocumentUtil(setupContext.clone())).updateFile(fe, fileBytes, documentName);
+                }
+                (new SetupPermissions(setupContext.clone())).updatePermission(
+                        "Document " + folderPath + "/" + documentName, fe.getFileEntryId(), DLFileEntry.class,
+                        doc.getRolePermissions(), DEFAULT_PERMISSIONS);
+            }
         }
-        return content;
     }
 }

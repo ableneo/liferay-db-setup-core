@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,23 +27,21 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-
-
-
-
-import com.liferay.portal.model.RoleConstants;
-import com.liferay.portal.security.permission.ActionKeys;
-import com.liferay.portlet.journal.model.JournalFolder;
-import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
-import com.ableneo.liferay.portal.setup.domain.ArticleFolder;
-import com.ableneo.liferay.portal.setup.domain.Organization;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
+import com.ableneo.liferay.portal.setup.domain.ArticleFolder;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.model.RoleConstants;
+import com.liferay.portal.security.permission.ActionKeys;
+import com.liferay.portlet.journal.model.JournalFolder;
+
 public final class SetupWebFolders {
-    private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
+    public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {
         DEFAULT_PERMISSIONS = new HashMap<>();
@@ -55,6 +53,7 @@ public final class SetupWebFolders {
         actionsOwner.add(ActionKeys.DELETE);
         actionsOwner.add(ActionKeys.ADD_SUBFOLDER);
         actionsOwner.add(ActionKeys.ADD_ARTICLE);
+        actionsOwner.add(ActionKeys.SUBSCRIBE);
         actionsOwner.add(ActionKeys.ACCESS);
 
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
@@ -68,21 +67,21 @@ public final class SetupWebFolders {
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
 
-    private SetupWebFolders() {
+    private final SetupContext setupContext;
 
+    public SetupWebFolders(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupWebFolders(
-            final Organization org, final long groupId,
-            final long companyId, long runAsUserId) {
-        for (ArticleFolder af : org.getArticleFolder()) {
+    public void setupWebFolders(final Site group) throws SystemException {
+        for (ArticleFolder af : group.getArticleFolder()) {
             String webFolderPath = af.getFolderPath();
             String description = af.getDescription();
-            JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId,
-                    runAsUserId, webFolderPath, description, true);
-            SetupPermissions.updatePermission("Folder " + af.getFolderPath(), groupId, companyId,
-                    jf.getFolderId(), JournalFolder.class, af.getRolePermissions(),
-                    DEFAULT_PERMISSIONS);
+            final long companyId = setupContext.getRunInCompanyId();
+            JournalFolder jf = WebFolderUtil.findWebFolder(companyId, setupContext.getRunInGroupId(), setupContext.getRunAsUserId(),
+                    webFolderPath, description, true);
+            (new SetupPermissions(setupContext.clone())).updatePermission("Folder " + af.getFolderPath(), jf.getFolderId(),
+                    JournalFolder.class, af.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }
 

@@ -1,11 +1,11 @@
-package com.ableneo.liferay.portal.setup.core.util;
+package com.ableneo.liferay.portal.setup;
 
 /*
  * #%L
  * Liferay Portal DB Setup core
  * %%
  * Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo Slovensko s.r.o.
+ * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
  * %%
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,36 +27,22 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-import java.io.File;
+/**
+ * Basic class for upgrade process.
+ */
+public abstract class SetupUpgradeProcess extends BasicSetupUpgradeProcess {
 
-public final class FilePathUtil {
-
-    private FilePathUtil() {
-
+    /**
+     * @return paths to setup xml files.
+     */
+    protected final String[] getSetupFileNames() {
+        String[] retVal = new String[1];
+        retVal[0] = getSetupFileName();
+        return retVal;
     }
 
-    public static String getExtension(final String fname) {
-        String ext = "";
-        File f = new File(fname);
-        int pos = f.getName().indexOf(".");
-        if (f.getName().indexOf(".") > -1) {
-            ext = f.getName().substring(pos);
-        }
-        return ext;
-    }
-
-    public static String getPath(final String fname) {
-        String path = "";
-        int pos = fname.lastIndexOf("/");
-        if (pos > -1) {
-            path = fname.substring(0, pos);
-        }
-
-        return path;
-    }
-
-    public static String getFileName(final String fname) {
-        File f = new File(fname);
-        return f.getName();
-    }
+    /**
+     * @return path to setup xml file.
+     */
+    protected abstract String getSetupFileName();
 }

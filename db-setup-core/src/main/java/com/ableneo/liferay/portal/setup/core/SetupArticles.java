@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,17 +27,36 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-
-
-
+import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
+import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
+import com.ableneo.liferay.portal.setup.core.util.TaggingUtil;
+import com.ableneo.liferay.portal.setup.core.util.TitleMapUtil;
+import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
+import com.ableneo.liferay.portal.setup.domain.Adt;
+import com.ableneo.liferay.portal.setup.domain.Article;
+import com.ableneo.liferay.portal.setup.domain.ArticleTemplate;
+import com.ableneo.liferay.portal.setup.domain.DdlRecordset;
+import com.ableneo.liferay.portal.setup.domain.RelatedAsset;
+import com.ableneo.liferay.portal.setup.domain.RelatedAssets;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.ableneo.liferay.portal.setup.domain.Structure;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
-import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.model.RoleConstants;
@@ -62,18 +81,6 @@ import com.liferay.portlet.journal.model.JournalArticle;
 import com.liferay.portlet.journal.model.JournalArticleConstants;
 import com.liferay.portlet.journal.model.JournalFolder;
 import com.liferay.portlet.journal.service.JournalArticleLocalServiceUtil;
-import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
-import com.ableneo.liferay.portal.setup.core.util.TitleMapUtil;
-import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
-import com.ableneo.liferay.portal.setup.domain.*;
-import org.jboss.vfs.VirtualFile;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.*;
 
 /**
  * Created by mapa, guno..
@@ -109,83 +116,56 @@ public final class SetupArticles {
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
 
-    private SetupArticles() {
+    private final SetupContext setupContext;
 
+    public SetupArticles(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupOrganizationArticles(final Organization organization,
-                                                 final long groupId, final long companyId, long runAsUserId) throws PortalException, SystemException {
-        List<Structure> articleStructures = organization.getArticleStructure();
+    public void setupSiteStructuresAndTemplates(final Site site) throws PortalException {
+        List<Structure> articleStructures = site.getArticleStructure();
+        final long groupId = setupContext.getRunInGroupId();
 
         if (articleStructures != null) {
             long classNameId = ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class);
             for (Structure structure : articleStructures) {
                 try {
-                    addDDMStructure(structure, groupId, classNameId, runAsUserId);
-                } catch (StructureDuplicateStructureKeyException | IOException
+                    addDDMStructure(structure, groupId, classNameId);
+                } catch (SystemException | StructureDuplicateStructureKeyException | IOException
                         | URISyntaxException e) {
                     LOG.error(e);
                 }
             }
         }
 
-        List<Structure> ddlStructures = organization.getDdlStructure();
+        List<Structure> ddlStructures = site.getDdlStructure();
 
         if (articleStructures != null) {
             long classNameId = ClassNameLocalServiceUtil.getClassNameId(DDLRecordSet.class);
             for (Structure structure : ddlStructures) {
                 LOG.info("Adding DDL structure " + structure.getName());
                 try {
-                    addDDMStructure(structure, groupId, classNameId, runAsUserId);
-                } catch (StructureDuplicateStructureKeyException | IOException
+                    addDDMStructure(structure, groupId, classNameId);
+                } catch (SystemException | StructureDuplicateStructureKeyException | IOException
                         | URISyntaxException e) {
                     LOG.error(e);
                 }
             }
         }
 
-        List<ArticleTemplate> articleTemplates = organization.getArticleTemplate();
+        List<ArticleTemplate> articleTemplates = site.getArticleTemplate();
         if (articleTemplates != null) {
             for (ArticleTemplate template : articleTemplates) {
                 try {
-                    addDDMTemplate(template, groupId, runAsUserId);
-                } catch (TemplateDuplicateTemplateKeyException | IOException
-                        | URISyntaxException e) {
+                    addDDMTemplate(template, groupId);
+                } catch (SystemException | TemplateDuplicateTemplateKeyException | IOException | URISyntaxException e) {
                     LOG.error(e);
-                }
-            }
-        }
-        List<Article> articles = organization.getArticle();
-        if (articles != null) {
-            for (Article article : articles) {
-                addJournalArticle(article, groupId, companyId, runAsUserId);
-            }
-        }
-        List<Adt> adts = organization.getAdt();
-        if (adts != null) {
-            for (Adt template : adts) {
-                try {
-                    addDDMTemplate(template, groupId, runAsUserId);
-                } catch (TemplateDuplicateTemplateKeyException | URISyntaxException
-                        | IOException e) {
-                    LOG.error("Error in adding ADT: " + template.getName(), e);
-                }
-            }
-        }
-        List<DdlRecordset> recordSets = organization.getDdlRecordset();
-        if (recordSets != null) {
-            for (DdlRecordset recordSet : recordSets) {
-                try {
-                    addDDLRecordSet(recordSet, groupId, runAsUserId);
-                } catch (TemplateDuplicateTemplateKeyException e) {
-                    LOG.error("Error in adding DDLRecordSet: " + recordSet.getName(), e);
                 }
             }
         }
     }
 
-    public static void addDDMStructure(final Structure structure, final long groupId,
-                                       final long classNameId, long runAsUserId)
+    public void addDDMStructure(final Structure structure, final long groupId, final long classNameId)
             throws SystemException, PortalException, IOException, URISyntaxException {
 
         LOG.info("Adding Article structure " + structure.getName());
@@ -197,16 +177,15 @@ public final class SetupArticles {
 
         String xsd = null;
         try {
-            xsd = getFileContent(structure.getPath());
-        } catch (IOException | URISyntaxException e) {
+            xsd = ResourcesUtil.getFileContent(structure.getPath());
+        } catch (IOException e) {
             LOG.error("Error Reading Structure File content for: " + structure.getName());
             return;
         }
 
         DDMStructure ddmStructure = null;
         try {
-            ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(groupId, classNameId,
-                    structure.getKey());
+            ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(groupId, classNameId, structure.getKey());
         } catch (SystemException e) {
             LOG.error("Error while trying to find Structure with key: " + structure.getKey(), e);
         }
@@ -217,8 +196,8 @@ public final class SetupArticles {
             ddmStructure.setXsd(xsd);
             if (structure.getParent() != null && !structure.getParent().isEmpty()) {
                 LOG.info("Setting up parent structure: " + structure.getName());
-                DDMStructure parentStructure = DDMStructureLocalServiceUtil.fetchStructure(groupId,
-                        classNameId, structure.getParent(), true);
+                DDMStructure parentStructure =
+                        DDMStructureLocalServiceUtil.fetchStructure(groupId, classNameId, structure.getParent(), true);
                 if (parentStructure != null) {
                     ddmStructure.setParentStructureId(parentStructure.getStructureId());
                 } else {
@@ -230,20 +209,13 @@ public final class SetupArticles {
             return;
         }
 
-        DDMStructure newStructure = DDMStructureLocalServiceUtil.addStructure(
-                runAsUserId, groupId, structure.getParent(), classNameId,
-                structure.getKey(), nameMap, descMap, xsd, "xml", 0, new ServiceContext());
+        DDMStructure newStructure =
+                DDMStructureLocalServiceUtil.addStructure(getRunAsUserId(), groupId, structure.getParent(), classNameId,
+                        structure.getKey(), nameMap, descMap, xsd, "xml", 0, new ServiceContext());
         LOG.info("Added Article structure: " + newStructure.getName());
     }
 
-    private static String getStructureNameOrKey(final Structure structure) {
-        if (structure.getName() == null) {
-            return structure.getName();
-        }
-        return structure.getKey();
-    }
-
-    public static void addDDMTemplate(final ArticleTemplate template, final long groupId, long runAsUserId)
+    public void addDDMTemplate(final ArticleTemplate template, final long groupId)
             throws SystemException, PortalException, IOException, URISyntaxException {
 
         LOG.info("Adding Article template " + template.getName());
@@ -257,24 +229,29 @@ public final class SetupArticles {
         nameMap.put(siteDefaultLocale, name);
         Map<Locale, String> descMap = new HashMap<>();
 
-        String script = null;
+        String script;
         try {
-            script = getFileContent(template.getPath());
-        } catch (IOException | URISyntaxException e) {
+            script = ResourcesUtil.getFileContent(template.getPath());
+        } catch (IOException e) {
             LOG.error("Error Reading Template File content for: " + template.getName());
             return;
         }
 
         long classPK = 0;
         if (template.getArticleStructureKey() != null) {
-            classPK = ResolverUtil.getStructureId(template.getArticleStructureKey(), groupId,
-                    JournalArticle.class);
+            try {
+                classPK = ResolverUtil.getStructureId(template.getArticleStructureKey(), groupId, JournalArticle.class,
+                        false);
+            } catch (Exception e) {
+                LOG.error("Given article structure with ID: " + template.getArticleStructureKey()
+                        + " can not be found. Therefore, article template can not be added/changed.", e);
+                return;
+            }
         }
 
         DDMTemplate ddmTemplate = null;
         try {
-            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId,
-                    template.getKey());
+            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, template.getKey());
         } catch (SystemException e) {
             LOG.error("Error while trying to find template with key: " + template.getKey(), e);
         }
@@ -285,24 +262,155 @@ public final class SetupArticles {
             ddmTemplate.setLanguage(template.getLanguage());
             ddmTemplate.setScript(script);
             ddmTemplate.setClassPK(classPK);
+            ddmTemplate.setCacheable(template.isCacheable());
 
             DDMTemplateLocalServiceUtil.updateDDMTemplate(ddmTemplate);
             LOG.info("Template successfully updated: " + ddmTemplate.getName());
             return;
         }
 
-        DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(
-                runAsUserId, groupId, classNameId, classPK, template.getKey(),
-                nameMap, descMap, "display", null, template.getLanguage(), script, true, false,
-                null, null, new ServiceContext());
+        DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(getRunAsUserId(), groupId, classNameId,
+                classPK, template.getKey(), nameMap, descMap, "display", null, template.getLanguage(), script, true,
+                false, null, null, new ServiceContext());
         LOG.info("Added Article template: " + newTemplate.getName());
     }
 
-    public static void addDDMTemplate(final Adt template, final long groupId, long runAsUserId)
+    private static String getStructureNameOrKey(final Structure structure) {
+        if (structure.getName() == null) {
+            return structure.getName();
+        }
+        return structure.getKey();
+    }
+
+    private long getRunAsUserId() {
+        return setupContext.getRunAsUserId();
+    }
+
+    public void setupSiteArticles(final Site site)
+            throws PortalException, SystemException {
+
+        List<Article> articles = site.getArticle();
+        long groupId = setupContext.getRunInGroupId();
+        long companyId = setupContext.getRunInCompanyId();
+        if (articles != null) {
+            for (Article article : articles) {
+                addJournalArticle(article);
+            }
+        }
+        List<Adt> adts = site.getAdt();
+        if (adts != null) {
+            for (Adt template : adts) {
+                try {
+                    addDDMTemplate(template, groupId);
+                } catch (TemplateDuplicateTemplateKeyException | URISyntaxException | IOException e) {
+                    LOG.error("Error in adding ADT: " + template.getName(), e);
+                }
+            }
+        }
+        List<DdlRecordset> recordSets = site.getDdlRecordset();
+        if (recordSets != null) {
+            for (DdlRecordset recordSet : recordSets) {
+                try {
+                    addDDLRecordSet(recordSet, groupId);
+                } catch (TemplateDuplicateTemplateKeyException e) {
+                    LOG.error("Error in adding DDLRecordSet: " + recordSet.getName(), e);
+                }
+            }
+        }
+    }
+
+    public void addJournalArticle(final Article article) {
+        LOG.info("Adding Journal Article " + article.getTitle());
+
+        String content = null;
+        long folderId = 0L;
+        long companyId = setupContext.getRunInCompanyId();
+        long groupId = setupContext.getRunInGroupId();
+        if (article.getArticleFolderPath() != null && !article.getArticleFolderPath().equals("")) {
+            JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId, getRunAsUserId(),
+                    article.getArticleFolderPath(), "", true);
+            if (jf == null) {
+                LOG.warn("Specified webfolder " + article.getArticleFolderPath() + " of article " + article.getTitle()
+                        + " not found! Will put article into web content root folder!");
+            } else {
+                folderId = jf.getFolderId();
+            }
+        }
+        try {
+            content = ResourcesUtil.getFileContent(article.getPath());
+            content = ResolverUtil.lookupAll(setupContext, content, article.getPath());
+        } catch (IOException | SystemException e) {
+            LOG.error("Error Reading Article File content for article ID: " + article.getArticleId());
+        }
+        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(article.getTitleTranslation(), groupId,
+                article.getTitle(), " Article with title " + article.getArticleId());
+
+        Locale articleDefaultLocale = LocaleUtil.fromLanguageId(LocalizationUtil.getDefaultLanguageId(content));
+        if (!titleMap.containsKey(articleDefaultLocale)) {
+            titleMap.put(articleDefaultLocale, article.getTitle());
+        }
+
+        ServiceContext serviceContext = new ServiceContext();
+        serviceContext.setScopeGroupId(groupId);
+
+        JournalArticle journalArticle = null;
+
+        boolean generatedId = (article.getArticleId().isEmpty());
+        if (generatedId) {
+            LOG.info("Article " + article.getTitle() + " will have autogenerated ID.");
+        } else {
+            try {
+                journalArticle = JournalArticleLocalServiceUtil.fetchLatestArticle(groupId, article.getArticleId(),
+                        WorkflowConstants.STATUS_APPROVED);
+            } catch (SystemException e) {
+                LOG.error("Error while trying to find article with ID: " + article.getArticleId(), e);
+            }
+        }
+
+        try {
+            if (journalArticle == null) {
+                journalArticle = JournalArticleLocalServiceUtil.addArticle(getRunAsUserId(), groupId, folderId, 0, 0,
+                        article.getArticleId(), generatedId, JournalArticleConstants.VERSION_DEFAULT, titleMap, null,
+                        content, "general", article.getArticleStructureKey(), article.getArticleTemplateKey(),
+                        StringPool.BLANK, 1, 1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true,
+                        true, false, StringPool.BLANK, null, null, StringPool.BLANK, serviceContext);
+
+                LOG.info("Added JournalArticle " + journalArticle.getTitle() + " with ID: "
+                        + journalArticle.getArticleId());
+                Indexer bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+                if (bi != null) {
+                    bi.reindex(journalArticle);
+                }
+            } else {
+                LOG.info("Article " + article.getTitle() + " with article ID: " + article.getArticleId()
+                        + " already exists. Will be overwritten.");
+                journalArticle.setTitleMap(titleMap);
+                journalArticle.setContent(content);
+
+                JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
+
+                // if the folder changed, move it...
+                if (journalArticle.getFolderId() != folderId) {
+                    JournalArticleLocalServiceUtil.moveArticle(groupId, journalArticle.getArticleId(), folderId);
+                }
+                LOG.info("Updated JournalArticle: " + journalArticle.getTitle());
+            }
+            TaggingUtil.associateTags(setupContext, article, journalArticle);
+            processRelatedAssets(article, journalArticle);
+            (new SetupPermissions(setupContext.clone())).updatePermission("Article " + journalArticle.getArticleId(),
+                    journalArticle.getResourcePrimKey(), JournalArticle.class, article.getRolePermissions(),
+                    DEFAULT_PERMISSIONS);
+        } catch (PortalException | SystemException e) {
+            LOG.error("Error while trying to add/update Article with Title: " + article.getTitle(), e);
+        }
+    }
+
+    public void addDDMTemplate(final Adt template, final long groupId)
             throws SystemException, PortalException, IOException, URISyntaxException {
 
         LOG.info("Adding ADT " + template.getName());
         long classNameId = PortalUtil.getClassNameId(template.getClassName());
+        long resourceClassnameId = ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class);
 
         Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
@@ -318,11 +426,12 @@ public final class SetupArticles {
 
         DDMTemplate ddmTemplate = null;
         try {
-            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId,
-                    template.getTemplateKey());
+            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, template.getTemplateKey());
         } catch (SystemException e) {
             LOG.error("Error while trying to find ADT with key: " + template.getTemplateKey());
         }
+
+        String script = ResourcesUtil.getFileContent(template.getPath());
 
         if (ddmTemplate != null) {
             LOG.info("Template already exists and will be overwritten.");
@@ -331,118 +440,20 @@ public final class SetupArticles {
             ddmTemplate.setDescriptionMap(descriptionMap);
             ddmTemplate.setClassName(template.getClassName());
             ddmTemplate.setCacheable(template.isCacheable());
-            try {
-                ddmTemplate.setScript(getFileContent(template.getPath()));
-            } catch (IOException | URISyntaxException e) {
-                LOG.error("Error Reading ADT File content for: " + ddmTemplate.getName());
-                return;
-            }
+            ddmTemplate.setScript(script);
 
             DDMTemplateLocalServiceUtil.updateDDMTemplate(ddmTemplate);
             LOG.info("ADT successfully updated: " + ddmTemplate.getName());
             return;
         }
 
-        String script = getFileContent(template.getPath());
-
-        DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(
-                runAsUserId, groupId, classNameId, 0, template.getTemplateKey(),
-                nameMap, descriptionMap, DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY, null,
-                template.getLanguage(), script, template.isCacheable(), false, null, null,
-                new ServiceContext());
-        LOG.info("Added ADT: " + template.getName());
+        DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(getRunAsUserId(), groupId, classNameId, 0,
+                template.getTemplateKey(), nameMap, descriptionMap, DDMTemplateConstants.TEMPLATE_TYPE_DISPLAY, null,
+                template.getLanguage(), script, template.isCacheable(), false, null, null, new ServiceContext());
+        LOG.info("Added ADT: " + newTemplate.getName());
     }
 
-    public static void addJournalArticle(final Article article, final long groupId,
-                                         final long companyId, long runAsUserId) {
-        LOG.info("Adding Journal Article " + article.getTitle());
-
-        String content = null;
-        long folderId = 0L;
-        if (article.getArticleFolderPath() != null && !article.getArticleFolderPath().equals("")) {
-            JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId,
-                    runAsUserId, article.getArticleFolderPath(), "", true);
-            if (jf == null) {
-                LOG.warn("Specified webfolder " + article.getArticleFolderPath() + " of article "
-                        + article.getTitle()
-                        + " not found! Will put article into web content root folder!");
-            } else {
-                folderId = jf.getFolderId();
-            }
-        }
-        try {
-            content = getFileContent(article.getPath());
-            content = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
-                    content, article.getPath());
-        } catch (IOException | URISyntaxException e) {
-            LOG.error(
-                    "Error Reading Article File content for article ID: " + article.getArticleId());
-        }
-        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(article.getTitleTranslation(),
-                groupId, article.getTitle(), " Article with title " + article.getArticleId());
-
-        ServiceContext serviceContext = new ServiceContext();
-        serviceContext.setScopeGroupId(groupId);
-
-        JournalArticle journalArticle = null;
-
-        boolean generatedId = (article.getArticleId().isEmpty());
-        if (generatedId) {
-            LOG.info("Article " + article.getTitle() + " will have autogenerated ID.");
-        } else {
-            try {
-                journalArticle = JournalArticleLocalServiceUtil.fetchLatestArticle(groupId,
-                        article.getArticleId(), WorkflowConstants.STATUS_APPROVED);
-            } catch (SystemException e) {
-                LOG.error("Error while trying to find article with ID: " + article.getArticleId(),
-                        e);
-            }
-        }
-
-        try {
-            if (journalArticle == null) {
-                journalArticle = JournalArticleLocalServiceUtil.addArticle(
-                        runAsUserId, groupId, folderId, 0, 0,
-                        article.getArticleId(), generatedId,
-                        JournalArticleConstants.VERSION_DEFAULT, titleMap, null, content, "general",
-                        article.getArticleStructureKey(), article.getArticleTemplateKey(),
-                        StringPool.BLANK, 1, 1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0,
-                        0, 0, 0, 0, true, true, false, StringPool.BLANK, null, null,
-                        StringPool.BLANK, serviceContext);
-
-                LOG.info("Added JournalArticle " + journalArticle.getTitle() + " with ID: "
-                        + journalArticle.getArticleId());
-                Indexer bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
-                if (bi != null) {
-                    bi.reindex(journalArticle);
-                }
-            } else {
-                LOG.info("Article " + article.getTitle() + " with article ID: "
-                        + article.getArticleId() + " already exists. Will be overwritten.");
-                journalArticle.setTitleMap(titleMap);
-                journalArticle.setContent(content);
-
-                JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
-
-                // if the folder changed, move it...
-                if (journalArticle.getFolderId() != folderId) {
-                    JournalArticleLocalServiceUtil.moveArticle(groupId,
-                            journalArticle.getArticleId(), folderId);
-                }
-                LOG.info("Updated JournalArticle: " + journalArticle.getTitle());
-            }
-            processRelatedAssets(article, journalArticle, runAsUserId, groupId,
-                    companyId);
-            SetupPermissions.updatePermission("Article " + journalArticle.getArticleId(), groupId,
-                    companyId, journalArticle.getResourcePrimKey(), JournalArticle.class,
-                    article.getRolePermissions(), DEFAULT_PERMISSIONS);
-        } catch (PortalException | SystemException e) {
-            LOG.error("Error while trying to add/update Article with Title: " + article.getTitle(),
-                    e);
-        }
-    }
-
-    private static void addDDLRecordSet(final DdlRecordset recordSet, final long groupId, long runAsUserId)
+    private void addDDLRecordSet(final DdlRecordset recordSet, final long groupId)
             throws SystemException, PortalException {
         LOG.info("Adding DDLRecordSet " + recordSet.getName());
         Map<Locale, String> nameMap = new HashMap<>();
@@ -461,106 +472,63 @@ public final class SetupArticles {
             LOG.info("DDLRecordSet already exists and will be overwritten.");
             ddlRecordSet.setNameMap(nameMap);
             ddlRecordSet.setDescriptionMap(descMap);
-            ddlRecordSet.setDDMStructureId(ResolverUtil
-                    .getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class));
+            ddlRecordSet.setDDMStructureId(
+                    ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class, false));
             DDLRecordSetLocalServiceUtil.updateDDLRecordSet(ddlRecordSet);
             LOG.info("DDLRecordSet successfully updated: " + recordSet.getName());
             return;
         }
 
-        DDLRecordSet newDDLRecordSet = DDLRecordSetLocalServiceUtil.addRecordSet(
-                runAsUserId, groupId,
-                ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId,
-                        DDLRecordSet.class),
-                recordSet.getDdlStructureKey(), nameMap, descMap, MIN_DISPLAY_ROWS, 0,
-                new ServiceContext());
+        DDLRecordSet newDDLRecordSet = DDLRecordSetLocalServiceUtil.addRecordSet(getRunAsUserId(), groupId,
+                ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class, false),
+                recordSet.getDdlStructureKey(), nameMap, descMap, MIN_DISPLAY_ROWS, 0, new ServiceContext());
         LOG.info("Added DDLRecordSet: " + newDDLRecordSet.getName());
     }
 
-    public static void processRelatedAssets(final Article article, final JournalArticle ja,
-                                            final long runAsUserId, final long groupId, final long companyId) {
+    public void processRelatedAssets(final Article article, final JournalArticle ja) throws SystemException {
         if (article.getRelatedAssets() != null) {
             RelatedAssets ras = article.getRelatedAssets();
             AssetEntry ae = null;
             if (ras.isClearAllAssets()) {
 
                 try {
-                    ae = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(),
-                            ja.getResourcePrimKey());
+                    ae = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(), ja.getResourcePrimKey());
                     AssetLinkLocalServiceUtil.deleteLinks(ae.getEntryId());
-                } catch (PortalException e) {
-                    LOG.error("Problem clearing related assets of article " + ja.getArticleId(), e);
-                } catch (SystemException e) {
+                } catch (PortalException | SystemException e) {
                     LOG.error("Problem clearing related assets of article " + ja.getArticleId(), e);
                 }
             }
-            if (ras.getRelatedAsset() != null && ras.getRelatedAsset().size() > 0) {
+            if (ras.getRelatedAsset() != null && !ras.getRelatedAsset().isEmpty()) {
                 List<RelatedAsset> ra = ras.getRelatedAsset();
                 for (RelatedAsset r : ra) {
                     String clazz = r.getAssetClass();
                     String clazzPrimKey = r.getAssetClassPrimaryKey();
-                    String resolverHint = "Related asset for article " + ja.getArticleId() + " "
-                            + "clazz " + clazz + ", " + "primary key " + clazzPrimKey;
-                    clazzPrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
-                            clazzPrimKey, resolverHint);
+                    String resolverHint = "Related asset for article " + ja.getArticleId() + " " + "clazz " + clazz
+                            + ", " + "primary key " + clazzPrimKey;
+                    clazzPrimKey = ResolverUtil.lookupAll(setupContext, clazzPrimKey, resolverHint);
 
                     long id = 0;
                     try {
                         id = Long.parseLong(clazzPrimKey);
                     } catch (Exception ex) {
-                        LOG.error(ex);
+                        LOG.error("Class primary key is not parseable as long value.", ex);
                     }
 
                     try {
 
                         AssetEntry ae2 = AssetEntryLocalServiceUtil.getEntry(clazz, id);
-                        AssetLinkLocalServiceUtil.addLink(runAsUserId, ae.getEntryId(),
-                                ae2.getEntryId(), AssetLinkConstants.TYPE_RELATED, 1);
-                        // JournalArticleLocalServiceUtil.getArticle(0).geta
-                    } catch (PortalException e) {
-                        LOG.error(
-                                "Problem resolving related asset of article " + ja.getArticleId()
-                                        + " with clazz " + clazz + " primary key " + clazzPrimKey,
-                                e);
-                    } catch (SystemException e) {
-                        LOG.error(
-                                "Problem resolving related asset of article " + ja.getArticleId()
-                                        + " with clazz " + clazz + " primary key " + clazzPrimKey,
-                                e);
+                        long runAsUserId = setupContext.getRunAsUserId();
+                        AssetLinkLocalServiceUtil.addLink(runAsUserId, ae.getEntryId(), ae2.getEntryId(),
+                                AssetLinkConstants.TYPE_RELATED, 1);
+                    } catch (PortalException | SystemException e) {
+                        LOG.error("Problem resolving related asset of article " + ja.getArticleId() + " with clazz "
+                                + clazz + " primary key " + clazzPrimKey, e);
                     }
 
                 }
             }
 
         }
-    }
-
-    private static String getFileContent(final String fileName)
-            throws IOException, URISyntaxException {
-        File file = getFile(fileName);
-        return FileUtil.read(file);
-    }
-
-    private static File getFile(final String fileName) throws URISyntaxException, IOException {
-
-        ClassLoader cl = SetupArticles.class.getClassLoader();
-        URL url = cl.getResource(fileName);
-        if (url == null) {
-            throw new IOException("cannot find file: " + fileName);
-        }
-
-        URI uri = url.toURI();
-
-        File file = null;
-        if (uri.getScheme().equals("vfs")) {
-            VirtualFile virtualFile = (VirtualFile) url.openConnection().getContent();
-            file = virtualFile.getPhysicalFile();
-
-        } else if (uri.getScheme().equals("file")) {
-            file = new File(uri);
-        }
-
-        return file;
     }
 
 }

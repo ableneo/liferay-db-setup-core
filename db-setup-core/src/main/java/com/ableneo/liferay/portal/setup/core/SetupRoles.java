@@ -27,9 +27,16 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-
-
+import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
+import com.ableneo.liferay.portal.setup.domain.DefinePermission;
+import com.ableneo.liferay.portal.setup.domain.DefinePermissions;
+import com.ableneo.liferay.portal.setup.domain.PermissionAction;
 import com.liferay.portal.NoSuchRoleException;
 import com.liferay.portal.RequiredRoleException;
 import com.liferay.portal.kernel.dao.orm.ObjectNotFoundException;
@@ -37,36 +44,44 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.model.ResourceConstants;
 import com.liferay.portal.model.Role;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.service.RoleLocalServiceUtil;
 import com.liferay.portal.service.UserLocalServiceUtil;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-
 public final class SetupRoles {
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
 
-    private SetupRoles() {
+    private static final String SCOPE_INDIVIDUAL = "individual";
+    private static final String SCOPE_SITE = "site";
+    private static final String SCOPE_SITE_TEMPLATE = "site template";
+    private static final String SCOPE_PORTAL = "portal";
 
+    private final SetupContext setupContext;
+
+    public SetupRoles(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles, long companyId) {
+    public void setupRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles) throws SystemException {
 
         for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
             try {
-                RoleLocalServiceUtil.getRole(companyId, role.getName());
+                RoleLocalServiceUtil.getRole(getRunInCompanyId(), role.getName());
                 LOG.info("Setup: Role " + role.getName() + " already exist, not creating...");
             } catch (NoSuchRoleException | ObjectNotFoundException e) {
-                addRole(role, companyId);
+                addRole(role, getRunInCompanyId());
 
             } catch (SystemException | PortalException e) {
                 LOG.error("error while setting up roles", e);
             }
+            addRolePermissions(role, getRunAsUserId(), setupContext.getRunInGroupId(), getRunInCompanyId());
         }
+    }
+
+    public long getRunInCompanyId() {
+        return setupContext.getRunAsUserId();
     }
 
     private static void addRole(final com.ableneo.liferay.portal.setup.domain.Role role, long companyId) {
@@ -85,8 +100,7 @@ public final class SetupRoles {
             }
 
             long defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
-            RoleLocalServiceUtil.addRole(defaultUserId, companyId, role.getName(), localeTitleMap,
-                    null, roleType);
+            RoleLocalServiceUtil.addRole(defaultUserId, companyId, role.getName(), localeTitleMap, null, roleType);
 
             LOG.info("Setup: Role " + role.getName() + " does not exist, adding...");
 
@@ -96,20 +110,97 @@ public final class SetupRoles {
 
     }
 
-    public static void deleteRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles,
-                                   final String deleteMethod, final long companyId) {
+    private void addRolePermissions(com.ableneo.liferay.portal.setup.domain.Role role, long runAsUserId, long groupId,
+            long companyId) throws SystemException {
+        if (role.getDefinePermissions() != null) {
+            String siteName = role.getSite();
+            if (siteName != null && !siteName.equals("")) {
+                LOG.warn("Note, refering a site inside a role definition makes no sense and will be ignored! This "
+                        + "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"
+                        + " When doing so, it is necessary to refer a site!");
+            }
+            DefinePermissions permissions = role.getDefinePermissions();
+            if (permissions.getDefinePermission() != null && permissions.getDefinePermission().size() > 0) {
+                for (DefinePermission permission : permissions.getDefinePermission()) {
+                    String permissionName = permission.getDefinePermissionName();
+                    String resourcePrimKey = "0";
+
+                    if (permission.getElementPrimaryKey() != null) {
+                        resourcePrimKey = ResolverUtil.lookupAll(setupContext, permission.getElementPrimaryKey(),
+                                "Role " + role.getName() + " permission name " + permissionName);
+                    }
+                    String type = role.getType();
+                    int scope = ResourceConstants.SCOPE_COMPANY;
+                    if (type != null && type.toLowerCase().equals(SCOPE_PORTAL)) {
+                        scope = ResourceConstants.SCOPE_COMPANY;
+                    }
+                    if (type != null && type.toLowerCase().equals(SCOPE_SITE)) {
+                        scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
+                    }
+
+                    if (type != null && type.toLowerCase().equals("organization")) {
+                        scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
+                    }
+                    if (scope == ResourceConstants.SCOPE_COMPANY && !resourcePrimKey.equals("0")) {
+                        // if we have a regular role which is set for a particular site, set the scope to group
+                        scope = ResourceConstants.SCOPE_GROUP;
+                    }
+                    if (scope == ResourceConstants.SCOPE_COMPANY && resourcePrimKey.equals("0")) {
+                        // if we have a regular role which does not have any resource key set, set the company id as
+                        // resource key
+                        resourcePrimKey = Long.toString(companyId);
+                    }
+
+                    // if defined override the define permission scope
+                    if (permission.getScope() != null && !permission.getScope().equals("")) {
+                        if (permission.getScope().toLowerCase().equals(SCOPE_PORTAL)) {
+                            scope = ResourceConstants.SCOPE_COMPANY;
+                        } else if (permission.getScope().toLowerCase().equals(SCOPE_SITE_TEMPLATE)) {
+                            scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
+                        } else if (permission.getScope().toLowerCase().equals(SCOPE_SITE)) {
+                            scope = ResourceConstants.SCOPE_GROUP;
+                        } else if (permission.getScope().toLowerCase().equals(SCOPE_INDIVIDUAL)) {
+                            scope = ResourceConstants.SCOPE_INDIVIDUAL;
+                        }
+                    }
+
+                    if (permission.getPermissionAction() != null && permission.getPermissionAction().size() > 0) {
+                        ArrayList<String> listOfActions = new ArrayList<>();
+                        for (PermissionAction pa : permission.getPermissionAction()) {
+                            listOfActions.add(pa.getActionName());
+                        }
+                        try {
+                            (new SetupPermissions(setupContext)).addPermission(role.getName(), permissionName,
+                                    resourcePrimKey, scope, listOfActions.toArray(new String[listOfActions.size()]));
+                        } catch (SystemException | PortalException e) {
+                            LOG.error(
+                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
+                                    e);
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    public long getRunAsUserId() {
+        return setupContext.getRunAsUserId();
+    }
+
+    public void deleteRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles, final String deleteMethod) {
 
         switch (deleteMethod) {
             case "excludeListed":
-                Map<String, com.ableneo.liferay.portal.setup.domain.Role> toBeDeletedRoles = convertRoleListToHashMap(
-                        roles);
+                Map<String, com.ableneo.liferay.portal.setup.domain.Role> toBeDeletedRoles =
+                        convertRoleListToHashMap(roles);
                 try {
                     for (Role role : RoleLocalServiceUtil.getRoles(-1, -1)) {
                         String name = role.getName();
                         if (!toBeDeletedRoles.containsKey(name)) {
                             try {
-                                RoleLocalServiceUtil
-                                        .deleteRole(RoleLocalServiceUtil.getRole(companyId, name));
+                                RoleLocalServiceUtil.deleteRole(
+                                        RoleLocalServiceUtil.getRole(setupContext.getRunInCompanyId(), name));
                                 LOG.info("Deleting Role " + name);
 
                             } catch (Exception e) {
@@ -126,7 +217,8 @@ public final class SetupRoles {
                 for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
                     String name = role.getName();
                     try {
-                        RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(companyId, name));
+                        RoleLocalServiceUtil
+                                .deleteRole(RoleLocalServiceUtil.getRole(setupContext.getRunInCompanyId(), name));
                         LOG.info("Deleting Role " + name);
 
                     } catch (RequiredRoleException e) {

@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,10 +27,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
 import java.util.List;
 
 import com.liferay.portal.kernel.exception.PortalException;
@@ -45,12 +41,10 @@ public final class WebFolderUtil {
 
     private final static Log LOGGER = LogFactoryUtil.getLog(WebFolderUtil.class);
 
-    private WebFolderUtil() {
-    }
+    private WebFolderUtil() {}
 
-    public static JournalFolder findWebFolder(final long companyId, final long groupId,
-            final long userId, final String name, final String description,
-            final boolean createIfNotExists) {
+    public static JournalFolder findWebFolder(final long companyId, final long groupId, final long userId,
+            final String name, final String description, final boolean createIfNotExists) {
         String[] folderPath = name.split("/");
         JournalFolder foundFolder = null;
         int count = 0;
@@ -61,8 +55,7 @@ public final class WebFolderUtil {
                 foundFolder = findWebFolder(groupId, parentId, folder);
 
                 if (foundFolder == null && createIfNotExists) {
-                    foundFolder = createWebFolder(userId, companyId, groupId, parentId, folder,
-                            description);
+                    foundFolder = createWebFolder(userId, companyId, groupId, parentId, folder, description);
                 }
 
                 if (foundFolder == null) {
@@ -75,10 +68,9 @@ public final class WebFolderUtil {
         return foundFolder;
     }
 
-    public static JournalFolder findWebFolder(final Long groupId, final Long parentFolderId,
-            final String name) {
+    public static JournalFolder findWebFolder(final Long groupId, final Long parentFolderId, final String name) {
         JournalFolder dir = null;
-        List<JournalFolder> dirs = null;
+        List<JournalFolder> dirs;
         try {
             dirs = JournalFolderLocalServiceUtil.getFolders(groupId, parentFolderId);
             for (JournalFolder jf : dirs) {
@@ -93,19 +85,18 @@ public final class WebFolderUtil {
         return dir;
     }
 
-    public static JournalFolder createWebFolder(final long userId, final long companyId,
-            final long groupId, final long parentFolderId, final String name,
-            final String description) {
+    public static JournalFolder createWebFolder(final long userId, final long companyId, final long groupId,
+            final long parentFolderId, final String name, final String description) {
         JournalFolder folder = null;
         try {
             ServiceContext serviceContext = new ServiceContext();
             serviceContext.setScopeGroupId(groupId);
             serviceContext.setCompanyId(companyId);
 
-            folder = JournalFolderLocalServiceUtil.addFolder(userId, groupId, parentFolderId, name,
-                    description, serviceContext);
+            folder = JournalFolderLocalServiceUtil.addFolder(userId, groupId, parentFolderId, name, description,
+                    serviceContext);
 
-        } catch (PortalException|SystemException e) {
+        } catch (PortalException | SystemException e) {
             LOGGER.error("Failed to create web folder, name: " + name, e);
         }
         return folder;

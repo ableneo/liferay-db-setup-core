@@ -31,9 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
+import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -42,82 +42,60 @@ import com.liferay.portal.model.Group;
 import com.liferay.portal.model.ListTypeConstants;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.OrganizationConstants;
+import com.liferay.portal.model.User;
 import com.liferay.portal.service.GroupLocalServiceUtil;
 import com.liferay.portal.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.service.ServiceContext;
 import com.liferay.portal.service.UserLocalServiceUtil;
-import com.liferay.portal.util.PortalUtil;
 
 public final class SetupOrganizations {
 
+    public static final String DESCRIPTION = "Created by setup module.";
     private static final Log LOG = LogFactoryUtil.getLog(SetupOrganizations.class);
-    private static final String DEFAULT_GROUP_NAME = "Guest";
-    private static final long COMPANY_ID = PortalUtil.getDefaultCompanyId();
+    private final SetupContext setupContext;
 
-    private SetupOrganizations() {
-
+    public SetupOrganizations(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupOrganizations(
+    public void setupOrganizations(
             final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
-            final Organization parentOrg, final Group parentGroup, long runAsUserId) {
+            final Organization parentOrg, final Group parentGroup) {
+        final long userId = getRunAsUserId();
 
         for (com.ableneo.liferay.portal.setup.domain.Organization organization : organizations) {
             try {
                 Organization liferayOrg = null;
                 Group liferayGroup = null;
                 long groupId = -1;
-                if (organization.isDefault()) {
-                    liferayGroup = GroupLocalServiceUtil.getGroup(COMPANY_ID, DEFAULT_GROUP_NAME);
-                    groupId = liferayGroup.getGroupId();
-                    LOG.info("Setup: default site. Group ID: " + groupId);
-                } else if (organization.getName() == null) {
-                    liferayGroup = GroupLocalServiceUtil.getCompanyGroup(COMPANY_ID);
-                    groupId = liferayGroup.getGroupId();
-                    LOG.info("Setup: global site. Group ID: " + groupId);
-                } else {
-                    try {
-                        Organization org =
-                                OrganizationLocalServiceUtil.getOrganization(COMPANY_ID, organization.getName());
-                        liferayGroup = org.getGroup();
-                        groupId = org.getGroupId();
-                        liferayOrg = org;
-                        LOG.info("Setup: Organization " + organization.getName()
-                                + " already exist in system, not creating...");
+                try {
+                    Organization org =
+                            OrganizationLocalServiceUtil.getOrganization(getRunInCompanyId(), organization.getName());
+                    liferayGroup = org.getGroup();
+                    groupId = org.getGroupId();
+                    liferayOrg = org;
+                    LOG.info("Setup: Organization " + organization.getName()
+                            + " already exist in system, not creating...");
 
-                    } catch (PortalException | SystemException e) {
-                        LOG.debug("Organization does not exist.", e);
-                    }
+                } catch (PortalException | SystemException e) {
+                    LOG.debug("Organization does not exist.", e);
                 }
 
                 if (groupId == -1) {
                     LOG.info(
                             "Setup: Organization " + organization.getName() + " does not exist in system, creating...");
 
-                    long defaultUserId = UserLocalServiceUtil.getDefaultUserId(COMPANY_ID);
-                    Organization newOrganization = OrganizationLocalServiceUtil.addOrganization(defaultUserId, 0,
-                            organization.getName(), OrganizationConstants.TYPE_REGULAR_ORGANIZATION, 0, 0,
-                            ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, LiferaySetup.DESCRIPTION, true,
-                            new ServiceContext());
+                    long defaultUserId = UserLocalServiceUtil.getDefaultUserId(getRunInCompanyId());
+                    Organization newOrganization = OrganizationLocalServiceUtil.addOrganization(defaultUserId,
+                            OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, organization.getName(),
+                            OrganizationConstants.TYPE_REGULAR_ORGANIZATION, 0, 0,
+                            ListTypeConstants.ORGANIZATION_STATUS_DEFAULT, DESCRIPTION, false, new ServiceContext());
+                    addOrganizationUser(newOrganization, UserLocalServiceUtil.getUser(defaultUserId));
                     liferayOrg = newOrganization;
                     liferayGroup = liferayOrg.getGroup();
                     groupId = newOrganization.getGroupId();
                     LOG.info("New Organization created. Group ID: " + groupId);
 
-                }
-
-                if (liferayGroup != null && organization.getSiteName() != null
-                        && !organization.getSiteName().equals("")) {
-                    liferayGroup.setName(organization.getSiteName());
-                    GroupLocalServiceUtil.updateGroup(liferayGroup);
-                    liferayGroup = liferayOrg.getGroup();
-                }
-
-                if (liferayGroup != null && organization.getSiteFriendlyUrl() != null
-                        && !organization.getSiteFriendlyUrl().equals("")) {
-                    liferayGroup.setFriendlyURL(organization.getSiteFriendlyUrl());
-                    GroupLocalServiceUtil.updateGroup(liferayGroup);
-                    liferayGroup = liferayOrg.getGroup();
                 }
 
                 if (parentOrg != null && liferayOrg != null && organization.isMaintainOrganizationHierarchy()) {
@@ -128,39 +106,64 @@ public final class SetupOrganizations {
                     OrganizationLocalServiceUtil.updateOrganization(liferayOrg);
                 }
 
-                if (parentGroup != null && liferayGroup != null && organization.isMaintainSiteHierarchy()) {
-                    liferayGroup.setParentGroupId(parentGroup.getGroupId());
-                    GroupLocalServiceUtil.updateGroup(liferayGroup);
-                } else if (liferayGroup != null && organization.isMaintainSiteHierarchy()) {
-                    liferayGroup.setParentGroupId(0);
-                    GroupLocalServiceUtil.updateGroup(liferayGroup);
-                }
-
-                LOG.info("Setting organization content...");
-
-                SetupDocumentFolders.setupDocumentFolders(organization, groupId, COMPANY_ID, runAsUserId);
-                LOG.info("Document Folders setting finished.");
-
-                SetupDocuments.setupOrganizationDocuments(organization, groupId, COMPANY_ID, runAsUserId);
-                LOG.info("Documents setting finished.");
-
-                SetupPages.setupOrganizationPages(organization, groupId, COMPANY_ID, runAsUserId, runAsUserId);
-                LOG.info("Organization Pages setting finished.");
-
-                SetupWebFolders.setupWebFolders(organization, groupId, COMPANY_ID, runAsUserId);
-                LOG.info("Web folders setting finished.");
-
-                SetupCategorization.setupVocabularies(organization, groupId, runAsUserId);
-                LOG.info("Organization Categories setting finished.");
-
-                SetupArticles.setupOrganizationArticles(organization, groupId, COMPANY_ID, runAsUserId);
-                LOG.info("Organization Articles setting finished.");
-
-                setCustomFields(runAsUserId, groupId, COMPANY_ID, organization, liferayOrg);
+                setCustomFields(userId, groupId, getRunInCompanyId(), organization, liferayOrg);
                 LOG.info("Organization custom fields set up.");
 
+                Site orgSite = organization.getSite();
+
+                if (orgSite == null) {
+                    LOG.info("Organization has no site defined. All is set.");
+                } else if (orgSite.isDefault() || orgSite.getName() == null || orgSite.getName().isEmpty()) {
+                    LOG.error("It is not possible to set global or default within organization. Skipping site setup.");
+                } else {
+                    LOG.info("Setting up site for organization.");
+                    liferayGroup.setSite(true);
+                    liferayGroup.setName(orgSite.getName());
+                    GroupLocalServiceUtil.updateGroup(liferayGroup);
+                    liferayGroup = liferayOrg.getGroup();
+
+                    if (liferayGroup != null && orgSite.getSiteFriendlyUrl() != null
+                            && !orgSite.getSiteFriendlyUrl().isEmpty()) {
+                        liferayGroup.setFriendlyURL(orgSite.getSiteFriendlyUrl());
+                        GroupLocalServiceUtil.updateGroup(liferayGroup);
+                        liferayGroup = liferayOrg.getGroup();
+                    }
+
+                    if (parentGroup != null && liferayGroup != null && orgSite.isMaintainSiteHierarchy()) {
+                        liferayGroup.setParentGroupId(parentGroup.getGroupId());
+                        GroupLocalServiceUtil.updateGroup(liferayGroup);
+                    } else if (liferayGroup != null && orgSite.isMaintainSiteHierarchy()) {
+                        liferayGroup.setParentGroupId(0);
+                        GroupLocalServiceUtil.updateGroup(liferayGroup);
+                    }
+
+                    LOG.info("Setting organization site content...");
+
+                    (new SetupDocumentFolders(setupContext.clone())).setupDocumentFolders(orgSite);
+                    LOG.info("Document Folders setting finished.");
+
+                    (new SetupDocuments(setupContext.clone())).setupSiteDocuments(orgSite);
+                    LOG.info("Documents setting finished.");
+
+                    (new SetupPages(setupContext.clone())).setupSitePages(orgSite);
+                    LOG.info("Organization Pages setting finished.");
+
+                    (new SetupWebFolders(setupContext.clone())).setupWebFolders(orgSite);
+                    LOG.info("Web folders setting finished.");
+
+                    (new SetupCategorization(setupContext.clone())).setupVocabularies(orgSite);
+                    LOG.info("Organization Categories setting finished.");
+
+                    (new SetupArticles(setupContext.clone())).setupSiteArticles(orgSite);
+                    LOG.info("Organization Articles setting finished.");
+
+                    (new SetupSites(setupContext.clone())).setCustomFields(orgSite);
+                    LOG.info("Organization site custom fields set up.");
+
+                }
+
                 List<com.ableneo.liferay.portal.setup.domain.Organization> orgs = organization.getOrganization();
-                setupOrganizations(orgs, liferayOrg, liferayGroup, runAsUserId);
+                setupOrganizations(orgs, liferayOrg, liferayGroup);
 
             } catch (Exception e) {
                 LOG.error("Error by setting up organization " + organization.getName(), e);
@@ -169,25 +172,21 @@ public final class SetupOrganizations {
 
     }
 
-    private static void setCustomFields(final long runAsUserId, final long groupId, final long company,
+    private void setCustomFields(final long runAsUserId, final long groupId, final long company,
             final com.ableneo.liferay.portal.setup.domain.Organization org, final Organization liferayOrg) {
-        if (liferayOrg == null && org.getCustomFieldSetting() != null && org.getCustomFieldSetting().size() > 0) {
-            LOG.error("Default site or global site has not organization. Thus you may not be able"
-                    + " to set custom field" + " values for the organiaztion!");
-        } else {
-            Class clazz = Organization.class;
-            String resolverHint = "Resolving customized value for page " + org.getName() + " "
-                    + "failed for key %%key%% " + "and value %%value%%";
-            for (CustomFieldSetting cfs : org.getCustomFieldSetting()) {
-                String key = cfs.getKey();
-                String value = cfs.getValue();
-                CustomFieldSettingUtil.setExpandoValue(resolverHint.replace("%%key%%", key).replace("%%value%%", value),
-                        runAsUserId, groupId, company, clazz, liferayOrg.getOrganizationId(), key, value);
-            }
+
+        Class clazz = Organization.class;
+        String resolverHint = "Resolving customized value for page " + org.getName() + " " + "failed for key %%key%% "
+                + "and value %%value%%";
+        for (CustomFieldSetting cfs : org.getCustomFieldSetting()) {
+            String key = cfs.getKey();
+            String value = cfs.getValue();
+            CustomFieldSettingUtil.setExpandoValue(setupContext, resolverHint.replace("%%key%%", key).replace("%%value%%", value),
+                    clazz, liferayOrg.getOrganizationId(), key, value);
         }
     }
 
-    public static void deleteOrganization(
+    public void deleteOrganization(
             final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations, final String deleteMethod) {
 
         switch (deleteMethod) {
@@ -195,8 +194,7 @@ public final class SetupOrganizations {
                 Map<String, com.ableneo.liferay.portal.setup.domain.Organization> toBeDeletedOrganisations =
                         convertOrganisationListToHashMap(organizations);
                 try {
-                    for (com.liferay.portal.model.Organization organisation : OrganizationLocalServiceUtil
-                            .getOrganizations(-1, -1)) {
+                    for (Organization organisation : OrganizationLocalServiceUtil.getOrganizations(-1, -1)) {
                         if (!toBeDeletedOrganisations.containsKey(organisation.getName())) {
                             try {
                                 OrganizationLocalServiceUtil.deleteOrganization(organisation.getOrganizationId());
@@ -215,7 +213,7 @@ public final class SetupOrganizations {
                 for (com.ableneo.liferay.portal.setup.domain.Organization organisation : organizations) {
                     String name = organisation.getName();
                     try {
-                        Organization o = OrganizationLocalServiceUtil.getOrganization(COMPANY_ID, name);
+                        Organization o = OrganizationLocalServiceUtil.getOrganization(getRunInCompanyId(), name);
                         OrganizationLocalServiceUtil.deleteOrganization(o);
                     } catch (Exception e) {
                         LOG.error("Error by deleting Organisation !", e);
@@ -239,6 +237,26 @@ public final class SetupOrganizations {
             map.put(organization.getName(), organization);
         }
         return map;
+    }
+
+    public long getRunInCompanyId() {
+        return setupContext.getRunInCompanyId();
+    }
+
+    public static void addOrganizationUsers(Organization organization, User... users) throws SystemException {
+        for (int i = 0; i < users.length; i++) {
+            addOrganizationUser(organization, users[i]);
+        }
+    }
+
+    public static void addOrganizationUser(Organization organization, User user) throws SystemException {
+        LOG.info("Adding user with screenName: " + user.getScreenName() + "to organization with name: "
+                + organization.getName());
+        OrganizationLocalServiceUtil.addUserOrganization(user.getUserId(), organization);
+    }
+
+    public long getRunAsUserId() {
+        return setupContext.getRunAsUserId();
     }
 
 }

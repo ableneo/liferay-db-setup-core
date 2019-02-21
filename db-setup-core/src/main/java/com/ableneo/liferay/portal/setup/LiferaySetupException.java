@@ -27,8 +27,6 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
-
-
 public class LiferaySetupException extends Exception {
     public LiferaySetupException(String message) {
         super(message);

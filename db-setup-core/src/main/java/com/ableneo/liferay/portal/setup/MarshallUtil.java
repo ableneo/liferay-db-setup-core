@@ -1,11 +1,11 @@
-package com.ableneo.liferay.portal.setup.core.util;
+package com.ableneo.liferay.portal.setup;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
  * Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo Slovensko s.r.o.
+ * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
  * %%
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,92 +27,78 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import com.ableneo.liferay.portal.setup.domain.Setup;
-import org.jboss.vfs.VirtualFile;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
 
+import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
+import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 public final class MarshallUtil {
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
-    private MarshallUtil() {
+    private MarshallUtil() {}
+
+    public static Setup unmarshall(final File xmlFile)
+            throws FileNotFoundException, JAXBException, ParserConfigurationException, SAXException {
+        return MarshallUtil.unmarshall(new FileInputStream(xmlFile));
     }
 
-    public static Setup unmarshall(final File xmlFile) {
+    public static Setup unmarshall(final InputStream stream)
+            throws JAXBException, ParserConfigurationException, SAXException {
         try {
-            return (Setup) getUnmarshaller().unmarshal(xmlFile);
-        } catch (JAXBException e) {
-            LOG.error("cannot unmarshall", e);
-            throw new IllegalArgumentException("cannot unmarshallFile");
-        }
-    }
-
-    public static Setup unmarshall(final InputStream stream) {
-        try {
-            return (Setup) getUnmarshaller().unmarshal(stream);
-        } catch (JAXBException e) {
-            LOG.error("cannot unmarshall", e);
-            throw new IllegalArgumentException("cannot unmarshallFile");
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            spf.setNamespaceAware(true);
+            XMLReader xr = spf.newSAXParser().getXMLReader();
+            SAXSource src = new SAXSource(xr, new InputSource(stream));
+            return (Setup) getUnmarshaller().unmarshal(src);
+        } catch (JAXBException | ParserConfigurationException | SAXException e) {
+            LOG.error("Cannot unmarshall the provided stream", e);
+            throw e;
         }
     }
 
     private static Unmarshaller getUnmarshaller() throws JAXBException {
-        JAXBContext jc = JAXBContext.newInstance("com.mimacom.liferay.portal.setup.domain");
+
+        ClassLoader cl = ObjectFactory.class.getClassLoader();
+        JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName(), cl);
         return jc.createUnmarshaller();
     }
 
     public static boolean validateAgainstXSD(final InputStream xml) throws IOException {
+
         ClassLoader cl = MarshallUtil.class.getClassLoader();
-        URL url = cl.getResource("setup_definition-2.0.xsd");
-        if (url == null) {
+        InputStream schemaInputStream = cl.getResourceAsStream("setup_definition-1.2.xsd");
+        if (schemaInputStream == null) {
             throw new IOException("XSD configuration not found");
-        }
-        URI uri = null;
-        try {
-            uri = url.toURI();
-        } catch (URISyntaxException e) {
-            throw new IOException("Problem with reading xsd", e);
-        }
-
-        File file = null;
-        if (uri.getScheme().equals("vfs")) {
-            VirtualFile virtualFile = (VirtualFile) url.openConnection().getContent();
-            file = virtualFile.getPhysicalFile();
-
-        } else if (uri.getScheme().equals("file")) {
-            file = new File(uri);
-        } else {
-            throw new IOException("Problem with reading xsd");
         }
 
         try {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Schema schema = factory.newSchema(new StreamSource(file));
+            Schema schema = factory.newSchema(new StreamSource(schemaInputStream));
             Validator validator = schema.newValidator();
             validator.validate(new StreamSource(xml));
-
             return true;
-
         } catch (Exception ex) {
             return false;
         }

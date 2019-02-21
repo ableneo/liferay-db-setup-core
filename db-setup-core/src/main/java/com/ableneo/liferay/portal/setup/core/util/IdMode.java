@@ -5,7 +5,7 @@ package com.ableneo.liferay.portal.setup.core.util;
  * Liferay Portal DB Setup core
  * %%
  * Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo Slovensko s.r.o.
+ * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
  * %%
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,36 +27,19 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-import java.io.File;
+public enum IdMode {
+    ID("ID"),
+    PLID("PLID"),
+    UUID("UUID");
 
-public final class FilePathUtil {
+    private final String text;
 
-    private FilePathUtil() {
-
+    private IdMode(String text) {
+        this.text = text;
     }
 
-    public static String getExtension(final String fname) {
-        String ext = "";
-        File f = new File(fname);
-        int pos = f.getName().indexOf(".");
-        if (f.getName().indexOf(".") > -1) {
-            ext = f.getName().substring(pos);
-        }
-        return ext;
-    }
-
-    public static String getPath(final String fname) {
-        String path = "";
-        int pos = fname.lastIndexOf("/");
-        if (pos > -1) {
-            path = fname.substring(0, pos);
-        }
-
-        return path;
-    }
-
-    public static String getFileName(final String fname) {
-        File f = new File(fname);
-        return f.getName();
+    @Override
+    public String toString() {
+        return this.text;
     }
 }

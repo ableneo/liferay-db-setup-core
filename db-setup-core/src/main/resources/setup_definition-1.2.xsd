@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<<<<<<< HEAD:db-setup-core/src/main/resources/setup_definition-1.1.xsd
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           elementFormDefault="qualified" targetNamespace="https://raw.githubusercontent.com/mimacom/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.1.xsd"
-           xmlns="https://raw.githubusercontent.com/mimacom/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.1.xsd">
-=======
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup">
->>>>>>> master:db-setup-core/src/main/resources/setup_definition-1.0.xsd
+           xmlns:equals="http://jaxb2-commons.dev.java.net/basic/equals"
+           xmlns:hashCode="http://jaxb2-commons.dev.java.net/basic/hashCode"
+           elementFormDefault="qualified" targetNamespace="https://raw.githubusercontent.com/ableneo/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.2.xsd"
+           xmlns="https://raw.githubusercontent.com/ableneo/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.2.xsd">
 
     <xs:element name="setup">
         <xs:annotation>
@@ -17,6 +14,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
+                <!-- specify the email address of user, which will be used for performing
+                    all operations within setup hook -->
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="userGroups" minOccurs="0"/>
@@ -24,7 +23,6 @@
                 <xs:element ref="portletPermissions" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="sites" minOccurs="0"/>
                 <xs:element ref="organizations" minOccurs="0"/>
-                <xs:element ref="sites" minOccurs="0"/>
                 <xs:element ref="customFields" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="deleteLiferayObjects" minOccurs="0" maxOccurs="1"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="page-templates"/>
@@ -35,9 +33,8 @@
     <xs:element name="configuration">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0" maxOccurs="1" ref="runasuser"></xs:element>
-                <xs:element minOccurs="0" maxOccurs="unbounded" ref="company">
-                </xs:element>
+                <xs:element minOccurs="0" maxOccurs="1" ref="runasuser"/>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="company"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -88,14 +85,6 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="sites">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="site"/>
-            </xs:sequence>
-        </xs:complexType>
-    </xs:element>
-
     <xs:element name="organizations">
         <xs:complexType>
             <xs:sequence>
@@ -133,7 +122,6 @@
         </xs:complexType>
     </xs:element>
 
-<<<<<<< HEAD:db-setup-core/src/main/resources/setup_definition-1.1.xsd
     <xs:element name="runasuser" type="xs:string">
         <xs:annotation>
             <xs:documentation>
@@ -165,40 +153,6 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-
-    <xs:element name="site">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element maxOccurs="1" minOccurs="0" ref="public-pages"/>
-                <xs:element maxOccurs="1" minOccurs="0" ref="private-pages"/>
-                <xs:element ref="document-folder" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="document" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="article-structure" type="structure" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="article-template" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="article-folder" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="article" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="adt" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="vocabulary" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="ddl-structure" type="structure" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="ddl-recordset" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element ref="organization" minOccurs="0" maxOccurs="unbounded"/>
-
-            </xs:sequence>
-            <xs:attribute name="name" type="xs:string"/>
-            <xs:attribute name="default" type="xs:boolean" default="false"/>
-            <xs:attribute name="strict-web-folder-definition" type="xs:boolean" default="false"/>
-            <xs:attribute name="strict-document-folder-definition" type="xs:boolean" default="false"/>
-            <xs:attribute name="maintain-organization-hierarchy" type="xs:boolean" default="false"/>
-            <xs:attribute name="maintain-site-hierarchy" type="xs:boolean" default="false"/>
-            <xs:attribute name="site-name" type="xs:string"/>
-            <xs:attribute name="site-friendly-url" type="xs:string"/>
-
-        </xs:complexType>
-    </xs:element>
-=======
-    <xs:element name="runasuser" type="xs:string"></xs:element>
->>>>>>> master:db-setup-core/src/main/resources/setup_definition-1.0.xsd
 
     <xs:element name="organization">
         <xs:complexType>
@@ -241,6 +195,7 @@
             <xs:attribute name="site-friendly-url" type="xs:string"/>
         </xs:complexType>
     </xs:element>
+
 
     <xs:element name="membership">
         <xs:complexType>
@@ -296,6 +251,7 @@
             </xs:attribute>
 
         </xs:complexType>
+
     </xs:element>
 
     <xs:element name="private-pages">
@@ -361,14 +317,18 @@
                     <li>{{$ART-STRUCTURE-UUID-BY-KEY=[:: name of the site ::]&lt; article id to look for &gt;$}}</li>
                     <li>{{$ADT-TEMPLATE-ID-BY-KEY=[:: name of the site ::]&lt; article id to look for &gt;$}}</li>
                     <li>{{$ADT-TEMPLATE-UUID-BY-KEY=[:: name of the site ::]&lt; article id to look for &gt;$}}</li>
-                    <li>{{$FILE-URL=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt; documents and media folder title of the file &gt;$}}
+                    <li>{{$FILE-URL=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt;
+                        documents and media folder title of the file &gt;$}}
                     </li>
-                    <li>{{$FILE-ID=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt; documents and media folder title of the file &gt;$}}
+                    <li>{{$FILE-ID=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt;
+                        documents and media folder title of the file &gt;$}}
                     </li>
-                    <li>{{$FILE-UUID=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt; documents and media folder title of the file &gt;$}}
+                    <li>{{$FILE-UUID=[:: name of the site ::]&lt; documents and media folder path to the file &gt;&lt;
+                        documents and media folder title of the file &gt;$}}
                     </li>
                     <li>{{$CLASS-ID-BY-NAME=&lt; fully qualified class name &gt;$}}</li>
-                    <li>{{$PRIV-PAGE-ID-BY-FRIENDLY_URL=[:: name of the site ::]&lt; friendly url of the private page &gt;$}}
+                    <li>{{$PRIV-PAGE-ID-BY-FRIENDLY_URL=[:: name of the site ::]&lt; friendly url of the private page
+                        &gt;$}}
                     </li>
                     <li>{{$PUB-PAGE-ID-BY-FRIENDLY_URL=[:: name of the site ::]&lt; friendly url of the public page &gt;$}}</li>
                     <li>{{$PRIV-PAGE-PLID-BY-FRIENDLY_URL=[:: name of the site ::]&lt; friendly url of the private page &gt;$}}

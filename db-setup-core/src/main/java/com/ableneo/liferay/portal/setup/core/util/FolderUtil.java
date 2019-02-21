@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,33 +27,29 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portlet.documentlibrary.NoSuchFolderException;
-import com.ableneo.liferay.portal.setup.core.SetupDocumentFolders;
+import com.ableneo.liferay.portal.setup.core.SetupContext;
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
-
+import com.ableneo.liferay.portal.setup.core.SetupWebFolders;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.service.ServiceContext;
+import com.liferay.portlet.documentlibrary.NoSuchFolderException;
 import com.liferay.portlet.documentlibrary.service.DLAppLocalServiceUtil;
 import com.liferay.portlet.journal.model.JournalFolder;
 
 public final class FolderUtil {
 
     private static final Log LOG = LogFactoryUtil.getLog(FolderUtil.class);
+    private final SetupContext setupContext;
 
-    private FolderUtil() {
-
+    public FolderUtil(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static Folder findFolder(final long company, final long groupId, final long repoId,
-            final long userId, final String name, final boolean createIfNotExists) {
+    public Folder findFolder(final long repoId, final String name, final boolean createIfNotExists) throws SystemException {
         String[] folderPath = name.split("/");
         Folder foundFolder = null;
         int count = 0;
@@ -61,15 +57,13 @@ public final class FolderUtil {
         while (count < folderPath.length) {
             String folder = folderPath[count];
             if (!folder.equals("")) {
-                foundFolder = findFolder(groupId, parentId, folder);
+                long groupId = setupContext.getRunInGroupId();
+                foundFolder = findFolder(parentId, folder);
 
                 if (foundFolder == null && createIfNotExists) {
-                    foundFolder = createDocumentFolder(company, groupId, repoId, userId, parentId,
-                            folder);
-                    SetupPermissions.updatePermission(
-                            "Folder " + name + ", creating folder " + "segment " + folder, groupId,
-                            company, foundFolder.getFolderId(), JournalFolder.class, null,
-                            SetupDocumentFolders.DEFAULT_PERMISSIONS);
+                    foundFolder = createDocumentFolder(repoId, parentId, folder);
+                    (new SetupPermissions(setupContext.clone())).updatePermission("Folder " + name + ", creating folder " + "segment " + folder,
+                            foundFolder.getFolderId(), JournalFolder.class,  null, SetupWebFolders.DEFAULT_PERMISSIONS);
                 }
 
                 if (foundFolder == null) {
@@ -82,21 +76,22 @@ public final class FolderUtil {
         return foundFolder;
     }
 
-    public static Folder findFolder(final Long groupId, final Long parentFolderId,
-            final String name) {
+    public Folder findFolder(final Long parentFolderId, final String name) {
         Folder dir = null;
         try {
+            long groupId = setupContext.getRunInGroupId();
             dir = DLAppLocalServiceUtil.getFolder(groupId, parentFolderId, name);
         } catch (NoSuchFolderException nsfe) {
             LOG.info("Folder not found: " + name);
-        } catch (PortalException|SystemException e) {
+        } catch (PortalException e) {
+            LOG.error("Error while trying to get folder: " + name, e);
+        } catch (SystemException e) {
             LOG.error("Error while trying to get folder: " + name, e);
         }
         return dir;
     }
 
-    public static Folder createDocumentFolder(final long companyId, final long groupId,
-            final long repoId, final long userId, final Long pFolderId, final String folderName) {
+    public Folder createDocumentFolder(final long repoId, final Long pFolderId, final String folderName) {
 
         Long currentFolderId = null;
         Folder folder = null;
@@ -105,13 +100,13 @@ public final class FolderUtil {
         if (currentFolderId == null) {
 
             try {
-                folder = findFolder(groupId, pFolderId, folderName);
+                folder = findFolder(pFolderId, folderName);
                 if (folder == null) {
-                    folder = DLAppLocalServiceUtil.addFolder(userId, repoId, pFolderId, folderName,
-                            folderName, new ServiceContext());
+                    long userId = setupContext.getRunAsUserId();
+                    folder = DLAppLocalServiceUtil.addFolder(userId, repoId, pFolderId, folderName, folderName,
+                            new ServiceContext());
 
                 }
-                folder.getFolderId();
             } catch (SystemException | PortalException e) {
                 LOG.error("Couldn't create document folder, folderName: " + folderName, e);
             }

@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,28 +27,25 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-
-
-
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.model.RoleConstants;
 import com.liferay.portal.security.permission.ActionKeys;
 import com.liferay.portlet.documentlibrary.model.DLFolder;
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
-import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
-import com.ableneo.liferay.portal.setup.domain.Organization;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public final class SetupDocumentFolders {
     public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {
-        DEFAULT_PERMISSIONS = new HashMap<String, List<String>>();
-        List<String> actionsOwner = new ArrayList<String>();
+        DEFAULT_PERMISSIONS = new HashMap<>();
+        List<String> actionsOwner = new ArrayList<>();
 
         actionsOwner.add(ActionKeys.VIEW);
         actionsOwner.add(ActionKeys.UPDATE);
@@ -58,34 +55,39 @@ public final class SetupDocumentFolders {
         actionsOwner.add(ActionKeys.ADD_SHORTCUT);
         actionsOwner.add(ActionKeys.ADD_DOCUMENT);
         actionsOwner.add(ActionKeys.ACCESS);
+        actionsOwner.add(ActionKeys.SUBSCRIBE);
 
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
 
-        List<String> actionsUser = new ArrayList<String>();
+        List<String> actionsUser = new ArrayList<>();
         actionsUser.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.USER, actionsUser);
 
-        List<String> actionsGuest = new ArrayList<String>();
+        List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
 
-    private SetupDocumentFolders() {
+    private final SetupContext setupContext;
 
+    public SetupDocumentFolders(SetupContext setupContext) {
+        this.setupContext = setupContext;
     }
 
-    public static void setupDocumentFolders(
-            final Organization org, final long groupId,
-            final long companyId, long runAsUserId) {
-        for (DocumentFolder df : org.getDocumentFolder()) {
+    public void setupDocumentFolders(final Site group)
+            throws SystemException {
+        final long groupId = setupContext.getRunInGroupId();
+        for (DocumentFolder df : group.getDocumentFolder()) {
             boolean create = df.isCreateIfNotExists();
             String folderName = df.getFolderName();
 
-            Folder folder = FolderUtil.findFolder(companyId, groupId, groupId,
-                    runAsUserId, folderName, create);
-            SetupPermissions.updatePermission("Document folder " + folderName, groupId, companyId,
-                    folder.getFolderId(), DLFolder.class, df.getRolePermissions(),
-                    DEFAULT_PERMISSIONS);
+            Folder folder = (new FolderUtil(setupContext.clone())).findFolder(groupId, folderName, create);
+            (new SetupPermissions(setupContext.clone())).updatePermission("Document folder " + folderName,
+                    folder.getFolderId(), DLFolder.class, df.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
+    }
+
+    private long getRunAsUserId() {
+        return setupContext.getRunAsUserId();
     }
 }

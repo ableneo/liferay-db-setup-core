@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,72 +27,39 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
 import java.util.List;
 
+import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.core.SetupContext;
+import com.ableneo.liferay.portal.setup.domain.Article;
+import com.ableneo.liferay.portal.setup.domain.Tag;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.service.ServiceContext;
-import com.liferay.portlet.asset.NoSuchTagException;
-import com.liferay.portlet.asset.model.AssetTag;
+import com.liferay.portlet.asset.model.AssetEntry;
 import com.liferay.portlet.asset.service.AssetEntryLocalServiceUtil;
-import com.liferay.portlet.asset.service.AssetTagLocalServiceUtil;
 import com.liferay.portlet.journal.model.JournalArticle;
 
 public final class TaggingUtil {
     private static final Log LOG = LogFactoryUtil.getLog(TaggingUtil.class);
 
-    private TaggingUtil() {
-    }
+    private TaggingUtil() {}
 
-    public static void associateTagsWithJournalArticle(final List<String> tags,
-            final List<String> categories, final long userId, final long groupId,
-            final long primaryKey, final Class className) {
+    public static void associateTags(final SetupContext setupContext, Article article, JournalArticle journalArticle)
+            throws PortalException, SystemException {
 
-        try {
-            long[] catIds = new long[0];
-            if (categories != null) {
-                catIds = getCategories(categories, groupId, userId);
+        List<Tag> tags = article.getTag();
+        String[] tagNames = null;
+        if (tags != null) {
+            tagNames = new String[tags.size()];
+            for (int i = 0; i < tags.size(); i++) {
+                tagNames[i] = tags.get(i).getName();
             }
-            AssetEntryLocalServiceUtil.updateEntry(userId, groupId, JournalArticle.class.getName(),
-                    primaryKey, catIds, tags.toArray(new String[tags.size()]));
-        } catch (PortalException|SystemException e) {
-            LOG.error(e);
         }
-    }
-
-    public static long[] getCategories(final List<String> categories, final long groupId,
-            final long runAsUser) {
-        // The categories and tags to assign
-        final long[] assetCategoryIds = new long[categories.size()];
-        final String[] tagProperties = new String[0]; // Might be null too
-
-        for (int i = 0; i < categories.size(); ++i) {
-            final String name = categories.get(i);
-
-            AssetTag assetTag = null;
-            try {
-                assetTag = AssetTagLocalServiceUtil.getTag(groupId, name);
-            } catch (final NoSuchTagException e) {
-                try {
-                    assetTag = AssetTagLocalServiceUtil.addTag(runAsUser, name, tagProperties,
-                            new ServiceContext());
-                } catch (PortalException | SystemException e1) {
-                    LOG.error("Category " + name + " not found! ", e1);
-                }
-            } catch (PortalException e) {
-                LOG.error("Category " + name + " not found! ", e);
-            } catch (SystemException e) {
-                LOG.error("Category " + name + " not found! ", e);
-            }
-
-            assetCategoryIds[i] = assetTag.getTagId();
-        }
-        return assetCategoryIds;
+        AssetEntry entry = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(),
+                journalArticle.getResourcePrimKey());
+        AssetEntryLocalServiceUtil.updateEntry(setupContext.getRunAsUserId(), setupContext.getRunInGroupId(), JournalArticle.class.getName(),
+                entry.getClassPK(), null, tagNames);
     }
 }

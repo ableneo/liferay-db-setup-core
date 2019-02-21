@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,10 +27,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
@@ -52,7 +48,7 @@ public final class IndexerUtil {
         try {
             indexer.reindex(modelClass.getName(), id);
         } catch (SearchException e) {
-            LOG.error("Couldn't reindex entities of class: " + modelClass.getName(),e);
+            LOG.error("Couldn't reindex entities of class: " + modelClass.getName(), e);
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,10 +27,7 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
+import com.ableneo.liferay.portal.setup.core.SetupContext;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.service.ClassNameLocalServiceUtil;
@@ -50,41 +47,33 @@ public final class CustomFieldSettingUtil {
     private static final Log LOG = LogFactoryUtil.getLog(CustomFieldSettingUtil.class);
 
     private CustomFieldSettingUtil() {
-        // hide default constructor
+
     }
 
     /**
      * Auxiliary method that returns the expando value of a given expando field
      * with a given key.
      *
-     * @param resolverHint the resovler hint textually specifies where the value is from
-     *                     and is used for logging problems or infos on the resolution.
-     * @param runAsUserId  The user id under which the look up is done.
-     * @param groupId      scopes expando for a liferay site
-     * @param company      scopes expando for a liferay instance
-     * @param clazz        entity class whose expando field will be retrieved.
-     * @param id           classPK
-     * @param key          the name of the expando field.
-     * @param value        data to be set as an expando value
+     * @param key
+     *        The name of the expando field.
+     * @return Returns false, if the expando field or the value is not defined.
      */
-    public static void setExpandoValue(final String resolverHint, final long runAsUserId,
-                                       final long groupId, final long company, final Class clazz, final long id,
-                                       final String key, final String value) {
+    // CHECKSTYLE:OFF
+    public static void setExpandoValue(final SetupContext setupContext, final String resolverHint, final Class clazz, final long id, final String key, final String value) {
         String valueCopy = value;
         try {
 
-            ExpandoValue ev = ExpandoValueLocalServiceUtil.getValue(company, clazz.getName(),
-                    "CUSTOM_FIELDS", key, id);
+            long company = setupContext.getRunInCompanyId();
+            ExpandoValue ev = ExpandoValueLocalServiceUtil.getValue(company, clazz.getName(), "CUSTOM_FIELDS", key, id);
             // resolve any values to be substituted
-            valueCopy = ResolverUtil.lookupAll(runAsUserId, groupId, company, valueCopy,
-                    resolverHint);
+            valueCopy = ResolverUtil.lookupAll(setupContext, valueCopy, resolverHint);
             if (ev == null) {
                 long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz.getName());
 
-                ExpandoTable expandoTable = ExpandoTableLocalServiceUtil.getTable(company,
-                        classNameId, "CUSTOM_FIELDS");
-                ExpandoColumn expandoColumn = ExpandoColumnLocalServiceUtil.getColumn(company,
-                        classNameId, expandoTable.getName(), key);
+                ExpandoTable expandoTable =
+                        ExpandoTableLocalServiceUtil.getTable(company, classNameId, "CUSTOM_FIELDS");
+                ExpandoColumn expandoColumn =
+                        ExpandoColumnLocalServiceUtil.getColumn(company, classNameId, expandoTable.getName(), key);
 
                 // In this we are adding MyUserColumnData for the column
                 // MyUserColumn. See the
@@ -96,9 +85,10 @@ public final class CustomFieldSettingUtil {
                 ExpandoValueLocalServiceUtil.updateExpandoValue(ev);
             }
         } catch (Exception ex) {
-            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for "
-                    + "class " + clazz.getName() + " with id " + id, ex);
+            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for " + "class "
+                    + clazz.getName() + " with id " + id, ex);
         }
 
     }
+    // CHECKSTYLE:ON
 }

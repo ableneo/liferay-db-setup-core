@@ -15,7 +15,7 @@
 
     <name>Liferay Portal DB Setup core</name>
     <description>Library that allows to declare a set of Liferay data to be created and create them using the API.</description>
-    <inceptionYear>2018</inceptionYear>
+    <inceptionYear>2016</inceptionYear>
     <url>https://github.com/ableneo/liferay-db-setup-core</url>
 
     <packaging>jar</packaging>
@@ -38,12 +38,13 @@
                 <configuration>
                     <outputDirectory>${project.build.directory}/generated-sources/sources</outputDirectory>
                     <sources>
-                        <source>${basedir}/src/main/resources/setup_definition-1.1.xsd</source>
+                        <source>${basedir}/src/main/resources/setup_definition-1.2.xsd</source>
                     </sources>
                     <packageName>com.ableneo.liferay.portal.setup.domain</packageName>
                     <clearOutputDir>false</clearOutputDir>
                 </configuration>
             </plugin>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
@@ -53,6 +54,7 @@
                     <target>1.7</target>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -79,6 +81,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -94,6 +97,11 @@
                 <configuration>
                     <charset>UTF-8</charset>
                     <encoding>UTF-8</encoding>
+                    <additionalJOptions>
+                        <additionalJOption>
+                            ${javadoc.opts}
+                        </additionalJOption>
+                    </additionalJOptions>
                 </configuration>
                 <executions>
                     <execution>
@@ -122,6 +130,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics</artifactId>
+            <version>1.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jvnet.jaxb2_commons</groupId>
+            <artifactId>jaxb2-basics-runtime</artifactId>
+            <version>1.11.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.liferay.portal</groupId>
             <artifactId>portal-service</artifactId>
             <version>6.2.5</version>
@@ -132,11 +150,6 @@
             <artifactId>portlet-api</artifactId>
             <version>2.0</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss</groupId>
-            <artifactId>jboss-vfs</artifactId>
-            <version>3.1.0.Final</version>
         </dependency>
         <!-- Test -->
         <dependency>
@@ -152,7 +165,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <scm>
         <connection>scm:git:git://github.com/ableneo/liferay-db-setup-core.git</connection>
         <developerConnection>scm:git:ssh://github.com:ableneo/liferay-db-setup-core.git</developerConnection>
@@ -201,27 +213,42 @@
         <developer>
             <name>Gustav Novotny</name>
             <email>gustav.novotny@ableneo.com</email>
-            <organization>ableneo Slovensko s.r.o</organization>
+            <organization>ableneo Slovensko s.r.o.</organization>
             <organizationUrl>http://www.ableneo.com</organizationUrl>
         </developer>
         <developer>
             <name>Ludovit Hajzer</name>
             <email>ludovit.hajzer@ableneo.com</email>
-            <organization>ableneo Slovensko s.r.o</organization>
+            <organization>ableneo Slovensko s.r.o.</organization>
             <organizationUrl>http://www.ableneo.com</organizationUrl>
         </developer>
         <developer>
             <name>Marek Palenik</name>
             <email>marek.palenik@ableneo.com</email>
-            <organization>ableneo Slovensko s.r.o</organization>
+            <organization>ableneo Slovensko s.r.o.</organization>
             <organizationUrl>http://www.ableneo.com</organizationUrl>
         </developer>
         <developer>
             <name>Pawel Kruszewski</name>
             <email>pawel.kruszewski@ableneo.com</email>
-            <organization>ableneo Slovensko s.r.o</organization>
+            <organization>ableneo Slovensko s.r.o.</organization>
             <organizationUrl>http://www.ableneo.com</organizationUrl>
         </developer>
     </developers>
 
+    <profiles>
+        <profile>
+            <!-- using property directly instead of jdk activation because https://issues.liferay.com/browse/MAVEN-206 -->
+            <id>java8-doclint-disabled</id>
+            <activation>
+                <property>
+                    <name>java.specification.version</name>
+                    <value>1.8</value>
+                </property>
+            </activation>
+            <properties>
+                <javadoc.opts>-Xdoclint:none</javadoc.opts>
+            </properties>
+        </profile>
+    </profiles>
 </project>

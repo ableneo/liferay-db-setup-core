@@ -1,6 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*-
+/*
  * #%L
  * Liferay Portal DB Setup core
  * %%
@@ -27,10 +27,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-
-
-
-
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
@@ -44,22 +40,21 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.ableneo.liferay.portal.setup.domain.TitleTranslation;
-
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.util.PortalUtil;
 
 public final class TitleMapUtil {
     private static final Log LOG = LogFactoryUtil.getLog(TitleMapUtil.class);
 
-    private TitleMapUtil() {
-    }
+    private TitleMapUtil() {}
 
-    public static Map<Locale, String> getTitleMap(final List<TitleTranslation> translations,
-            final long groupId, final String defaultLocaleTitle, final String locationHint) {
+    public static Map<Locale, String> getTitleMap(final List<TitleTranslation> translations, final long groupId,
+            final String defaultLocaleTitle, final String locationHint) {
         Map<Locale, String> titleMap = new HashMap<>();
         Locale siteDefaultLocale = getDefaultLocale(groupId, locationHint);
 
@@ -77,8 +72,7 @@ public final class TitleMapUtil {
                     }
                     titleMap.put(l, tt.getTitleText());
                 } catch (Exception ex) {
-                    LOG.error("Exception while retrieving locale " + tt.getLocale() + " for "
-                            + locationHint);
+                    LOG.error("Exception while retrieving locale " + tt.getLocale() + " for " + locationHint);
                 }
             }
         }
@@ -95,8 +89,7 @@ public final class TitleMapUtil {
         return siteDefaultLocale;
     }
 
-    public static String getXMLTitleStructure(final Map<Locale, String> titles,
-            final Locale defaultLocale) {
+    public static String getXMLTitleStructure(final Map<Locale, String> titles, final Locale defaultLocale) {
         Set<Locale> locales = titles.keySet();
 
         String xmlTitleStructure = "";
@@ -134,9 +127,17 @@ public final class TitleMapUtil {
             xmlTitleStructure = sw.toString();
             sw.close();
         } catch (XMLStreamException | IOException e) {
-            LOG.error("Problem when creating title structure for the following internationalized "
-                    + "titles: " + titles + "", e);
+            LOG.error("Problem when creating title structure for the following internationalized " + "titles: " + titles
+                    + "", e);
         }
         return xmlTitleStructure;
+    }
+
+    public static Map<Locale, String> getLocalizationMap(final String value) {
+        Map<Locale, String> map = new HashMap<>();
+
+        map.put(LocaleUtil.getDefault(), value);
+
+        return map;
     }
 }
