@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-           xmlns:equals="http://jaxb2-commons.dev.java.net/basic/equals"
-           xmlns:hashCode="http://jaxb2-commons.dev.java.net/basic/hashCode"
            elementFormDefault="qualified" targetNamespace="https://raw.githubusercontent.com/ableneo/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.2.xsd"
            xmlns="https://raw.githubusercontent.com/ableneo/liferay-db-setup-core/1.x/db-setup-core/src/main/resources/setup_definition-1.2.xsd">
 
