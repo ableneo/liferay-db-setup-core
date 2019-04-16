@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>2.1.2</version>
+    <version>2.2.0-SNAPSHOT</version>
+    <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-core</artifactId>
     <name>Liferay Portal DB Setup core</name>
     <description>Library that allows to declare a set of Liferay data to be created and create them using the API.
@@ -11,11 +13,9 @@
 
     <packaging>jar</packaging>
 
-    <parent>
-        <groupId>com.ableneo.liferay</groupId>
-        <artifactId>build-parent</artifactId>
-        <version>1.0.0</version>
-    </parent>
+    <properties>
+        <liferay.release.bom.version>7.1.2</liferay.release.bom.version>
+    </properties>
 
     <build>
         <plugins>
@@ -41,7 +41,7 @@
 
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.5</version>
+                <version>3.8.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                     <source>1.8</source>
@@ -52,7 +52,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.8</version>
+                <version>1.19</version>
                 <configuration>
                     <outputDirectory>${project.build.directory}/generated-sources/license</outputDirectory>
                     <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
@@ -60,8 +60,6 @@
                     <excludes>
                         <exclude>**/package-info.java</exclude>
                     </excludes>
-                    <canUpdateCopyright>true</canUpdateCopyright>
-                    <canUpdateDescription>true</canUpdateDescription>
                     <canUpdateLicense>true</canUpdateLicense>
                 </configuration>
                 <executions>
@@ -78,7 +76,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.1.0</version>
                 <configuration>
                     <encoding>UTF-8</encoding>
                 </configuration>
@@ -86,60 +84,109 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.1.0</version>
                 <configuration>
                     <charset>UTF-8</charset>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.1</version>
+                <configuration>
+                    <filters>
+                        <filter>
+                            <artifact>com.liferay.*:*</artifact>
+                            <includes>
+                                <include>**/*.class</include>
+                            </includes>
+                        </filter>
+                    </filters>
+                    <minimizeJar>true</minimizeJar>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.liferay.portal</groupId>
+                <artifactId>release.portal.bom</artifactId>
+                <version>${liferay.release.bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.liferay.portal</groupId>
+                <artifactId>release.portal.bom.third.party</artifactId>
+                <version>${liferay.release.bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.liferay.portal</groupId>
+                <artifactId>release.portal.bom.compile.only</artifactId>
+                <version>${liferay.release.bom.version}</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
+        <dependency>
+            <!-- special dependency, only one class is used, included to the jar with share plugin above -->
+            <groupId>com.liferay.portal</groupId>
+            <artifactId>com.liferay.portal.impl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.liferay</groupId>
+            <artifactId>com.liferay.petra.lang</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.liferay.portal</groupId>
             <artifactId>com.liferay.portal.kernel</artifactId>
-            <version>2.6.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.liferay</groupId>
             <artifactId>com.liferay.journal.api</artifactId>
-            <version>2.6.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.liferay</groupId>
             <artifactId>com.liferay.dynamic.data.lists.api</artifactId>
-            <version>2.1.1</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.liferay</groupId>
             <artifactId>com.liferay.dynamic.data.mapping.api</artifactId>
-            <version>3.5.4</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.portlet</groupId>
             <artifactId>portlet-api</artifactId>
-            <version>2.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- Test -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.liferay.portal</groupId>
-            <artifactId>com.liferay.portal.impl</artifactId>
-            <version>2.6.0</version>
         </dependency>
     </dependencies>
     <scm>
