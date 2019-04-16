@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup">
+           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup" version="1.1">
 
     <xs:element name="setup">
+        <xs:annotation>
+            <xs:appinfo>Liferay Setup Configuration</xs:appinfo>
+            <xs:documentation xml:lang="en">
+                This configuration is used to setup Liferay DB with desired entities. It can be applied to: default, one, many Liferay instances at once. Additionally one can specify the groups on which the setup will take place.
+            </xs:documentation>
+        </xs:annotation>
         <xs:complexType>
             <xs:sequence>
                 <!-- specify the email address of user, which will be used for performing
@@ -24,7 +30,8 @@
     <xs:element name="configuration">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="1" maxOccurs="1" ref="runasuser"/>
+                <xs:element minOccurs="0" maxOccurs="1" ref="runasuser"/>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="company"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -112,7 +119,37 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="runasuser" type="xs:string"></xs:element>
+    <xs:element name="runasuser" type="xs:string">
+        <xs:annotation>
+            <xs:documentation>
+                Specify the email address of user, which will be used for performing all operations within setup hook or specific company. When empty: random user that has Administrator role within a company will be used.
+            </xs:documentation>
+        </xs:annotation>
+    </xs:element>
+
+    <xs:element name="company">
+        <xs:annotation>
+            <xs:documentation>
+                Used to define companies and groups on whose below defined setup configuration will run. When not specified setup will only take place on default company and "Guest" group within.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="runasuser" minOccurs="0" maxOccurs="1"></xs:element>
+                <xs:choice>
+                    <xs:element name="companyid" type="xs:long"></xs:element>
+                    <xs:element name="companywebid" type="xs:string"></xs:element>
+                </xs:choice>
+                <xs:element name="groupName" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                    <xs:annotation>
+                        <xs:documentation>
+                            Setup configuration will be executed on every provided group or only on "Guest" group if none is provided. If you need separate setups for different groups create different configuration file per group and execute all of them.
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 
     <xs:element name="organization">
         <xs:complexType>
