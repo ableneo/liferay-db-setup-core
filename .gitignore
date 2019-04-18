@@ -10,5 +10,6 @@ buildNumber.properties
 .mvn/timing.properties
 *.classpath
 *.iml
+**/.attach_pid*
 .project
 .settings
