@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,16 +27,14 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
+import java.io.InputStream;
+
+import javax.xml.bind.JAXBException;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
 
 /**
  * Created by mapa on 13.3.2015.
@@ -50,8 +48,7 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
     /**
      * Does upgrade.
      *
-     * @throws com.liferay.portal.kernel.upgrade.UpgradeException
-     *             wrapped exception
+     * @throws com.liferay.portal.kernel.upgrade.UpgradeException wrapped exception
      */
     @Override
     public final void upgrade() throws UpgradeException {
@@ -67,8 +64,8 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
             }
             try {
                 LiferaySetup.setup(is);
-            } catch (FileNotFoundException | ParserConfigurationException | JAXBException | SAXException e) {
-                e.printStackTrace();
+            } catch (JAXBException e) {
+                LOG.error(e);
             }
             LOG.info("Finished upgrade process. Filename: " + fileName);
         }
