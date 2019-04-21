@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,16 +26,14 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
-import org.xml.sax.SAXException;
 
 /**
  * Created by mapa on 13.3.2015.
@@ -49,27 +47,24 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
     /**
      * Does upgrade.
      *
-     * @throws com.liferay.portal.kernel.upgrade.UpgradeException
-     *             wrapped exception
+     * @throws com.liferay.portal.kernel.upgrade.UpgradeException wrapped exception
      */
     @Override
     public final void upgrade() throws UpgradeException {
 
         String[] fileNames = getSetupFileNames();
         for (String fileName : fileNames) {
-            LOG.info("Starting upgrade process. Filename: " + fileName);
-
-            InputStream is = BasicSetupUpgradeProcess.class.getClassLoader().getResourceAsStream(fileName);
-
-            if (is == null) {
-                throw new UpgradeException("XML configuration not found: " + fileName);
-            }
             try {
-                LiferaySetup.setup(is);
-            } catch (FileNotFoundException | ParserConfigurationException | JAXBException | SAXException e) {
-                e.printStackTrace();
+                File configurationFile =
+                        new File(BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI());
+                LiferaySetup.setup(configurationFile);
+            } catch (FileNotFoundException | URISyntaxException e) {
+                throw new UpgradeException(
+                        String.format("Failed to process liferay setup configuration (%1$s)", fileName), e);
             }
-            LOG.info("Finished upgrade process. Filename: " + fileName);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Upgraded database with liferay setup configuration: %1$s", fileName));
+            }
         }
     }
 

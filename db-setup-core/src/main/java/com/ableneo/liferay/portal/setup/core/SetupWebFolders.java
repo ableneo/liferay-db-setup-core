@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,18 +26,17 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-
-import com.liferay.journal.model.JournalFolder;
-import com.liferay.portal.kernel.model.RoleConstants;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.ableneo.liferay.portal.setup.LiferaySetup;
-import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
-import com.ableneo.liferay.portal.setup.domain.ArticleFolder;
-import com.ableneo.liferay.portal.setup.domain.Site;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
+import com.ableneo.liferay.portal.setup.domain.ArticleFolder;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.journal.model.JournalFolder;
+import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 
 public final class SetupWebFolders {
     public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
@@ -70,17 +69,15 @@ public final class SetupWebFolders {
 
     }
 
-    public static void setupWebFolders(
-            final Site group, final long groupId,
-            final long companyId) {
+    public static void setupWebFolders(final Site group, final long groupId) {
         for (ArticleFolder af : group.getArticleFolder()) {
             String webFolderPath = af.getFolderPath();
             String description = af.getDescription();
+            long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId,
-                    LiferaySetup.getRunAsUserId(), webFolderPath, description, true);
-            SetupPermissions.updatePermission("Folder " + af.getFolderPath(), groupId, companyId,
-                    jf.getFolderId(), JournalFolder.class, af.getRolePermissions(),
-                    DEFAULT_PERMISSIONS);
+                    SetupConfigurationThreadLocal.getRunAsUserId(), webFolderPath, description, true);
+            SetupPermissions.updatePermission("Folder " + af.getFolderPath(), groupId, companyId, jf.getFolderId(),
+                    JournalFolder.class, af.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }
 

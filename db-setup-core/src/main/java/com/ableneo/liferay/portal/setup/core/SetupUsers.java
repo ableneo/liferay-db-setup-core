@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -32,6 +32,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
@@ -46,25 +48,22 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.StringPool;
 
 public final class SetupUsers {
 
     private static final Log LOG = LogFactoryUtil.getLog(SetupUsers.class);
-    private static final long COMPANY_ID = PortalUtil.getDefaultCompanyId();
     private static final int DEFAULT_BIRTHDAY_YEAR = 1970;
 
     private SetupUsers() {
-
     }
 
-    public static void setupUsers(final List<com.ableneo.liferay.portal.setup.domain.User> users,
-            final long runAsUser, final long groupId) {
+    public static void setupUsers(final List<com.ableneo.liferay.portal.setup.domain.User> users) {
 
         for (com.ableneo.liferay.portal.setup.domain.User user : users) {
             User liferayUser = null;
+            long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             try {
-                liferayUser = UserLocalServiceUtil.getUserByEmailAddress(COMPANY_ID,
+                liferayUser = UserLocalServiceUtil.getUserByEmailAddress(runInCompanyId,
                         user.getEmailAddress());
                 LOG.info("User " + liferayUser.getEmailAddress()
                         + " already exist, not creating...");
@@ -80,7 +79,7 @@ public final class SetupUsers {
                 addUserToOrganizations(user, liferayUser);
                 addRolesToUser(user, liferayUser);
                 if (user.getCustomFieldSetting() != null && !user.getCustomFieldSetting().isEmpty()) {
-                    setCustomFields(runAsUser, groupId, COMPANY_ID, liferayUser, user);
+                    setCustomFields(SetupConfigurationThreadLocal.getRunAsUserId(), SetupConfigurationThreadLocal.getRunInGroupId(), runInCompanyId, liferayUser, user);
                 }
             } else {
                 LOG.warn("Could not create user with screenName '" + user.getScreenName()+"'");
@@ -131,7 +130,7 @@ public final class SetupUsers {
         ServiceContext serviceContext = new ServiceContext();
 
         try {
-            liferayUser = UserLocalServiceUtil.addUser(creatorUserId, COMPANY_ID, autoPassword,
+            liferayUser = UserLocalServiceUtil.addUser(creatorUserId, SetupConfigurationThreadLocal.getRunInCompanyId(), autoPassword,
                     password1, password2, autoScreenName, setupUser.getScreenName(), emailAddress,
                     facebookId, openId, locale, setupUser.getFirstName(), middleName,
                     setupUser.getLastName(), prefixId, suffixId, male, birthdayMonth, birthdayDay,
@@ -153,7 +152,7 @@ public final class SetupUsers {
             for (com.ableneo.liferay.portal.setup.domain.Organization organization : setupUser
                     .getOrganization()) {
                 Organization liferayOrganization = OrganizationLocalServiceUtil
-                        .getOrganization(COMPANY_ID, organization.getName());
+                        .getOrganization(SetupConfigurationThreadLocal.getRunInCompanyId(), organization.getName());
                 UserLocalServiceUtil.addOrganizationUsers(liferayOrganization.getOrganizationId(),
                         new long[] {liferayUser.getUserId()});
                 LOG.info("Adding user" + setupUser.getEmailAddress() + " to Organization "
@@ -171,7 +170,8 @@ public final class SetupUsers {
         try {
             for (com.ableneo.liferay.portal.setup.domain.Role userRole : setupUser.getRole()) {
 
-                Role role = RoleLocalServiceUtil.getRole(COMPANY_ID, userRole.getName());
+                long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+                Role role = RoleLocalServiceUtil.getRole(runInCompanyId, userRole.getName());
                 long[] roleIds = {role.getRoleId()};
                 String roleType = userRole.getType();
                 switch (roleType) {
@@ -183,7 +183,7 @@ public final class SetupUsers {
 
                 case "site":
                 case "organization":
-                    Group group = GroupLocalServiceUtil.getGroup(COMPANY_ID, userRole.getSite());
+                    Group group = GroupLocalServiceUtil.getGroup(runInCompanyId, userRole.getSite());
                     UserGroupRoleLocalServiceUtil.addUserGroupRoles(liferayUser.getUserId(),
                             group.getGroupId(), roleIds);
 
@@ -240,7 +240,7 @@ public final class SetupUsers {
             for (com.ableneo.liferay.portal.setup.domain.User user : users) {
                 try {
                     String email = user.getEmailAddress();
-                    User u = UserLocalServiceUtil.getUserByEmailAddress(COMPANY_ID, email);
+                    User u = UserLocalServiceUtil.getUserByEmailAddress(SetupConfigurationThreadLocal.getRunInCompanyId(), email);
                     UserLocalServiceUtil.deleteUser(u);
 
                     LOG.info("Deleting User " + email);

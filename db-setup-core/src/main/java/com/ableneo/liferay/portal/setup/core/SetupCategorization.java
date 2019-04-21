@@ -10,10 +10,10 @@
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,8 +25,8 @@
  */
 package com.ableneo.liferay.portal.setup.core;
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
-import com.ableneo.liferay.portal.setup.core.util.TitleMapUtil;
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.TranslationMapUtil;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.model.AssetVocabulary;
@@ -40,13 +40,11 @@ import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
 import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
 import com.ableneo.liferay.portal.setup.domain.AssociatedAssetType;
 import com.ableneo.liferay.portal.setup.domain.Category;
-import com.ableneo.liferay.portal.setup.domain.Site;
 import com.ableneo.liferay.portal.setup.domain.Vocabulary;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -70,24 +68,22 @@ public final class SetupCategorization {
 
     }
 
-    public static void setupVocabularies(final Site site, final long groupId)
+    public static void setupVocabularies(final List<Vocabulary> vocabularies, final long groupId)
             throws SystemException, PortalException {
-        List<Vocabulary> vocabularies = site.getVocabulary();
-
         Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
 
         LOG.info("Setting up vocabularies");
 
         for (Vocabulary vocabulary : vocabularies) {
-            setupVocabulary(vocabulary, site, groupId, siteDefaultLocale);
+            setupVocabulary(vocabulary, groupId, siteDefaultLocale);
         }
     }
 
-    private static void setupVocabulary(final Vocabulary vocabulary, final Site site, final long groupId, final Locale defaultLocale) {
+    private static void setupVocabulary(final Vocabulary vocabulary, final long groupId, final Locale defaultLocale) {
 
         LOG.info("Setting up vocabulary with name: " + vocabulary.getName());
 
-        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(vocabulary.getTitleTranslation(), groupId, vocabulary.getName(), "");
+        Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(vocabulary.getTitleTranslation(), groupId, vocabulary.getName(), "");
 
         Map<Locale, String> descMap = new HashMap<>();
         descMap.put(defaultLocale, vocabulary.getDescription());
@@ -127,7 +123,7 @@ public final class SetupCategorization {
             serviceContext.setCompanyId(PortalUtil.getDefaultCompanyId());
             serviceContext.setScopeGroupId(groupId);
             assetVocabulary = AssetVocabularyLocalServiceUtil.addVocabulary(
-                    LiferaySetup.getRunAsUserId(), groupId, null, titleMap, descMap, composeVocabularySettings(vocabulary, groupId), serviceContext);
+                SetupConfigurationThreadLocal.getRunAsUserId(), groupId, null, titleMap, descMap, composeVocabularySettings(vocabulary, groupId), serviceContext);
             LOG.info("AssetVocabulary successfuly added. ID:" + assetVocabulary.getVocabularyId()
                     + ", group:" + assetVocabulary.getGroupId());
             setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L,
@@ -212,7 +208,7 @@ public final class SetupCategorization {
 
         LOG.info("Setting up category with name:" + category.getName());
 
-        Map<Locale, String> titleMap = TitleMapUtil.getTitleMap(category.getTitleTranslation(), groupId, category.getName(),
+        Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(category.getTitleTranslation(), groupId, category.getName(),
             "Category with name: " + category.getName());
         Map<Locale, String> descMap = new HashMap<>();
         String description = category.getDescription();
@@ -258,7 +254,7 @@ public final class SetupCategorization {
         }
 
         try {
-            assetCategory = AssetCategoryLocalServiceUtil.addCategory(LiferaySetup.getRunAsUserId(), groupId,
+            assetCategory = AssetCategoryLocalServiceUtil.addCategory(SetupConfigurationThreadLocal.getRunAsUserId(), groupId,
                     parentCategoryId, titleMap, descMap, vocabularyId, null, serviceContext);
             LOG.info("Category successfully added with title: " + assetCategory.getTitle());
 

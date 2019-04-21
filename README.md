@@ -24,18 +24,18 @@ Run <code>com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)</cod
 <?xml version="1.0" encoding="UTF-8" ?>
 <setup xmlns="http://www.ableneo.com/liferay/setup">
     <configuration>
-        <runasuser>test@liferay.com</runasuser>
+        <run-as-user-email>test@liferay.com</run-as-user-email>
     </configuration>
  
     <!--
     This will add new custom field that can be used in theme to control if ads should display on
     particular page.
     -->
-    <customFields>
-        <field name="showAds" type="boolean" className="com.liferay.portal.model.Layout">
+    <custom-fields>
+        <field name="showAds" type="boolean" class-name="com.liferay.portal.model.Layout">
             <role-permission role-name="Guest" permission="view"/>
         </field>
-    </customFields>
+    </custom-fields>
 </setup>
 ```
 When adding the library to a liferay OSGI module it will be necessary to specify the dependency into the bnd file:
