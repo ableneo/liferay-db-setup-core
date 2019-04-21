@@ -5,6 +5,7 @@ addons:
   sonarcloud:
     organization: "ableneo"
 script:
+  - cd db-setup-core
   - mvn sonar:sonar -Dsonar.projectKey=liferay-db-setup-core-2_x
 cache:
   directories:
