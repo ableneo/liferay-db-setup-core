@@ -14,7 +14,7 @@ We didn't publish binary yet so you'll need to build the jar yourself. Here are 
 <dependency>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-core</artifactId>
-    <version>2.1.2</version>
+    <version>2.2.0-SNAPSHOT</version>
 </dependency>
 ```
 
