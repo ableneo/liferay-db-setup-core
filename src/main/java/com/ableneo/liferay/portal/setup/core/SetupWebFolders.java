@@ -40,7 +40,7 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 
 public final class SetupWebFolders {
-    public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
+    private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {
         DEFAULT_PERMISSIONS = new HashMap<>();
