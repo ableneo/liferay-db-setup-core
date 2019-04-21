@@ -26,20 +26,18 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
+import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
-import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
-import com.ableneo.liferay.portal.setup.domain.Site;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public final class SetupDocumentFolders {
     public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
@@ -79,10 +77,9 @@ public final class SetupDocumentFolders {
             String folderName = df.getFolderName();
 
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
-            Folder folder = FolderUtil.findFolder(companyId, groupId, groupId, SetupConfigurationThreadLocal.getRunAsUserId(), folderName, create);
-            SetupPermissions.updatePermission("Document folder " + folderName, groupId, companyId,
-                    folder.getFolderId(), DLFolder.class, df.getRolePermissions(),
-                    DEFAULT_PERMISSIONS);
+            Folder folder = FolderUtil.findFolder(groupId, groupId, folderName, create);
+            SetupPermissions.updatePermission("Document folder " + folderName, groupId, companyId, folder.getFolderId(),
+                    DLFolder.class, df.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }
 }

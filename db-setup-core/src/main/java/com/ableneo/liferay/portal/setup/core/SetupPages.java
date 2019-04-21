@@ -117,8 +117,8 @@ public final class SetupPages {
                 LOG.info("Setup: Deleting pages from site " + site.getName());
                 deletePages(groupId, false);
             }
-            addPages(publicPages.getPage(), publicPages.getDefaultLayout(),
-                    publicPages.getDefaultLayoutsThemeId(), groupId, false, 0, company, userid);
+            addPages(publicPages.getPage(), publicPages.getDefaultLayout(), publicPages.getDefaultLayoutsThemeId(),
+                    groupId, false, 0, company, userid);
             if (publicPages.getVirtualHost() != null) {
                 LayoutSetLocalServiceUtil.updateVirtualHost(groupId, false, publicPages.getVirtualHost());
             }
@@ -133,8 +133,8 @@ public final class SetupPages {
                 LOG.info("Setup: Deleting pages from site " + site.getName());
                 deletePages(groupId, true);
             }
-            addPages(privatePages.getPage(), privatePages.getDefaultLayout(),
-                    privatePages.getDefaultLayoutsThemeId(), groupId, true, 0, company, userid);
+            addPages(privatePages.getPage(), privatePages.getDefaultLayout(), privatePages.getDefaultLayoutsThemeId(),
+                    groupId, true, 0, company, userid);
             if (privatePages.getVirtualHost() != null) {
                 LayoutSetLocalServiceUtil.updateVirtualHost(groupId, true, privatePages.getVirtualHost());
             }
@@ -162,11 +162,12 @@ public final class SetupPages {
                     if (listLayoutPrototype != null && listLayoutPrototype.size() > 0) {
                         lp = listLayoutPrototype.get(0);
                     } else {
-                        Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(pageTemplate.getTitleTranslation(),
-                                groupId, name, " Page template  " + name);
-                        Map<Locale, String> nameMap = TranslationMapUtil.getTranslationMap(pageTemplate.getTitleTranslation(),
-                            groupId, name, " Page template  " + name);
-                        lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(userid, company, titleMap, nameMap, true, new ServiceContext());
+                        Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(
+                                pageTemplate.getTitleTranslation(), groupId, name, " Page template  " + name);
+                        Map<Locale, String> nameMap = TranslationMapUtil.getTranslationMap(
+                                pageTemplate.getTitleTranslation(), groupId, name, " Page template  " + name);
+                        lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(userid, company, titleMap, nameMap,
+                                true, new ServiceContext());
                     }
                     if (lp != null) {
                         Layout layout = lp.getLayout();
@@ -249,7 +250,7 @@ public final class SetupPages {
                 }
                 LOG.info("Setup: Page " + page.getName() + " created...");
             } catch (Exception ex) {
-                ex.printStackTrace();
+                LOG.error(ex);
             }
             // If the page has not a layout set, set the default one. Otherwise set that layout as the default for the
             // subtree
@@ -420,7 +421,7 @@ public final class SetupPages {
                 LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
                         layout.getTypeSettings());
             } catch (PortalException e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
             LOG.info("setting theme on page: " + page.getName() + " : " + theme.getName());
         }
@@ -564,7 +565,7 @@ public final class SetupPages {
         try {
             portlets = layoutTypePortlet.getAllPortlets();
         } catch (SystemException e1) {
-            e1.printStackTrace();
+            LOG.error(e1);
         }
         if (portlets != null) {
             for (Portlet portlet : portlets) {
@@ -589,7 +590,7 @@ public final class SetupPages {
                         }
                     }
                 } catch (PortalException | SystemException e) {
-                    e.printStackTrace();
+                    LOG.error(e);
                 }
             }
         }

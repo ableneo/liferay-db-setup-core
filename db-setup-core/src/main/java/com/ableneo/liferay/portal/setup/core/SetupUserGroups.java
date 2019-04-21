@@ -82,7 +82,7 @@ public class SetupUserGroups {
                 addRolesToUserGroup(userGroup, liferayUserGroup);
             }
 
-            if (!userGroup.getUserAsMember().isEmpty()) {
+            if (!userGroup.getUserAsMember().isEmpty() && liferayUserGroup != null) {
                 LOG.info("Setting User Members.");
                 addUsersToUserGroup(userGroup.getUserAsMember(), liferayUserGroup);
             }

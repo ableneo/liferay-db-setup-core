@@ -26,9 +26,17 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.DocumentUtil;
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
+import com.ableneo.liferay.portal.setup.domain.Document;
+import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -36,25 +44,15 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
-import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
-import com.ableneo.liferay.portal.setup.domain.Document;
-import com.ableneo.liferay.portal.setup.domain.Site;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public final class SetupDocuments {
 
     private static final Log LOG = LogFactoryUtil.getLog(SetupDocuments.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
-    private static final int BUFFER_SIZE = 2048;
 
     static {
-        DEFAULT_PERMISSIONS = new HashMap<String, List<String>>();
-        List<String> actionsOwner = new ArrayList<String>();
+        DEFAULT_PERMISSIONS = new HashMap<>();
+        List<String> actionsOwner = new ArrayList<>();
 
         actionsOwner.add(ActionKeys.ADD_DISCUSSION);
         actionsOwner.add(ActionKeys.DELETE);
@@ -80,8 +78,7 @@ public final class SetupDocuments {
 
     }
 
-    public static void setupSiteDocuments(final Site site,
-                                          final long groupId) {
+    public static void setupSiteDocuments(final Site site, final long groupId) {
         for (Document doc : site.getDocument()) {
             String folderPath = doc.getDocumentFolderName();
             String documentName = doc.getDocumentFilename();
@@ -94,11 +91,10 @@ public final class SetupDocuments {
             Folder f = null;
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             if (folderPath != null && !folderPath.equals("")) {
-                f = FolderUtil.findFolder(company, groupId, repoId, userId, folderPath, true);
+                f = FolderUtil.findFolder(groupId, repoId, folderPath, true);
                 folderId = f.getFolderId();
             }
-            FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, company,
-                    groupId, userId);
+            FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, groupId);
             byte[] fileBytes = null;
             try {
                 fileBytes = ResourcesUtil.getFileBytes(filenameInFilesystem);
@@ -108,17 +104,15 @@ public final class SetupDocuments {
             }
             if (fileBytes != null) {
                 if (fe == null) {
-                    fe = DocumentUtil.createDocument(company, groupId, folderId, documentName,
-                            documentTitle, userId, repoId, fileBytes);
+                    fe = DocumentUtil.createDocument(company, groupId, folderId, documentName, documentTitle, userId,
+                            repoId, fileBytes);
                     LOG.info(documentName + " is not found! It will be created! ");
                 } else {
                     LOG.info(documentName + " is found! Content will be updated! ");
-                    DocumentUtil.updateFile(fe, fileBytes, userId,
-                            documentName);
+                    DocumentUtil.updateFile(fe, fileBytes, userId, documentName);
                 }
-                SetupPermissions.updatePermission("Document " + folderPath + "/" + documentName,
-                        groupId, company, fe.getFileEntryId(), DLFileEntry.class,
-                        doc.getRolePermissions(), DEFAULT_PERMISSIONS);
+                SetupPermissions.updatePermission("Document " + folderPath + "/" + documentName, groupId, company,
+                        fe.getFileEntryId(), DLFileEntry.class, doc.getRolePermissions(), DEFAULT_PERMISSIONS);
             }
         }
     }

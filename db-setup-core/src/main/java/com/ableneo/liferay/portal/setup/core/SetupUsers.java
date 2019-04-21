@@ -26,36 +26,30 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
+import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.*;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
-import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
-
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 public final class SetupUsers {
 
     private static final Log LOG = LogFactoryUtil.getLog(SetupUsers.class);
     private static final int DEFAULT_BIRTHDAY_YEAR = 1970;
 
-    private SetupUsers() {
-    }
+    private SetupUsers() {}
 
     public static void setupUsers(final List<com.ableneo.liferay.portal.setup.domain.User> users) {
 
@@ -63,10 +57,8 @@ public final class SetupUsers {
             User liferayUser = null;
             long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             try {
-                liferayUser = UserLocalServiceUtil.getUserByEmailAddress(runInCompanyId,
-                        user.getEmailAddress());
-                LOG.info("User " + liferayUser.getEmailAddress()
-                        + " already exist, not creating...");
+                liferayUser = UserLocalServiceUtil.getUserByEmailAddress(runInCompanyId, user.getEmailAddress());
+                LOG.info("User " + liferayUser.getEmailAddress() + " already exist, not creating...");
 
             } catch (NoSuchUserException e) {
                 liferayUser = addUser(user);
@@ -75,26 +67,25 @@ public final class SetupUsers {
                 LOG.error("Error by retrieving user " + user.getEmailAddress());
             }
 
-            if( null != liferayUser ){
+            if (null != liferayUser) {
                 addUserToOrganizations(user, liferayUser);
                 addRolesToUser(user, liferayUser);
                 if (user.getCustomFieldSetting() != null && !user.getCustomFieldSetting().isEmpty()) {
-                    setCustomFields(SetupConfigurationThreadLocal.getRunAsUserId(), SetupConfigurationThreadLocal.getRunInGroupId(), runInCompanyId, liferayUser, user);
+                    setCustomFields(SetupConfigurationThreadLocal.getRunAsUserId(),
+                            SetupConfigurationThreadLocal.getRunInGroupId(), runInCompanyId, liferayUser, user);
                 }
             } else {
-                LOG.warn("Could not create user with screenName '" + user.getScreenName()+"'");
+                LOG.warn("Could not create user with screenName '" + user.getScreenName() + "'");
             }
         }
     }
 
-    private static void setCustomFields(final long runAsUser, final long groupId,
-            final long company, final User liferayUser,
-            final com.ableneo.liferay.portal.setup.domain.User user) {
+    private static void setCustomFields(final long runAsUser, final long groupId, final long company,
+            final User liferayUser, final com.ableneo.liferay.portal.setup.domain.User user) {
         Class clazz = liferayUser.getClass();
         for (CustomFieldSetting cfs : user.getCustomFieldSetting()) {
-            String resolverHint = "Custom value for user " + user.getScreenName() + ", "
-                    + user.getEmailAddress() + "" + " Key " + cfs.getKey() + ", value "
-                    + cfs.getValue();
+            String resolverHint = "Custom value for user " + user.getScreenName() + ", " + user.getEmailAddress() + ""
+                    + " Key " + cfs.getKey() + ", value " + cfs.getValue();
             CustomFieldSettingUtil.setExpandoValue(resolverHint, runAsUser, groupId, company, clazz,
                     liferayUser.getUserId(), cfs.getKey(), cfs.getValue());
         }
@@ -130,12 +121,11 @@ public final class SetupUsers {
         ServiceContext serviceContext = new ServiceContext();
 
         try {
-            liferayUser = UserLocalServiceUtil.addUser(creatorUserId, SetupConfigurationThreadLocal.getRunInCompanyId(), autoPassword,
-                    password1, password2, autoScreenName, setupUser.getScreenName(), emailAddress,
-                    facebookId, openId, locale, setupUser.getFirstName(), middleName,
-                    setupUser.getLastName(), prefixId, suffixId, male, birthdayMonth, birthdayDay,
-                    birthdayYear, jobTitle, groupIds, organizationIds, roleIds, userGroupIds,
-                    sendEmail, serviceContext);
+            liferayUser = UserLocalServiceUtil.addUser(creatorUserId, SetupConfigurationThreadLocal.getRunInCompanyId(),
+                    autoPassword, password1, password2, autoScreenName, setupUser.getScreenName(), emailAddress,
+                    facebookId, openId, locale, setupUser.getFirstName(), middleName, setupUser.getLastName(), prefixId,
+                    suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle, groupIds, organizationIds,
+                    roleIds, userGroupIds, sendEmail, serviceContext);
             LOG.info("User " + setupUser.getEmailAddress() + " created");
 
         } catch (Exception ex) {
@@ -145,12 +135,11 @@ public final class SetupUsers {
         return liferayUser;
     }
 
-    private static void addUserToOrganizations(
-        final com.ableneo.liferay.portal.setup.domain.User setupUser, final User liferayUser) {
+    private static void addUserToOrganizations(final com.ableneo.liferay.portal.setup.domain.User setupUser,
+            final User liferayUser) {
 
         try {
-            for (com.ableneo.liferay.portal.setup.domain.Organization organization : setupUser
-                    .getOrganization()) {
+            for (com.ableneo.liferay.portal.setup.domain.Organization organization : setupUser.getOrganization()) {
                 Organization liferayOrganization = OrganizationLocalServiceUtil
                         .getOrganization(SetupConfigurationThreadLocal.getRunInCompanyId(), organization.getName());
                 UserLocalServiceUtil.addOrganizationUsers(liferayOrganization.getOrganizationId(),
@@ -175,25 +164,25 @@ public final class SetupUsers {
                 long[] roleIds = {role.getRoleId()};
                 String roleType = userRole.getType();
                 switch (roleType) {
-                case "portal":
-                    RoleLocalServiceUtil.addUserRoles(liferayUser.getUserId(), roleIds);
-                    LOG.info("Adding regular role " + userRole.getName() + " to user "
-                            + liferayUser.getEmailAddress());
-                    break;
+                    case "portal":
+                        RoleLocalServiceUtil.addUserRoles(liferayUser.getUserId(), roleIds);
+                        LOG.info("Adding regular role " + userRole.getName() + " to user "
+                                + liferayUser.getEmailAddress());
+                        break;
 
-                case "site":
-                case "organization":
-                    Group group = GroupLocalServiceUtil.getGroup(runInCompanyId, userRole.getSite());
-                    UserGroupRoleLocalServiceUtil.addUserGroupRoles(liferayUser.getUserId(),
-                            group.getGroupId(), roleIds);
+                    case "site":
+                    case "organization":
+                        Group group = GroupLocalServiceUtil.getGroup(runInCompanyId, userRole.getSite());
+                        UserGroupRoleLocalServiceUtil.addUserGroupRoles(liferayUser.getUserId(), group.getGroupId(),
+                                roleIds);
 
-                    LOG.info("Adding " + roleType + " role " + userRole.getName() + " to user "
-                            + liferayUser.getEmailAddress());
-                    break;
+                        LOG.info("Adding " + roleType + " role " + userRole.getName() + " to user "
+                                + liferayUser.getEmailAddress());
+                        break;
 
-                default:
-                    LOG.error("unknown role type " + roleType);
-                    break;
+                    default:
+                        LOG.error("unknown role type " + roleType);
+                        break;
                 }
             }
         } catch (PortalException | SystemException e) {
@@ -210,49 +199,49 @@ public final class SetupUsers {
             final String deleteMethod) {
 
         switch (deleteMethod) {
-        case "excludeListed":
+            case "excludeListed":
 
-            Map<String, com.ableneo.liferay.portal.setup.domain.User> usersMap = convertUserListToHashMap(
-                    users);
-            try {
-                List<User> allUsers = UserLocalServiceUtil.getUsers(-1, -1);
-                for (User user : allUsers) {
-                    if (!usersMap.containsKey(user.getEmailAddress())) {
-                        if (user.isDefaultUser() || PortalUtil.isOmniadmin(user.getUserId())) {
-                            LOG.info("Skipping deletion of system user " + user.getEmailAddress());
-                        } else {
-                            try {
-                                UserLocalServiceUtil.deleteUser(user.getUserId());
-                            } catch (PortalException | SystemException e) {
-                                LOG.error("Unable to delete user.", e);
+                Map<String, com.ableneo.liferay.portal.setup.domain.User> usersMap = convertUserListToHashMap(users);
+                try {
+                    List<User> allUsers = UserLocalServiceUtil.getUsers(-1, -1);
+                    for (User user : allUsers) {
+                        if (!usersMap.containsKey(user.getEmailAddress())) {
+                            if (user.isDefaultUser() || PortalUtil.isOmniadmin(user.getUserId())) {
+                                LOG.info("Skipping deletion of system user " + user.getEmailAddress());
+                            } else {
+                                try {
+                                    UserLocalServiceUtil.deleteUser(user.getUserId());
+                                } catch (PortalException | SystemException e) {
+                                    LOG.error("Unable to delete user.", e);
+                                }
+                                LOG.info("Deleting User " + user.getEmailAddress());
                             }
-                            LOG.info("Deleting User " + user.getEmailAddress());
                         }
                     }
+
+                } catch (SystemException e) {
+                    LOG.error("Unable to get user", e);
                 }
+                break;
 
-            } catch (SystemException e) {
-                LOG.error("Unable to get user", e);
-            }
-            break;
+            case "onlyListed":
+                for (com.ableneo.liferay.portal.setup.domain.User user : users) {
+                    try {
+                        String email = user.getEmailAddress();
+                        User u = UserLocalServiceUtil
+                                .getUserByEmailAddress(SetupConfigurationThreadLocal.getRunInCompanyId(), email);
+                        UserLocalServiceUtil.deleteUser(u);
 
-        case "onlyListed":
-            for (com.ableneo.liferay.portal.setup.domain.User user : users) {
-                try {
-                    String email = user.getEmailAddress();
-                    User u = UserLocalServiceUtil.getUserByEmailAddress(SetupConfigurationThreadLocal.getRunInCompanyId(), email);
-                    UserLocalServiceUtil.deleteUser(u);
-
-                    LOG.info("Deleting User " + email);
-                } catch (PortalException | SystemException e) {
-                    LOG.error("Unable to delete user.", e);
+                        LOG.info("Deleting User " + email);
+                    } catch (PortalException | SystemException e) {
+                        LOG.error("Unable to delete user.", e);
+                    }
                 }
-            }
-            break;
+                break;
 
-        default:
-            LOG.error("Unknown delete method : " + deleteMethod);
-            break;
+            default:
+                LOG.error("Unknown delete method : " + deleteMethod);
+                break;
         }
     }
 

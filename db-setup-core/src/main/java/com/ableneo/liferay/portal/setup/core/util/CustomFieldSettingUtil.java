@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -53,30 +53,27 @@ public final class CustomFieldSettingUtil {
      * with a given key.
      *
      * @param user
-     *            The user whose expando field will be retrieved.
+     *        The user whose expando field will be retrieved.
      * @param key
-     *            The name of the expando field.
+     *        The name of the expando field.
      * @return Returns false, if the expando field or the value is not defined.
      */
     // CHECKSTYLE:OFF
-    public static void setExpandoValue(final String resolverHint, final long runAsUserId,
-            final long groupId, final long company, final Class clazz, final long id,
-            final String key, final String value) {
+    public static void setExpandoValue(final String resolverHint, final long runAsUserId, final long groupId,
+            final long company, final Class clazz, final long id, final String key, final String value) {
         String valueCopy = value;
         try {
 
-            ExpandoValue ev = ExpandoValueLocalServiceUtil.getValue(company, clazz.getName(),
-                    "CUSTOM_FIELDS", key, id);
+            ExpandoValue ev = ExpandoValueLocalServiceUtil.getValue(company, clazz.getName(), "CUSTOM_FIELDS", key, id);
             // resolve any values to be substituted
-            valueCopy = ResolverUtil.lookupAll(runAsUserId, groupId, company, valueCopy,
-                    resolverHint);
+            valueCopy = ResolverUtil.lookupAll(runAsUserId, groupId, company, valueCopy, resolverHint);
             if (ev == null) {
                 long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz.getName());
 
-                ExpandoTable expandoTable = ExpandoTableLocalServiceUtil.getTable(company,
-                        classNameId, "CUSTOM_FIELDS");
-                ExpandoColumn expandoColumn = ExpandoColumnLocalServiceUtil.getColumn(company,
-                        classNameId, expandoTable.getName(), key);
+                ExpandoTable expandoTable =
+                        ExpandoTableLocalServiceUtil.getTable(company, classNameId, "CUSTOM_FIELDS");
+                ExpandoColumn expandoColumn =
+                        ExpandoColumnLocalServiceUtil.getColumn(company, classNameId, expandoTable.getName(), key);
 
                 // In this we are adding MyUserColumnData for the column
                 // MyUserColumn. See the
@@ -88,8 +85,8 @@ public final class CustomFieldSettingUtil {
                 ExpandoValueLocalServiceUtil.updateExpandoValue(ev);
             }
         } catch (Exception ex) {
-            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for "
-                    + "class " + clazz.getName() + " with id " + id, ex);
+            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for " + "class "
+                    + clazz.getName() + " with id " + id, ex);
         }
 
     }

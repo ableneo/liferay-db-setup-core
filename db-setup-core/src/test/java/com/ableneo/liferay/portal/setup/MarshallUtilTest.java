@@ -26,14 +26,14 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class MarshallUtilTest {
 
@@ -43,11 +43,9 @@ class MarshallUtilTest {
     @BeforeEach
     void setup() {
         try {
-            validConfiguration =
-                    new File(MarshallUtilTest.class.getResource(("/valid-configuration.xml")).toURI());
+            validConfiguration = new File(MarshallUtilTest.class.getResource(("/valid-configuration.xml")).toURI());
 
-            invalidConfiguration =
-                new File(MarshallUtilTest.class.getResource(("/invalid-configuration.xml")).toURI());
+            invalidConfiguration = new File(MarshallUtilTest.class.getResource(("/invalid-configuration.xml")).toURI());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -62,7 +60,6 @@ class MarshallUtilTest {
     void unmarshallValid() throws FileNotFoundException {
         assertNotNull(MarshallUtil.unmarshall(validConfiguration));
     }
-
 
     @Test
     void validateAgainstXSD() {

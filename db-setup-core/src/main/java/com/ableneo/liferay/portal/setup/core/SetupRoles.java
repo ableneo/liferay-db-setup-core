@@ -26,7 +26,13 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.util.*;
+
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
+import com.ableneo.liferay.portal.setup.domain.DefinePermission;
+import com.ableneo.liferay.portal.setup.domain.DefinePermissions;
+import com.ableneo.liferay.portal.setup.domain.PermissionAction;
 import com.liferay.portal.kernel.dao.orm.ObjectNotFoundException;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -40,12 +46,6 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
-import com.ableneo.liferay.portal.setup.domain.DefinePermission;
-import com.ableneo.liferay.portal.setup.domain.DefinePermissions;
-import com.ableneo.liferay.portal.setup.domain.PermissionAction;
-
-import java.util.*;
 
 public final class SetupRoles {
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
@@ -92,8 +92,8 @@ public final class SetupRoles {
             }
 
             long defaultUserId = UserLocalServiceUtil.getDefaultUserId(COMPANY_ID);
-            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap,
-                    null, roleType, null, null);
+            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,
+                    null);
 
             LOG.info("Setup: Role " + role.getName() + " does not exist, adding...");
 
@@ -104,19 +104,18 @@ public final class SetupRoles {
     }
 
     public static void deleteRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles,
-                                   final String deleteMethod) {
+            final String deleteMethod) {
 
         switch (deleteMethod) {
             case "excludeListed":
-                Map<String, com.ableneo.liferay.portal.setup.domain.Role> toBeDeletedRoles = convertRoleListToHashMap(
-                        roles);
+                Map<String, com.ableneo.liferay.portal.setup.domain.Role> toBeDeletedRoles =
+                        convertRoleListToHashMap(roles);
                 try {
                     for (Role role : RoleLocalServiceUtil.getRoles(-1, -1)) {
                         String name = role.getName();
                         if (!toBeDeletedRoles.containsKey(name)) {
                             try {
-                                RoleLocalServiceUtil
-                                        .deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
+                                RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
                                 LOG.info("Deleting Role " + name);
 
                             } catch (Exception e) {
@@ -162,7 +161,7 @@ public final class SetupRoles {
             }
             DefinePermissions permissions = role.getDefinePermissions();
             if (permissions.getDefinePermission() != null && permissions.getDefinePermission().size() > 0) {
-                for (DefinePermission permission : permissions.getDefinePermission() ) {
+                for (DefinePermission permission : permissions.getDefinePermission()) {
                     String permissionName = permission.getDefinePermissionName();
                     String resourcePrimKey = "0";
 
@@ -170,7 +169,9 @@ public final class SetupRoles {
                     if (permission.getElementPrimaryKey() != null) {
                         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
                         long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
-                        resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId, permission.getElementPrimaryKey(), "Role " + role.getName() + " permission name " + permissionName);
+                        resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
+                                permission.getElementPrimaryKey(),
+                                "Role " + role.getName() + " permission name " + permissionName);
                     }
                     String type = role.getType();
                     int scope = ResourceConstants.SCOPE_COMPANY;
@@ -189,7 +190,8 @@ public final class SetupRoles {
                         scope = ResourceConstants.SCOPE_GROUP;
                     }
                     if (scope == ResourceConstants.SCOPE_COMPANY && resourcePrimKey.equals("0")) {
-                        // if we have a regular role which does not have any resource key set, set the company id as resource key
+                        // if we have a regular role which does not have any resource key set, set the company id as
+                        // resource key
                         resourcePrimKey = Long.toString(companyId);
                     }
 
@@ -217,11 +219,15 @@ public final class SetupRoles {
                         try {
                             SetupPermissions.addPermission(role.getName(), permissionName, resourcePrimKey, scope, loa);
                         } catch (SystemException e) {
-                            LOG.error("Error when defining permission " + permissionName + " for role " + role.getName(), e);
+                            LOG.error(
+                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
+                                    e);
                         } catch (PortalException e) {
-                            LOG.error("Error when defining permission " + permissionName + " for role " + role.getName(), e);
+                            LOG.error(
+                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
+                                    e);
                         }
-                    } else  {
+                    } else {
 
                     }
                 }

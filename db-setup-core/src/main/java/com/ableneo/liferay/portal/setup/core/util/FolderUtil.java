@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,6 +26,7 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
 import com.ableneo.liferay.portal.setup.core.SetupWebFolders;
 import com.liferay.document.library.kernel.exception.NoSuchFolderException;
@@ -46,8 +47,8 @@ public final class FolderUtil {
 
     }
 
-    public static Folder findFolder(final long company, final long groupId, final long repoId,
-                                    final long userId, final String name, final boolean createIfNotExists) {
+    public static Folder findFolder(final long groupId, final long repoId, final String name,
+            final boolean createIfNotExists) {
         String[] folderPath = name.split("/");
         Folder foundFolder = null;
         int count = 0;
@@ -58,12 +59,15 @@ public final class FolderUtil {
                 foundFolder = findFolder(groupId, parentId, folder);
 
                 if (foundFolder == null && createIfNotExists) {
-                    foundFolder = createDocumentFolder(company, groupId, repoId, userId, parentId,
-                            folder);
-                    SetupPermissions.updatePermission(
-                            "Folder " + name + ", creating folder " + "segment " + folder, groupId,
-                            company, foundFolder.getFolderId(), JournalFolder.class, null,
-                            SetupWebFolders.DEFAULT_PERMISSIONS);
+                    foundFolder = createDocumentFolder(groupId, repoId, parentId, folder);
+                    long company = SetupConfigurationThreadLocal.getRunInCompanyId();
+
+                    if (foundFolder != null) {
+                        final String locationHint = String.format("Folder %1$s, creating folder segment %2$s", name, folder);
+                        SetupPermissions.updatePermission(locationHint,
+                                groupId, company, foundFolder.getFolderId(), JournalFolder.class, null,
+                                SetupWebFolders.DEFAULT_PERMISSIONS);
+                    }
                 }
 
                 if (foundFolder == null) {
@@ -76,8 +80,7 @@ public final class FolderUtil {
         return foundFolder;
     }
 
-    public static Folder findFolder(final Long groupId, final Long parentFolderId,
-                                    final String name) {
+    public static Folder findFolder(final Long groupId, final Long parentFolderId, final String name) {
         Folder dir = null;
         try {
             dir = DLAppLocalServiceUtil.getFolder(groupId, parentFolderId, name);
@@ -91,27 +94,21 @@ public final class FolderUtil {
         return dir;
     }
 
-    public static Folder createDocumentFolder(final long companyId, final long groupId,
-                                              final long repoId, final long userId, final Long pFolderId, final String folderName) {
-
-        Long currentFolderId = null;
+    public static Folder createDocumentFolder(final long groupId, final long repoId, final Long pFolderId,
+            final String folderName) {
         Folder folder = null;
 
-        // we currently dont have a folder for this naviagtion point, create one
-        if (currentFolderId == null) {
+        try {
+            folder = findFolder(groupId, pFolderId, folderName);
+            if (folder == null) {
+                folder = DLAppLocalServiceUtil.addFolder(SetupConfigurationThreadLocal.getRunAsUserId(), repoId,
+                        pFolderId, folderName, folderName, new ServiceContext());
 
-            try {
-                folder = findFolder(groupId, pFolderId, folderName);
-                if (folder == null) {
-                    folder = DLAppLocalServiceUtil.addFolder(userId, repoId, pFolderId, folderName,
-                            folderName, new ServiceContext());
-
-                }
-            } catch (SystemException | PortalException e) {
-                e.printStackTrace();
             }
-
+        } catch (SystemException | PortalException e) {
+            LOG.error(e);
         }
+
         return folder;
     }
 

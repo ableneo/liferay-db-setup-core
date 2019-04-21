@@ -36,4 +36,3 @@ public class LiferaySetupException extends Exception {
         super(message, cause);
     }
 }
-

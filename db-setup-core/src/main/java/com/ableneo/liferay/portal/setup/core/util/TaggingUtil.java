@@ -28,6 +28,7 @@ package com.ableneo.liferay.portal.setup.core.util;
  */
 
 import java.util.List;
+import java.util.Optional;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.domain.Article;
@@ -97,7 +98,7 @@ public final class TaggingUtil {
             AssetEntryLocalServiceUtil.updateEntry(userId, groupId, JournalArticle.class.getName(), primaryKey, catIds,
                     tags.toArray(new String[tags.size()]));
         } catch (PortalException | SystemException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
     }
 
@@ -121,7 +122,9 @@ public final class TaggingUtil {
                 LOG.error("Category " + name + " not found! ", e);
             }
 
-            assetCategoryIds[i] = assetTag.getTagId();
+            if (assetTag != null) {
+                assetCategoryIds[i] = assetTag.getTagId();
+            }
         }
         return assetCategoryIds;
     }

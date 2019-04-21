@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,22 +26,23 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
+import java.util.List;
+
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
-
-import java.util.List;
 
 public final class WebFolderUtil {
 
-    private WebFolderUtil() {
-    }
+    private static final Log LOG = LogFactoryUtil.getLog(WebFolderUtil.class);
+    private WebFolderUtil() {}
 
-    public static JournalFolder findWebFolder(final long companyId, final long groupId,
-                                              final long userId, final String name, final String description,
-                                              final boolean createIfNotExists) {
+    public static JournalFolder findWebFolder(final long companyId, final long groupId, final long userId,
+            final String name, final String description, final boolean createIfNotExists) {
         String[] folderPath = name.split("/");
         JournalFolder foundFolder = null;
         int count = 0;
@@ -52,8 +53,7 @@ public final class WebFolderUtil {
                 foundFolder = findWebFolder(groupId, parentId, folder);
 
                 if (foundFolder == null && createIfNotExists) {
-                    foundFolder = createWebFolder(userId, companyId, groupId, parentId, folder,
-                            description);
+                    foundFolder = createWebFolder(userId, companyId, groupId, parentId, folder, description);
                 }
 
                 if (foundFolder == null) {
@@ -66,8 +66,7 @@ public final class WebFolderUtil {
         return foundFolder;
     }
 
-    public static JournalFolder findWebFolder(final Long groupId, final Long parentFolderId,
-            final String name) {
+    public static JournalFolder findWebFolder(final Long groupId, final Long parentFolderId, final String name) {
         JournalFolder dir = null;
         List<JournalFolder> dirs;
         try {
@@ -79,27 +78,26 @@ public final class WebFolderUtil {
                 }
             }
         } catch (SystemException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
         return dir;
     }
 
-    public static JournalFolder createWebFolder(final long userId, final long companyId,
-            final long groupId, final long parentFolderId, final String name,
-            final String description) {
+    public static JournalFolder createWebFolder(final long userId, final long companyId, final long groupId,
+            final long parentFolderId, final String name, final String description) {
         JournalFolder folder = null;
         try {
             ServiceContext serviceContext = new ServiceContext();
             serviceContext.setScopeGroupId(groupId);
             serviceContext.setCompanyId(companyId);
 
-            folder = JournalFolderLocalServiceUtil.addFolder(userId, groupId, parentFolderId, name,
-                    description, serviceContext);
+            folder = JournalFolderLocalServiceUtil.addFolder(userId, groupId, parentFolderId, name, description,
+                    serviceContext);
 
         } catch (PortalException e) {
-            e.printStackTrace();
+            LOG.error(e);
         } catch (SystemException e) {
-            e.printStackTrace();
+            LOG.error(e);
         }
         return folder;
     }

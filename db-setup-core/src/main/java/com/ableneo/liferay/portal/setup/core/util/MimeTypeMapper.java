@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,7 +25,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  * THE SOFTWARE.
  * #L%
  */
-
 
 import java.util.HashMap;
 
@@ -79,8 +78,8 @@ public final class MimeTypeMapper {
      * the empty string is returned.
      *
      * @param mimeType
-     *            The mime type string for which the file extension should be
-     *            retrieved.
+     *        The mime type string for which the file extension should be
+     *        retrieved.
      * @return Returns the file extension string of the file type.
      */
     public String getExtension(final String mimeType) {
@@ -95,7 +94,7 @@ public final class MimeTypeMapper {
      * Returns the mime type for a given file extension.
      *
      * @param extension
-     *            The extension for which the mime type should be retrieved.
+     *        The extension for which the mime type should be retrieved.
      * @return Returns the mime type of a given extension.
      */
     public String getMimeType(final String extension) {
@@ -119,9 +118,9 @@ public final class MimeTypeMapper {
      * extension.
      *
      * @param mime
-     *            The mime type string.
+     *        The mime type string.
      * @param extension
-     *            The file extension string.
+     *        The file extension string.
      */
     private void addEntry(final String extension, final String mime) {
         mimeToExtension.put(mime, extension);
@@ -782,10 +781,8 @@ public final class MimeTypeMapper {
         addEntry(".zoo", "application/octet-stream");
         addEntry(".zsh", "text/x-script.zsh");
 
-        addEntry(".docx",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".document");
-        addEntry(".dotx",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".template");
+        addEntry(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".document");
+        addEntry(".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".template");
         addEntry(".docm", "application/vnd.ms-word.document.macroEnabled.12");
         addEntry(".dotm", "application/vnd.ms-word.template.macroEnabled.12");
         addEntry(".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -794,8 +791,7 @@ public final class MimeTypeMapper {
         addEntry(".xltm", "application/vnd.ms-excel.template.macroEnabled.12");
         addEntry(".xlam", "application/vnd.ms-excel.addin.macroEnabled.12");
         addEntry(".xlsb", "application/vnd.ms-excel.sheet.binary.macroEnabled.12");
-        addEntry(".pptx",
-                "application/vnd.openxmlformats-officedocument.presentationml" + ".presentation");
+        addEntry(".pptx", "application/vnd.openxmlformats-officedocument.presentationml" + ".presentation");
         addEntry(".potx", "application/vnd.openxmlformats-officedocument.presentationml.template");
         addEntry(".ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow");
         addEntry(".ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12");
@@ -805,7 +801,7 @@ public final class MimeTypeMapper {
 
         /*
          * .doc application/msword .dot application/msword
-         * 
+         *
          * .xls application/vnd.ms-excel .xlt application/vnd.ms-excel .xla
          * application/vnd.ms-excel . .ppt application/vnd.ms-powerpoint .pot
          * application/vnd.ms-powerpoint .pps application/vnd.ms-powerpoint .ppa

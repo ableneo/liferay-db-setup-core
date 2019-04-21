@@ -26,6 +26,9 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.util.*;
+
+import com.ableneo.liferay.portal.setup.domain.*;
 import com.liferay.portal.kernel.exception.NestableException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -38,10 +41,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.ableneo.liferay.portal.setup.domain.*;
-
-import java.util.*;
-
 
 public final class SetupPermissions {
 
@@ -67,13 +66,11 @@ public final class SetupPermissions {
                     final Set<String> actionStrings = actionsPerRole.get(roleName);
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
-                    ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID,
-                            resource.getResourceId(), ResourceConstants.SCOPE_COMPANY,
-                            String.valueOf(COMPANY_ID), roleId, actionIds);
+                    ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, resource.getResourceId(),
+                            ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID), roleId, actionIds);
                     LOG.info("Set permission for role: " + roleName + " for action ids: " + actionIds);
                 } catch (NestableException e) {
-                    LOG.error("Could not set permission to resource :" + resource.getResourceId(),
-                            e);
+                    LOG.error("Could not set permission to resource :" + resource.getResourceId(), e);
                 }
             }
         }
@@ -101,65 +98,59 @@ public final class SetupPermissions {
         return result;
     }
 
-
-    public static void addReadRight(final String roleName, final String className,
-                                    final String primaryKey) throws SystemException, PortalException {
+    public static void addReadRight(final String roleName, final String className, final String primaryKey)
+            throws SystemException, PortalException {
 
         addPermission(roleName, className, primaryKey, PERMISSION_RO);
     }
 
-    public static void addReadWrightRight(final String roleName, final String className,
-                                          final String primaryKey) throws SystemException, PortalException {
+    public static void addReadWrightRight(final String roleName, final String className, final String primaryKey)
+            throws SystemException, PortalException {
 
         addPermission(roleName, className, primaryKey, PERMISSION_RW);
     }
 
-    public static void removePermission(final long companyId, final String name,
-                                        final String primKey) throws PortalException, SystemException {
+    public static void removePermission(final long companyId, final String name, final String primKey)
+            throws PortalException, SystemException {
         ResourcePermissionLocalServiceUtil.deleteResourcePermissions(companyId, name,
                 ResourceConstants.SCOPE_INDIVIDUAL, primKey);
     }
 
-    public static void addPermission(String roleName, String name, String primaryKey, int scope,
-                                     String[] permission)
+    public static void addPermission(String roleName, String name, String primaryKey, int scope, String[] permission)
             throws SystemException, PortalException {
         try {
             long roleId = RoleLocalServiceUtil.getRole(COMPANY_ID, roleName).getRoleId();
-            ResourcePermissionLocalServiceUtil
-                    .setResourcePermissions(COMPANY_ID, name, scope, primaryKey, roleId, permission);
+            ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, name, scope, primaryKey, roleId,
+                    permission);
         } catch (Exception ex) {
             LOG.error("Error when adding role!", ex);
         }
     }
 
-    public static void addPermission(final String roleName, final String className,
-                                     final String primaryKey, final String[] permission)
-            throws SystemException, PortalException {
+    public static void addPermission(final String roleName, final String className, final String primaryKey,
+            final String[] permission) throws SystemException, PortalException {
         try {
             long roleId = RoleLocalServiceUtil.getRole(COMPANY_ID, roleName).getRoleId();
             ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, className,
                     ResourceConstants.SCOPE_INDIVIDUAL, primaryKey, roleId, permission);
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOG.error(ex);
         }
     }
 
-    public static void addPermissionToPage(final Role role,
-                                           final String primaryKey, final String[] actionKeys)
+    public static void addPermissionToPage(final Role role, final String primaryKey, final String[] actionKeys)
             throws PortalException, SystemException {
 
         long roleId = RoleLocalServiceUtil.getRole(COMPANY_ID, role.getName()).getRoleId();
-        ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID,
-                Layout.class.getName(), ResourceConstants.SCOPE_INDIVIDUAL,
-                String.valueOf(primaryKey), roleId, actionKeys);
+        ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, Layout.class.getName(),
+                ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(primaryKey), roleId, actionKeys);
     }
 
     private static void deleteAllPortletPermissions(final ResourcePermissions.Resource resource) {
 
         try {
-            List<ResourcePermission> resourcePermissions = ResourcePermissionLocalServiceUtil
-                    .getResourcePermissions(COMPANY_ID, resource.getResourceId(),
-                            ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID));
+            List<ResourcePermission> resourcePermissions = ResourcePermissionLocalServiceUtil.getResourcePermissions(
+                    COMPANY_ID, resource.getResourceId(), ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID));
             for (ResourcePermission resourcePermission : resourcePermissions) {
                 ResourcePermissionLocalServiceUtil.deleteResourcePermission(resourcePermission);
             }
@@ -168,32 +159,28 @@ public final class SetupPermissions {
         }
     }
 
-    public static void clearPagePermissions(final String primaryKey)
-            throws PortalException, SystemException {
+    public static void clearPagePermissions(final String primaryKey) throws PortalException, SystemException {
 
-        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(COMPANY_ID,
-                Layout.class.getName(), ResourceConstants.SCOPE_INDIVIDUAL,
-                String.valueOf(primaryKey));
+        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(COMPANY_ID, Layout.class.getName(),
+                ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(primaryKey));
     }
 
-    public static void updatePermission(final String locationHint, final long groupId,
-            final long companyId, final long elementId, final Class clazz,
-            final RolePermissions rolePermissions,
+    public static void updatePermission(final String locationHint, final long groupId, final long companyId,
+            final long elementId, final Class clazz, final RolePermissions rolePermissions,
             final HashMap<String, List<String>> defaultPermissions) {
 
-            updatePermission(locationHint,groupId,companyId,elementId,clazz.getName(),rolePermissions,defaultPermissions);
+        updatePermission(locationHint, groupId, companyId, elementId, clazz.getName(), rolePermissions,
+                defaultPermissions);
     }
 
-    public static void updatePermission(final String locationHint, final long groupId,
-                                        final long companyId, final long elementId, final String className,
-                                        final RolePermissions rolePermissions,
-                                        final HashMap<String, List<String>> defaultPermissions) {
+    public static void updatePermission(final String locationHint, final long groupId, final long companyId,
+            final long elementId, final String className, final RolePermissions rolePermissions,
+            final HashMap<String, List<String>> defaultPermissions) {
         boolean useDefaultPermissions = false;
         if (rolePermissions != null) {
             if (rolePermissions.isClearPermissions()) {
                 try {
-                    SetupPermissions.removePermission(companyId, className,
-                            Long.toString(elementId));
+                    SetupPermissions.removePermission(companyId, className, Long.toString(elementId));
                 } catch (PortalException e) {
                     LOG.error("Permissions for " + locationHint + " could not be cleared. ", e);
                 } catch (SystemException e) {
@@ -212,18 +199,17 @@ public final class SetupPermissions {
                         actions.add(actionName);
                     }
                     try {
-                        SetupPermissions.addPermission(roleName, className,
-                                Long.toString(elementId),
+                        SetupPermissions.addPermission(roleName, className, Long.toString(elementId),
                                 actions.toArray(new String[actions.size()]));
                     } catch (SystemException e) {
-                        LOG.error("Permissions for " + roleName + " for " + locationHint + " "
-                                + "could not be set. ", e);
+                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be set. ",
+                                e);
                     } catch (PortalException e) {
-                        LOG.error("Permissions for " + roleName + " for " + locationHint + " "
-                                + "could not be set. ", e);
+                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be set. ",
+                                e);
                     } catch (NullPointerException e) {
-                        LOG.error("Permissions for " + roleName + " for " + locationHint + " "
-                                + "could not be set. " + "Probably role not found! ", e);
+                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be set. "
+                                + "Probably role not found! ", e);
                     }
                 }
             } else {
@@ -241,11 +227,9 @@ public final class SetupPermissions {
                     SetupPermissions.addPermission(r, className, Long.toString(elementId),
                             actions.toArray(new String[actions.size()]));
                 } catch (SystemException e) {
-                    LOG.error("Permissions for " + r + " for " + locationHint + " could not be "
-                            + "set. ", e);
+                    LOG.error("Permissions for " + r + " for " + locationHint + " could not be " + "set. ", e);
                 } catch (PortalException e) {
-                    LOG.error("Permissions for " + r + " for " + locationHint + " could not be "
-                            + "set. ", e);
+                    LOG.error("Permissions for " + r + " for " + locationHint + " could not be " + "set. ", e);
                 }
             }
         }

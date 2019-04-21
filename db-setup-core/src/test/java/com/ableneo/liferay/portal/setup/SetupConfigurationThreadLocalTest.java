@@ -27,7 +27,6 @@ package com.ableneo.liferay.portal.setup;
  */
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -60,7 +59,7 @@ class SetupConfigurationThreadLocalTest {
                 result = companyId;
                 groupLocalServiceUtil.getGroup(withAny(1l), withAny("")); // any of provided type
                 result = group;
-               group.getGroupId();
+                group.getGroupId();
                 result = groupId;
             }
         };

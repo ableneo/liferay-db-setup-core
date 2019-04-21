@@ -194,7 +194,7 @@ public class SetupSites {
                 assignUserMemberRoles(memberUser.getRole(), companyId, liferayGroup, user);
 
             } catch (PortalException e) {
-                e.printStackTrace();
+                LOG.error(e);
             }
 
         }

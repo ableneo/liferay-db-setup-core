@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,12 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import java.io.Serializable;
+import java.text.DateFormat;
+import java.util.*;
 
+import com.ableneo.liferay.portal.setup.domain.CustomFields;
+import com.ableneo.liferay.portal.setup.domain.RolePermission;
 import com.liferay.expando.kernel.model.*;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
@@ -36,12 +41,6 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.*;
-import com.ableneo.liferay.portal.setup.domain.CustomFields;
-import com.ableneo.liferay.portal.setup.domain.RolePermission;
-
-import java.io.Serializable;
-import java.text.DateFormat;
-import java.util.*;
 
 public final class SetupCustomFields {
 
@@ -67,20 +66,18 @@ public final class SetupCustomFields {
      * @return all expandos with types specified in the "excludeListed" List to
      *         avoid deleting all expandos in the portal!
      */
-    private static List<ExpandoColumn> getAllExpandoColumns(
-            final List<CustomFields.Field> customFields) {
+    private static List<ExpandoColumn> getAllExpandoColumns(final List<CustomFields.Field> customFields) {
 
         List<ExpandoColumn> all = new ArrayList<>();
         SortedSet<String> tables = new TreeSet<>();
         for (CustomFields.Field field : customFields) {
             ExpandoTable table;
             try {
-                table = ExpandoTableLocalServiceUtil.getDefaultTable(COMPANY_ID,
-                        field.getClassName());
+                table = ExpandoTableLocalServiceUtil.getDefaultTable(COMPANY_ID, field.getClassName());
                 if (table != null && !tables.contains(table.getName())) {
                     tables.add(table.getName());
-                    List<ExpandoColumn> columns = ExpandoColumnLocalServiceUtil
-                            .getColumns(COMPANY_ID, field.getClassName(), table.getName());
+                    List<ExpandoColumn> columns =
+                            ExpandoColumnLocalServiceUtil.getColumns(COMPANY_ID, field.getClassName(), table.getName());
                     all.addAll(columns);
                 }
             } catch (PortalException | SystemException e) {
@@ -90,20 +87,18 @@ public final class SetupCustomFields {
         return all;
     }
 
-    private static void addAttributeToExpandoBridge(final ExpandoBridge bridge,
-            final CustomFields.Field field) {
+    private static void addAttributeToExpandoBridge(final ExpandoBridge bridge, final CustomFields.Field field) {
 
         String name = field.getName();
         try {
             int fieldTypeKey = getFieldTypeKey(field.getType());
             if (bridge.hasAttribute(name)) {
-                ExpandoColumn column = ExpandoColumnLocalServiceUtil.getColumn(COMPANY_ID,
-                        bridge.getClassName(), ExpandoTableConstants.DEFAULT_TABLE_NAME, name);
+                ExpandoColumn column = ExpandoColumnLocalServiceUtil.getColumn(COMPANY_ID, bridge.getClassName(),
+                        ExpandoTableConstants.DEFAULT_TABLE_NAME, name);
                 ExpandoColumnLocalServiceUtil.updateColumn(column.getColumnId(), name, fieldTypeKey,
                         getAttributeFromString(fieldTypeKey, field.getDefaultData()));
             } else {
-                bridge.addAttribute(name, fieldTypeKey,
-                        getAttributeFromString(fieldTypeKey, field.getDefaultData()));
+                bridge.addAttribute(name, fieldTypeKey, getAttributeFromString(fieldTypeKey, field.getDefaultData()));
             }
             UnicodeProperties properties = bridge.getAttributeProperties(name);
             properties.setProperty(ExpandoColumnConstants.INDEX_TYPE,
@@ -117,34 +112,31 @@ public final class SetupCustomFields {
         }
     }
 
-    private static void setCustomFieldPermission(final List<RolePermission> rolePermissions,
-            final ExpandoBridge bridge, final String fieldName) throws SystemException {
+    private static void setCustomFieldPermission(final List<RolePermission> rolePermissions, final ExpandoBridge bridge,
+            final String fieldName) throws SystemException {
 
-        LOG.info("Set read permissions on  field " + fieldName + " for " + rolePermissions.size()
-                + " rolePermissions");
-        ExpandoColumn column = ExpandoColumnLocalServiceUtil.getColumn(COMPANY_ID,
-                bridge.getClassName(), ExpandoTableConstants.DEFAULT_TABLE_NAME, fieldName);
+        LOG.info("Set read permissions on  field " + fieldName + " for " + rolePermissions.size() + " rolePermissions");
+        ExpandoColumn column = ExpandoColumnLocalServiceUtil.getColumn(COMPANY_ID, bridge.getClassName(),
+                ExpandoTableConstants.DEFAULT_TABLE_NAME, fieldName);
         for (RolePermission rolePermission : rolePermissions) {
             String roleName = rolePermission.getRoleName();
             String permission = rolePermission.getPermission();
             try {
                 switch (permission) {
-                case "update":
-                    SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
-                            String.valueOf(column.getColumnId()));
-                    LOG.info("Added update permission on field " + fieldName + " for role "
-                            + roleName);
-                    break;
-                case "view":
-                    SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
-                            String.valueOf(column.getColumnId()));
-                    LOG.info("Added read permission on field " + fieldName + " for role "
-                            + roleName);
-                    break;
-                default:
-                    LOG.info("Unknown permission:" + permission + ". No permission added on "
-                            + "field " + fieldName + " for role " + roleName);
-                    break;
+                    case "update":
+                        SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
+                                String.valueOf(column.getColumnId()));
+                        LOG.info("Added update permission on field " + fieldName + " for role " + roleName);
+                        break;
+                    case "view":
+                        SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
+                                String.valueOf(column.getColumnId()));
+                        LOG.info("Added read permission on field " + fieldName + " for role " + roleName);
+                        break;
+                    default:
+                        LOG.info("Unknown permission:" + permission + ". No permission added on " + "field " + fieldName
+                                + " for role " + roleName);
+                        break;
                 }
 
             } catch (PortalException e) {
@@ -153,13 +145,11 @@ public final class SetupCustomFields {
         }
     }
 
-    public static void deleteCustomField(final CustomFields.Field customField,
-            final String deleteMethod) {
+    public static void deleteCustomField(final CustomFields.Field customField, final String deleteMethod) {
         deleteCustomFields(Arrays.asList(customField), deleteMethod);
     }
 
-    public static void deleteCustomFields(final List<CustomFields.Field> customFields,
-            final String deleteMethod) {
+    public static void deleteCustomFields(final List<CustomFields.Field> customFields, final String deleteMethod) {
 
         if ("excludeListed".equals(deleteMethod)) {
             // delete all (from types in the list) but listed
@@ -179,10 +169,9 @@ public final class SetupCustomFields {
         } else if (deleteMethod.equals("onlyListed")) {
             for (CustomFields.Field field : customFields) {
                 try {
-                    ExpandoTable table = ExpandoTableLocalServiceUtil.getDefaultTable(COMPANY_ID,
-                            field.getClassName());
-                    ExpandoColumnLocalServiceUtil.deleteColumn(COMPANY_ID, field.getClassName(),
-                            table.getName(), field.getName());
+                    ExpandoTable table = ExpandoTableLocalServiceUtil.getDefaultTable(COMPANY_ID, field.getClassName());
+                    ExpandoColumnLocalServiceUtil.deleteColumn(COMPANY_ID, field.getClassName(), table.getName(),
+                            field.getName());
                 } catch (PortalException | SystemException e) {
                     LOG.error("Could not delete Custom Field " + field.getName(), e);
                     continue;
