@@ -66,6 +66,7 @@
                         <exclude>**/package-info.java</exclude>
                     </excludes>
                     <canUpdateLicense>true</canUpdateLicense>
+                    <canUpdateCopyright>false</canUpdateCopyright>
                 </configuration>
                 <executions>
                     <execution>
