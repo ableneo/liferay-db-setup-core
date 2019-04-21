@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,15 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.*;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import com.ableneo.liferay.portal.setup.domain.Translation;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -34,29 +43,20 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.ableneo.liferay.portal.setup.domain.TitleTranslation;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.*;
+public final class TranslationMapUtil {
+    private static final Log LOG = LogFactoryUtil.getLog(TranslationMapUtil.class);
 
-public final class TitleMapUtil {
-    private static final Log LOG = LogFactoryUtil.getLog(TitleMapUtil.class);
+    private TranslationMapUtil() {}
 
-    private TitleMapUtil() {
-    }
-
-    public static Map<Locale, String> getTitleMap(final List<TitleTranslation> translations,
-                                                  final long groupId, final String defaultLocaleTitle, final String locationHint) {
-        Map<Locale, String> titleMap = new HashMap<>();
+    public static Map<Locale, String> getTranslationMap(final List<Translation> translations, final long groupId,
+            final String defaultLocaleTitle, final String locationHint) {
+        Map<Locale, String> translationMap = new HashMap<>();
         Locale siteDefaultLocale = getDefaultLocale(groupId, locationHint);
 
-        titleMap.put(siteDefaultLocale, defaultLocaleTitle);
+        translationMap.put(siteDefaultLocale, defaultLocaleTitle);
         if (translations != null) {
-            for (TitleTranslation tt : translations) {
+            for (Translation tt : translations) {
                 try {
                     String[] s = tt.getLocale().split("_");
 
@@ -66,14 +66,13 @@ public final class TitleMapUtil {
                     } else {
                         l = new Locale(s[0]);
                     }
-                    titleMap.put(l, tt.getTitleText());
+                    translationMap.put(l, tt.getText());
                 } catch (Exception ex) {
-                    LOG.error("Exception while retrieving locale " + tt.getLocale() + " for "
-                            + locationHint);
+                    LOG.error("Exception while retrieving locale " + tt.getLocale() + " for " + locationHint);
                 }
             }
         }
-        return titleMap;
+        return translationMap;
     }
 
     public static Locale getDefaultLocale(final long groupId, final String locationHint) {
@@ -86,8 +85,7 @@ public final class TitleMapUtil {
         return siteDefaultLocale;
     }
 
-    public static String getXMLTitleStructure(final Map<Locale, String> titles,
-            final Locale defaultLocale) {
+    public static String getXMLTitleStructure(final Map<Locale, String> titles, final Locale defaultLocale) {
         Set<Locale> locales = titles.keySet();
 
         String xmlTitleStructure = "";
@@ -125,8 +123,8 @@ public final class TitleMapUtil {
             xmlTitleStructure = sw.toString();
             sw.close();
         } catch (XMLStreamException | IOException e) {
-            LOG.error("Problem when creating title structure for the following internationalized "
-                    + "titles: " + titles + "", e);
+            LOG.error("Problem when creating title structure for the following internationalized " + "titles: " + titles
+                    + "", e);
         }
         return xmlTitleStructure;
     }

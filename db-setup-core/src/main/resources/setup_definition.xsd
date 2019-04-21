@@ -216,7 +216,7 @@
             <xs:sequence>
                 <xs:element maxOccurs="1" minOccurs="1" ref="page"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
-                <xs:element ref="title-translation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
         </xs:complexType>
@@ -514,7 +514,7 @@
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="page"/>
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="pageportlet"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
-                <xs:element ref="title-translation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -617,12 +617,10 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="title-translation">
-        <xs:complexType>
-            <xs:attribute name="locale" type="xs:string" use="required"/>
-            <xs:attribute name="title-text" type="xs:string" use="required"/>
-        </xs:complexType>
-    </xs:element>
+    <xs:complexType name="translation">
+        <xs:attribute name="locale" type="xs:string" use="required"/>
+        <xs:attribute name="text" type="xs:string" use="required"/>
+    </xs:complexType>
 
     <xs:element name="theme">
         <xs:complexType>
@@ -701,7 +699,7 @@
 
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="title-translation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="related-assets"/>
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="tag"/>
                 <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
@@ -775,7 +773,7 @@
     <xs:element name="vocabulary">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="title-translation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="associated-asset-type" minOccurs="0" maxOccurs="unbounded" />
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="category"/>
             </xs:sequence>
@@ -910,7 +908,7 @@
     <xs:element name="category">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="title-translation" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="category"/>
             </xs:sequence>
             <xs:attribute name="name" use="required" type="xs:string"/>

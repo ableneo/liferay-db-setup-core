@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -28,6 +28,7 @@ package com.ableneo.liferay.portal.setup.core;
  */
 
 import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.DocumentUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.portal.kernel.log.Log;
@@ -81,7 +82,7 @@ public final class SetupDocuments {
     }
 
     public static void setupSiteDocuments(final Site site,
-                                          final long groupId, final long company) {
+                                          final long groupId) {
         for (Document doc : site.getDocument()) {
             String folderPath = doc.getDocumentFolderName();
             String documentName = doc.getDocumentFilename();
@@ -89,9 +90,10 @@ public final class SetupDocuments {
             String extension = doc.getExtension();
             String filenameInFilesystem = doc.getFileSystemName();
             long repoId = groupId;
-            long userId = LiferaySetup.getRunAsUserId();
+            long userId = SetupConfigurationThreadLocal.getRunAsUserId();
             Long folderId = 0L;
             Folder f = null;
+            long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             if (folderPath != null && !folderPath.equals("")) {
                 f = FolderUtil.findFolder(company, groupId, repoId, userId, folderPath, true);
                 folderId = f.getFolderId();

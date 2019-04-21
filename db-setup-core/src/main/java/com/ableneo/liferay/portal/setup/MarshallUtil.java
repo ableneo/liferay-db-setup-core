@@ -53,8 +53,8 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 public final class MarshallUtil {
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
-    final private static SAXParserFactory spf = SAXParserFactory.newInstance();
-    final private static Schema schema = getSchema();
+    private static final SAXParserFactory spf = SAXParserFactory.newInstance();
+    private static final Schema schema = getSchema();
     private static XMLReader xr = null;
     private static Unmarshaller unmarshaller = getUnmarshaller();
 
@@ -91,7 +91,7 @@ public final class MarshallUtil {
             return (Setup) unmarshaller.unmarshal(src);
         } catch (JAXBException e) {
             LOG.error("Cannot unmarshall the provided stream", e);
-        } ;
+        }
         return null;
     }
 

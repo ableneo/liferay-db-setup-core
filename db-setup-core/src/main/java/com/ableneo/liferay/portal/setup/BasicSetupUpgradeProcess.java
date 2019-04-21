@@ -27,12 +27,15 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
-import java.io.InputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.URISyntaxException;
 
 import javax.xml.bind.JAXBException;
 
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -55,19 +58,17 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
 
         String[] fileNames = getSetupFileNames();
         for (String fileName : fileNames) {
-            LOG.info("Starting upgrade process. Filename: " + fileName);
-
-            InputStream is = BasicSetupUpgradeProcess.class.getClassLoader().getResourceAsStream(fileName);
-
-            if (is == null) {
-                throw new UpgradeException("XML configuration not found: " + fileName);
-            }
             try {
-                LiferaySetup.setup(is);
-            } catch (JAXBException e) {
-                LOG.error(e);
+                File configurationFile =
+                        new File(BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI());
+                LiferaySetup.setup(configurationFile, GroupConstants.GUEST);
+            } catch (FileNotFoundException | URISyntaxException e) {
+                throw new UpgradeException(
+                        String.format("Failed to process liferay setup configuration (%1$s)", fileName), e);
             }
-            LOG.info("Finished upgrade process. Filename: " + fileName);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(String.format("Upgraded database with liferay setup configuration: %1$s", fileName));
+            }
         }
     }
 

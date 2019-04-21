@@ -7,14 +7,14 @@
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-core</artifactId>
     <name>Liferay Portal DB Setup core</name>
-    <description>Library that allows to declare a set of Liferay data to be created and create them using the API.
-    </description>
+    <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
     <inceptionYear>2016</inceptionYear>
 
     <packaging>jar</packaging>
 
     <properties>
         <liferay.release.bom.version>7.1.2</liferay.release.bom.version>
+        <jmockit.version>1.46</jmockit.version>
     </properties>
 
     <build>
@@ -133,6 +133,12 @@
                         <version>5.3.1</version>
                     </dependency>
                 </dependencies>
+                <configuration>
+                    <argLine>
+                        -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+                    </argLine>
+                    <!-- ... -->
+                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -170,7 +176,13 @@
         </dependency>
         <dependency>
             <groupId>com.liferay</groupId>
+            <artifactId>com.liferay.petra.string</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.liferay</groupId>
             <artifactId>com.liferay.petra.lang</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.liferay.portal</groupId>
@@ -214,6 +226,13 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>2.23.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- static method mocking -->
+        <dependency>
+            <groupId>org.jmockit</groupId>
+            <artifactId>jmockit</artifactId>
+            <version>${jmockit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

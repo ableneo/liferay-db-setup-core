@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,6 +29,7 @@ package com.ableneo.liferay.portal.setup.core;
 
 
 import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.liferay.document.library.kernel.model.DLFolder;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.repository.model.Folder;
@@ -73,12 +74,13 @@ public final class SetupDocumentFolders {
 
     }
 
-    public static void setupDocumentFolders(final Site group, final long groupId, final long companyId) {
+    public static void setupDocumentFolders(final Site group, final long groupId) {
         for (DocumentFolder df : group.getDocumentFolder()) {
             boolean create = df.isCreateIfNotExists();
             String folderName = df.getFolderName();
 
-            Folder folder = FolderUtil.findFolder(companyId, groupId, groupId, LiferaySetup.getRunAsUserId(), folderName, create);
+            long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+            Folder folder = FolderUtil.findFolder(companyId, groupId, groupId, SetupConfigurationThreadLocal.getRunAsUserId(), folderName, create);
             SetupPermissions.updatePermission("Document folder " + folderName, groupId, companyId,
                     folder.getFolderId(), DLFolder.class, df.getRolePermissions(),
                     DEFAULT_PERMISSIONS);

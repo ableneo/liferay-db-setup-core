@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -27,6 +27,7 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.liferay.portal.kernel.dao.orm.ObjectNotFoundException;
 import com.liferay.portal.kernel.exception.NoSuchRoleException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -60,7 +61,7 @@ public final class SetupRoles {
 
     }
 
-    public static void setupRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles, long runAsUserId, long groupId, long company) {
+    public static void setupRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles) {
 
         for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
             try {
@@ -72,7 +73,7 @@ public final class SetupRoles {
             } catch (SystemException | PortalException e) {
                 LOG.error("error while setting up roles", e);
             }
-            addRolePermissions(role, runAsUserId, groupId, company);
+            addRolePermissions(role);
         }
     }
 
@@ -152,7 +153,7 @@ public final class SetupRoles {
 
     }
 
-    private static void addRolePermissions(com.ableneo.liferay.portal.setup.domain.Role role, long runAsUserId, long groupId, long companyId) {
+    private static void addRolePermissions(com.ableneo.liferay.portal.setup.domain.Role role) {
         if (role.getDefinePermissions() != null) {
             String siteName = role.getSite();
             if (siteName != null && !siteName.equals("")) {
@@ -166,7 +167,10 @@ public final class SetupRoles {
                     String permissionName = permission.getDefinePermissionName();
                     String resourcePrimKey = "0";
 
+                    long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
                     if (permission.getElementPrimaryKey() != null) {
+                        long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
+                        long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
                         resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId, permission.getElementPrimaryKey(), "Role " + role.getName() + " permission name " + permissionName);
                     }
                     String type = role.getType();
