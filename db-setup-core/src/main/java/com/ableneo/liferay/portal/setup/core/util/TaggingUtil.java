@@ -27,8 +27,11 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
+import java.util.List;
+
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.domain.Article;
+import com.ableneo.liferay.portal.setup.domain.Tag;
 import com.liferay.asset.kernel.exception.NoSuchTagException;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetTag;
@@ -40,61 +43,65 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.ableneo.liferay.portal.setup.domain.Article;
-import com.ableneo.liferay.portal.setup.domain.Tag;
-
-import java.util.List;
+import com.liferay.portal.kernel.util.Validator;
 
 public final class TaggingUtil {
     private static final Log LOG = LogFactoryUtil.getLog(TaggingUtil.class);
 
-    private TaggingUtil() {
-    }
+    private TaggingUtil() {}
 
-    public static void associateTags(long groupId, Article article, JournalArticle journalArticle) throws PortalException {
+    public static void associateTagsAndCategories(long groupId, Article article, JournalArticle journalArticle)
+            throws PortalException {
 
         List<Tag> tags = article.getTag();
         String[] tagNames = null;
         if (tags != null) {
             tagNames = tags.stream().map(Tag::getName).toArray(String[]::new);
         }
-        AssetEntry entry = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(), journalArticle.getResourcePrimKey());
-        AssetEntryLocalServiceUtil.updateEntry(SetupConfigurationThreadLocal.getRunAsUserId(), groupId, JournalArticle.class.getName(), entry.getClassPK(), null, tagNames);
+
+        long[] categoryIds = article.getCategory().stream()
+                .map(category -> ResolverUtil.lookupAll(SetupConfigurationThreadLocal.getRunAsUserId(), groupId,
+                        journalArticle.getCompanyId(), category.getId(), article.getPath()))
+                .filter(categoryString -> Validator.isNumber(categoryString))
+                .mapToLong(categoryString -> Long.parseLong(categoryString)).toArray();
+
+        AssetEntry entry = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(),
+                journalArticle.getResourcePrimKey());
+        AssetEntryLocalServiceUtil.updateEntry(SetupConfigurationThreadLocal.getRunAsUserId(), groupId,
+                JournalArticle.class.getName(), entry.getClassPK(), categoryIds, tagNames);
     }
 
     /*
-    public static void associateCategories(long groupId, Article article, JournalArticle journalArticle) {
+     * public static void associateCategories(long groupId, Article article, JournalArticle journalArticle) {
+     *
+     * List<CategoryRef> categories = article.getCategoryRef();
+     * String[] categoryTitles = null;
+     * if (categories != null) {
+     * categoryTitles = categories.stream().map(CategoryRef -> {
+     * AssetCategoryLocalServiceUtil.get
+     * });
+     * }
+     * AssetCategoryLocalServiceUtil.
+     *
+     * }
+     */
 
-        List<CategoryRef> categories = article.getCategoryRef();
-        String[] categoryTitles = null;
-        if (categories != null) {
-            categoryTitles = categories.stream().map(CategoryRef -> {
-                AssetCategoryLocalServiceUtil.get
-            });
-        }
-        AssetCategoryLocalServiceUtil.
-
-    }
-    */
-
-    public static void associateTagsWithJournalArticle(final List<String> tags,
-                                                       final List<String> categories, final long userId, final long groupId,
-                                                       final long primaryKey) {
+    public static void associateTagsWithJournalArticle(final List<String> tags, final List<String> categories,
+            final long userId, final long groupId, final long primaryKey) {
 
         try {
             long[] catIds = new long[0];
             if (categories != null) {
                 catIds = getCategories(categories, groupId, userId);
             }
-            AssetEntryLocalServiceUtil.updateEntry(userId, groupId, JournalArticle.class.getName(),
-                    primaryKey, catIds, tags.toArray(new String[tags.size()]));
+            AssetEntryLocalServiceUtil.updateEntry(userId, groupId, JournalArticle.class.getName(), primaryKey, catIds,
+                    tags.toArray(new String[tags.size()]));
         } catch (PortalException | SystemException e) {
             e.printStackTrace();
         }
     }
 
-    public static long[] getCategories(final List<String> categories, final long groupId,
-                                       final long runAsUser) {
+    public static long[] getCategories(final List<String> categories, final long groupId, final long runAsUser) {
         // The categories and tags to assign
         final long[] assetCategoryIds = new long[categories.size()];
 

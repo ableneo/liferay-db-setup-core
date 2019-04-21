@@ -65,6 +65,7 @@ import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 /**
@@ -74,11 +75,13 @@ public final class SetupArticles {
 
     private static final Log LOG = LogFactoryUtil.getLog(SetupArticles.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
+    private static final HashMap<String, List<String>> DEFAULT_DDM_PERMISSIONS;
     private static final int ARTICLE_PUBLISH_YEAR = 2008;
     private static final int MIN_DISPLAY_ROWS = 10;
 
     static {
         DEFAULT_PERMISSIONS = new HashMap<String, List<String>>();
+        DEFAULT_DDM_PERMISSIONS = new HashMap<String, List<String>>();
         List<String> actionsOwner = new ArrayList<String>();
 
         actionsOwner.add(ActionKeys.VIEW);
@@ -90,15 +93,25 @@ public final class SetupArticles {
         actionsOwner.add(ActionKeys.UPDATE);
         actionsOwner.add(ActionKeys.UPDATE_DISCUSSION);
 
+        List<String> ddmActionsOwner = new ArrayList<String>();
+
+        ddmActionsOwner.add(ActionKeys.VIEW);
+        ddmActionsOwner.add(ActionKeys.DELETE);
+        ddmActionsOwner.add(ActionKeys.UPDATE);
+        ddmActionsOwner.add(ActionKeys.PERMISSIONS);
+
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
+        DEFAULT_DDM_PERMISSIONS.put(RoleConstants.OWNER, ddmActionsOwner);
 
         List<String> actionsUser = new ArrayList<String>();
         actionsUser.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.USER, actionsUser);
+        DEFAULT_DDM_PERMISSIONS.put(RoleConstants.USER, actionsUser);
 
         List<String> actionsGuest = new ArrayList<String>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
+        DEFAULT_DDM_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
 
     private SetupArticles() {
@@ -145,7 +158,8 @@ public final class SetupArticles {
         }
     }
 
-    public static void setupSiteArticles(final List<Article> articles, final List<Adt> adts, final List<DdlRecordset> recordSets, final long groupId) throws PortalException, SystemException {
+    public static void setupSiteArticles(final List<Article> articles, final List<Adt> adts,
+            final List<DdlRecordset> recordSets, final long groupId) throws PortalException, SystemException {
 
         if (articles != null) {
             for (Article article : articles) {
@@ -156,7 +170,7 @@ public final class SetupArticles {
             for (Adt template : adts) {
                 try {
                     addDDMTemplate(template, groupId);
-                } catch (TemplateDuplicateTemplateKeyException | URISyntaxException | IOException e) {
+                } catch (TemplateDuplicateTemplateKeyException | IOException e) {
                     LOG.error("Error in adding ADT: " + template.getName(), e);
                 }
             }
@@ -218,6 +232,7 @@ public final class SetupArticles {
         }
 
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
+        long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         if (ddmStructure != null) {
             LOG.info("Structure already exists and will be overwritten.");
             if (structure.getParent() != null && !structure.getParent().isEmpty()) {
@@ -231,16 +246,26 @@ public final class SetupArticles {
                 }
             }
 
-            DDMStructureLocalServiceUtil.updateStructure(runAsUserId, ddmStructure.getStructureId(),
-                    ddmStructure.getParentStructureId(), nameMap, descMap, ddmForm, ddmFormLayout,
-                    new ServiceContext());
+            DDMStructure ddmStructureSaved = DDMStructureLocalServiceUtil.updateStructure(runAsUserId,
+                    ddmStructure.getStructureId(), ddmStructure.getParentStructureId(), nameMap, descMap, ddmForm,
+                    ddmFormLayout, new ServiceContext());
             LOG.info("Template successfully updated: " + structure.getName());
+
+            SetupPermissions.updatePermission("Structure " + structure.getKey(), groupId, companyId,
+                    ddmStructureSaved.getStructureId(),
+                    DDMStructure.class.getName() + "-" + JournalArticle.class.getName(), structure.getRolePermissions(),
+                    DEFAULT_DDM_PERMISSIONS);
+
             return;
         }
 
         DDMStructure newStructure =
                 DDMStructureLocalServiceUtil.addStructure(runAsUserId, groupId, structure.getParent(), classNameId,
                         structure.getKey(), nameMap, descMap, ddmForm, ddmFormLayout, "json", 0, new ServiceContext());
+
+        SetupPermissions.updatePermission("Structure " + structure.getKey(), groupId, companyId,
+                newStructure.getStructureId(), DDMStructure.class.getName() + "-" + JournalArticle.class.getName(),
+                structure.getRolePermissions(), DEFAULT_DDM_PERMISSIONS);
         LOG.info("Added Article structure: " + newStructure.getName());
     }
 
@@ -314,12 +339,14 @@ public final class SetupArticles {
         LOG.info("Added Article template: " + newTemplate.getName());
     }
 
-    public static void addDDMTemplate(final Adt template, long groupId)
-            throws SystemException, PortalException, IOException, URISyntaxException {
+    public static void addDDMTemplate(final Adt template, final long groupId)
+            throws SystemException, PortalException, IOException {
 
         LOG.info("Adding ADT " + template.getName());
         long classNameId = PortalUtil.getClassNameId(template.getClassName());
-        long resourceClassnameId = ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class);
+        long resourceClassnameId = Validator.isBlank(template.getResourceClassName())
+                ? ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class)
+                : ClassNameLocalServiceUtil.getClassNameId(template.getResourceClassName());
 
         Map<Locale, String> nameMap = new HashMap<Locale, String>();
 
@@ -364,7 +391,7 @@ public final class SetupArticles {
         LOG.info("Added ADT: " + newTemplate.getName());
     }
 
-    public static void addJournalArticle(final Article article, long groupId) {
+    public static void addJournalArticle(final Article article, final long groupId) {
         LOG.info("Adding Journal Article " + article.getTitle());
 
         String content = null;
@@ -395,6 +422,14 @@ public final class SetupArticles {
             titleMap.put(articleDefaultLocale, article.getTitle());
         }
 
+        Map<Locale, String> descriptionMap = null;
+        if (article.getArticleDescription() != null && !article.getArticleDescription().isEmpty()) {
+            descriptionMap = TranslationMapUtil.getTranslationMap(article.getDescriptionTranslation(), groupId,
+                    article.getArticleDescription(), " Article with description " + article.getArticleId());
+            if (!descriptionMap.containsKey(articleDefaultLocale)) {
+                descriptionMap.put(articleDefaultLocale, article.getArticleDescription());
+            }
+        }
         ServiceContext serviceContext = new ServiceContext();
         serviceContext.setScopeGroupId(groupId);
 
@@ -415,10 +450,10 @@ public final class SetupArticles {
         try {
             if (journalArticle == null) {
                 journalArticle = JournalArticleLocalServiceUtil.addArticle(runAsUserId, groupId, folderId, 0, 0,
-                        article.getArticleId(), generatedId, JournalArticleConstants.VERSION_DEFAULT, titleMap, null,
-                        content, article.getArticleStructureKey(), article.getArticleTemplateKey(), StringPool.BLANK, 1,
-                        1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true, true, false,
-                        StringPool.BLANK, null, null, StringPool.BLANK, serviceContext);
+                        article.getArticleId(), generatedId, JournalArticleConstants.VERSION_DEFAULT, titleMap,
+                        descriptionMap, content, article.getArticleStructureKey(), article.getArticleTemplateKey(),
+                        StringPool.BLANK, 1, 1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true,
+                        true, false, StringPool.BLANK, null, null, StringPool.BLANK, serviceContext);
 
                 LOG.info("Added JournalArticle " + journalArticle.getTitle() + " with ID: "
                         + journalArticle.getArticleId());
@@ -431,16 +466,18 @@ public final class SetupArticles {
                         + " already exists. Will be overwritten.");
                 journalArticle.setTitleMap(titleMap);
                 journalArticle.setContent(content);
+                journalArticle.setDescriptionMap(descriptionMap);
 
                 JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
 
                 // if the folder changed, move it...
                 if (journalArticle.getFolderId() != folderId) {
-                    JournalArticleLocalServiceUtil.moveArticle(groupId, journalArticle.getArticleId(), folderId, ServiceContextThreadLocal.getServiceContext());
+                    JournalArticleLocalServiceUtil.moveArticle(groupId, journalArticle.getArticleId(), folderId,
+                            ServiceContextThreadLocal.getServiceContext());
                 }
                 LOG.info("Updated JournalArticle: " + journalArticle.getTitle());
             }
-            TaggingUtil.associateTags(groupId, article, journalArticle);
+            TaggingUtil.associateTagsAndCategories(groupId, article, journalArticle);
             processRelatedAssets(article, journalArticle, runAsUserId, groupId, companyId);
             SetupPermissions.updatePermission("Article " + journalArticle.getArticleId(), groupId, companyId,
                     journalArticle.getResourcePrimKey(), JournalArticle.class, article.getRolePermissions(),
@@ -450,7 +487,7 @@ public final class SetupArticles {
         }
     }
 
-    private static void addDDLRecordSet(final DdlRecordset recordSet, long groupId)
+    private static void addDDLRecordSet(final DdlRecordset recordSet, final long groupId)
             throws SystemException, PortalException {
         LOG.info("Adding DDLRecordSet " + recordSet.getName());
         Map<Locale, String> nameMap = new HashMap<>();

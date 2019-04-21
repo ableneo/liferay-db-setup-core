@@ -11,5 +11,6 @@ buildNumber.properties
 *.classpath
 *.iml
 **/.attach_pid*
+*.orig
 .project
 .settings
