@@ -46,6 +46,7 @@ import org.xml.sax.XMLReader;
 
 import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
 import com.ableneo.liferay.portal.setup.domain.Setup;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 
@@ -117,6 +118,8 @@ public final class MarshallUtil {
     public static boolean validateAgainstXSD(final File xmlConfigurationFile) {
         Validator validator = schema.newValidator();
         try {
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringPool.BLANK);
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringPool.BLANK);
             validator.validate(new StreamSource(new FileInputStream(xmlConfigurationFile)));
         } catch (IOException e) {
             throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);

@@ -44,8 +44,8 @@ import com.liferay.portal.kernel.util.PortalUtil;
 
 public final class SetupPermissions {
 
-    public static final String[] PERMISSION_RO = {ActionKeys.VIEW};
-    public static final String[] PERMISSION_RW = {ActionKeys.VIEW, ActionKeys.UPDATE};
+    private static final String[] PERMISSION_RO = {ActionKeys.VIEW};
+    private static final String[] PERMISSION_RW = {ActionKeys.VIEW, ActionKeys.UPDATE};
     private static final Log LOG = LogFactoryUtil.getLog(SetupPermissions.class);
     private static final long COMPANY_ID = PortalUtil.getDefaultCompanyId();
 

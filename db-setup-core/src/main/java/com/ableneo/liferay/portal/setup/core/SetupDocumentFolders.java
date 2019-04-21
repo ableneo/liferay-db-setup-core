@@ -40,7 +40,7 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 
 public final class SetupDocumentFolders {
-    public static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
+    private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {
         DEFAULT_PERMISSIONS = new HashMap<>();
