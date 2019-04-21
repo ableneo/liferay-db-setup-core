@@ -31,11 +31,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 
-import javax.xml.bind.JAXBException;
-
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 
@@ -61,7 +58,7 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
             try {
                 File configurationFile =
                         new File(BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI());
-                LiferaySetup.setup(configurationFile, GroupConstants.GUEST);
+                LiferaySetup.setup(configurationFile);
             } catch (FileNotFoundException | URISyntaxException e) {
                 throw new UpgradeException(
                         String.format("Failed to process liferay setup configuration (%1$s)", fileName), e);

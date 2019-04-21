@@ -58,8 +58,6 @@ public class SetupConfigurationThreadLocal {
                 }
                 return null;
             });
-    private static final ThreadLocal<String> _defaultGroupName = new CentralizedThreadLocal<>(
-            SetupConfigurationThreadLocal.class + "._defaultGroupName", () -> GroupConstants.GUEST);
 
     private SetupConfigurationThreadLocal() {}
 
@@ -87,8 +85,9 @@ public class SetupConfigurationThreadLocal {
         _runInGroupId.set(runInGroupId);
     }
 
-    public static void setDefaultGroupName(String defaultGroupName) {
-        _defaultGroupName.set(defaultGroupName);
+    public static void clear() {
+        _runInCompanyId.remove();
+        _runAsUserId.remove();
+        _runInGroupId.remove();
     }
-
 }

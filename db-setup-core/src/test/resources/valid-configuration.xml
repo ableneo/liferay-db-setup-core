@@ -28,7 +28,6 @@
 <setup xmlns="http://www.ableneo.com/liferay/setup">
     <configuration>
         <!-- run as automatically selected admin -->
-        <run-as-user-email></run-as-user-email>
         <company>
             <companyid>1</companyid>
         </company>

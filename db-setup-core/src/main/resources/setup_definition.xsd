@@ -136,7 +136,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="run-as-user-email" minOccurs="0" maxOccurs="1"></xs:element>
-                <xs:choice>
+                <xs:choice minOccurs="1">
                     <xs:element name="companyid" type="xs:long"></xs:element>
                     <xs:element name="companywebid" type="xs:string"></xs:element>
                 </xs:choice>

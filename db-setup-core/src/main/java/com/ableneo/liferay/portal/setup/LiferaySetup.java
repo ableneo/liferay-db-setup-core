@@ -30,6 +30,7 @@ package com.ableneo.liferay.portal.setup;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.Objects;
 
 import com.ableneo.liferay.portal.setup.core.*;
 import com.ableneo.liferay.portal.setup.domain.*;
@@ -37,6 +38,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
@@ -44,6 +46,8 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -54,13 +58,22 @@ public final class LiferaySetup {
 
     private LiferaySetup() {}
 
-    public static boolean setup(final File file, final String defaultGroupName) throws FileNotFoundException {
+    /**
+     * @param file configuration file
+     * @return true if all was set up fine
+     * @throws FileNotFoundException if provided configuration file could not be found
+     */
+    public static boolean setup(final File file) throws FileNotFoundException {
         Setup setup = MarshallUtil.unmarshall(file);
-        return setup(setup, defaultGroupName);
+        return setup(setup);
     }
 
-    public static boolean setup(final Setup setup, final String defaultGroupName) {
-        SetupConfigurationThreadLocal.setDefaultGroupName(defaultGroupName);
+    /**
+     *
+     * @param setup configuration of db setup runner
+     * @return true if all was set up fine
+     */
+    public static boolean setup(final Setup setup) {
 
         Configuration configuration = setup.getConfiguration();
         String runAsUserEmail = configuration.getRunAsUserEmail();
@@ -68,33 +81,81 @@ public final class LiferaySetup {
         final PermissionChecker permissionChecker = PermissionThreadLocal.getPermissionChecker();
 
         try {
-            if (runAsUserEmail == null || runAsUserEmail.isEmpty()) {
-                setAdminPermissionCheckerForThread(PortalUtil.getDefaultCompanyId());
-                LOG.info("Using default administrator.");
+            // iterate over companies or choose default
+            if (!configuration.getCompany().isEmpty()) {
+                for (Company company : configuration.getCompany()) {
+                    Long companyId = company.getCompanyid() != null
+                            ? company.getCompanyid() : getCompanyIdFromCompanyWebId(company);
+                    if (companyId == -1) {
+                        continue;
+                    } else {
+                        SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
+                    }
+                    configureThreadPermission(runAsUserEmail, companyId);
+                    executeSetupConfiguration(setup);
+
+                    // iterate over group names or choose default group for the company
+                    if (company.getGroupName().isEmpty()) {
+                        company.getGroupName().add(GroupConstants.GUEST);
+                    }
+                    for (String groupName : company.getGroupName()) {
+                        long groupId = GroupLocalServiceUtil.getGroup(companyId, groupName).getGroupId();
+                        SetupConfigurationThreadLocal.setRunInGroupId(groupId);
+                        setupPortalGroup(setup);
+                    }
+                }
             } else {
-                User user =
-                        UserLocalServiceUtil.getUserByEmailAddress(PortalUtil.getDefaultCompanyId(), runAsUserEmail);
-                SetupConfigurationThreadLocal.setRunAsUserId(user.getUserId());
-                PrincipalThreadLocal.setName(user.getUserId());
-                PermissionThreadLocal.setPermissionChecker(permissionChecker);
-
-                LOG.info("Execute setup module as user " + setup.getConfiguration().getRunAsUserEmail());
+                configureThreadPermission(runAsUserEmail, PortalUtil.getDefaultCompanyId());
+                executeSetupConfiguration(setup);
+                setupPortalGroup(setup);
             }
-
-            setupPortal(setup);
-            return true;
-
         } catch (Exception e) {
             LOG.error("An error occured while executing the portal setup ", e);
             return false;
         } finally {
             PrincipalThreadLocal.setName(principalName);
             PermissionThreadLocal.setPermissionChecker(permissionChecker);
+            SetupConfigurationThreadLocal.clear(); // in case it'll be run multiple times in the same thread
+        }
+        return true;
+    }
+
+    private static long getCompanyIdFromCompanyWebId(Company company) {
+        String companyWebId = null;
+        try {
+            companyWebId = company.getCompanywebid();
+            return CompanyLocalServiceUtil.getCompanyByWebId(companyWebId).getCompanyId();
+        } catch (PortalException | SystemException e) {
+            LOG.error(String.format("Couldn't find company: %1$s", company));
+        }
+        return -1;
+    }
+
+    private static void configureThreadPermission(String runAsUserEmail, long companyId) throws Exception {
+        if (runAsUserEmail == null || runAsUserEmail.isEmpty()) {
+            SetupConfigurationThreadLocal.setRunAsUserId(UserLocalServiceUtil.getDefaultUserId(companyId));
+            SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
+            setAdminPermissionCheckerForThread();
+            LOG.info("Using default administrator.");
+        } else {
+            User user = UserLocalServiceUtil.getUserByEmailAddress(PortalUtil.getDefaultCompanyId(), runAsUserEmail);
+            SetupConfigurationThreadLocal.setRunAsUserId(user.getUserId());
+            SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
+            PrincipalThreadLocal.setName(user.getUserId());
+            PermissionChecker permissionChecker;
+            try {
+                permissionChecker = PermissionCheckerFactoryUtil.create(user);
+            } catch (Exception e) {
+                throw new LiferaySetupException(
+                        "An error occured while trying to create permissionchecker for user: " + runAsUserEmail, e);
+            }
+            PermissionThreadLocal.setPermissionChecker(permissionChecker);
+
+            LOG.info("Execute setup module as user " + runAsUserEmail);
         }
     }
 
-    public static void setupPortal(final Setup setup) {
-
+    private static void executeSetupConfiguration(final Setup setup) throws SystemException {
         if (setup.getDeleteLiferayObjects() != null) {
             LOG.info("Deleting : " + setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size() + " objects");
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
@@ -134,11 +195,44 @@ public final class LiferaySetup {
             SetupSites.setupSites(setup.getSites().getSite(), null);
         }
 
+        LOG.info("Setup finished");
+    }
+
+    private static void setupPortalGroup(Setup setup) throws SystemException {
+        if (setup.getUsers() != null) {
+            LOG.info("Setting up " + setup.getUsers().getUser().size() + " users");
+            SetupUsers.setupUsers(setup.getUsers().getUser());
+        }
+
         if (setup.getPageTemplates() != null) {
             SetupPages.setupPageTemplates(setup.getPageTemplates());
         }
 
-        LOG.info("Setup finished");
+        if (setup.getRoles() != null) {
+            LOG.info("Setting up " + setup.getRoles().getRole().size() + " roles");
+            SetupRoles.setupRoles(setup.getRoles().getRole());
+        }
+
+        LOG.info("Setup of portal groups finished");
+    }
+
+    /**
+     * Initializes permission checker for Liferay Admin. Used to grant access to
+     * custom fields.
+     *
+     * @throws Exception if cannot set permission checker
+     */
+    private static void setAdminPermissionCheckerForThread() throws Exception {
+        User adminUser = getAdminUser();
+        SetupConfigurationThreadLocal.setRunAsUserId(Objects.requireNonNull(adminUser).getUserId());
+        PrincipalThreadLocal.setName(adminUser.getUserId());
+        PermissionChecker permissionChecker;
+        try {
+            permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
+        } catch (Exception e) {
+            throw new Exception("Cannot obtain permission checker for Liferay Administrator user", e);
+        }
+        PermissionThreadLocal.setPermissionChecker(permissionChecker);
     }
 
     private static void deleteObjects(final List<ObjectsToBeDeleted> objectsToBeDeleted) {
@@ -166,15 +260,15 @@ public final class LiferaySetup {
     /**
      * Returns Liferay user, that has Administrator role assigned.
      *
-     * @param companyId company ID
      * @return Liferay {@link com.ableneo.liferay.portal.setup.domain.User}
      *         instance, if no user is found, returns null
      * @throws Exception if cannot obtain permission checker
      */
-    private static User getAdminUser(final long companyId) throws Exception {
+    private static User getAdminUser() throws Exception {
 
         try {
-            Role adminRole = RoleLocalServiceUtil.getRole(companyId, RoleConstants.ADMINISTRATOR);
+            Role adminRole = RoleLocalServiceUtil.getRole(SetupConfigurationThreadLocal.getRunInCompanyId(),
+                    RoleConstants.ADMINISTRATOR);
             List<User> adminUsers = UserLocalServiceUtil.getRoleUsers(adminRole.getRoleId());
 
             if (adminUsers == null || adminUsers.isEmpty()) {
@@ -185,27 +279,6 @@ public final class LiferaySetup {
         } catch (PortalException | SystemException e) {
             throw new Exception("Cannot obtain Liferay role for role name: " + RoleConstants.ADMINISTRATOR, e);
         }
-    }
-
-    /**
-     * Initializes permission checker for Liferay Admin. Used to grant access to
-     * custom fields.
-     *
-     * @param companyId company ID
-     * @throws Exception if cannot set permission checker
-     */
-    private static void setAdminPermissionCheckerForThread(final long companyId) throws Exception {
-
-        User adminUser = getAdminUser(companyId);
-        PrincipalThreadLocal.setName(adminUser.getUserId());
-        SetupConfigurationThreadLocal.setRunAsUserId(adminUser.getUserId());
-        PermissionChecker permissionChecker;
-        try {
-            permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
-        } catch (Exception e) {
-            throw new Exception("Cannot obtain permission checker for Liferay Administrator user", e);
-        }
-        PermissionThreadLocal.setPermissionChecker(permissionChecker);
     }
 
 }
