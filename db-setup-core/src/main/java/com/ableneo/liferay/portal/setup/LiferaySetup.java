@@ -37,7 +37,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.model.User;
@@ -45,14 +44,12 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 
 public final class LiferaySetup {
 
-    public static final String DESCRIPTION = "Created by setup module.";
     private static final Log LOG = LogFactoryUtil.getLog(LiferaySetup.class);
 
     private LiferaySetup() {}
@@ -66,7 +63,7 @@ public final class LiferaySetup {
         SetupConfigurationThreadLocal.setDefaultGroupName(defaultGroupName);
 
         Configuration configuration = setup.getConfiguration();
-        String runAsUserEmail = configuration.getRunasuser();
+        String runAsUserEmail = configuration.getRunAsUserEmail();
         final String principalName = PrincipalThreadLocal.getName();
         final PermissionChecker permissionChecker = PermissionThreadLocal.getPermissionChecker();
 
@@ -81,7 +78,7 @@ public final class LiferaySetup {
                 PrincipalThreadLocal.setName(user.getUserId());
                 PermissionThreadLocal.setPermissionChecker(permissionChecker);
 
-                LOG.info("Execute setup module as user " + setup.getConfiguration().getRunasuser());
+                LOG.info("Execute setup module as user " + setup.getConfiguration().getRunAsUserEmail());
             }
 
             setupPortal(setup);
@@ -127,9 +124,9 @@ public final class LiferaySetup {
             SetupUserGroups.setupUserGroups(setup.getUserGroups().getUserGroup());
         }
 
-        if (setup.getPortletPermissions() != null) {
-            LOG.info("Setting up " + setup.getPortletPermissions().getPortlet().size() + " roles");
-            SetupPermissions.setupPortletPermissions(setup.getPortletPermissions());
+        if (setup.getResourcePermissions() != null) {
+            LOG.info("Setting up " + setup.getResourcePermissions().getResource().size() + " roles");
+            SetupPermissions.setupPortletPermissions(setup.getResourcePermissions());
         }
 
         if (setup.getSites() != null) {
@@ -147,22 +144,18 @@ public final class LiferaySetup {
     private static void deleteObjects(final List<ObjectsToBeDeleted> objectsToBeDeleted) {
 
         for (ObjectsToBeDeleted otbd : objectsToBeDeleted) {
-
             if (otbd.getRoles() != null) {
                 List<com.ableneo.liferay.portal.setup.domain.Role> roles = otbd.getRoles().getRole();
                 SetupRoles.deleteRoles(roles, otbd.getDeleteMethod());
             }
-
             if (otbd.getUsers() != null) {
                 List<com.ableneo.liferay.portal.setup.domain.User> users = otbd.getUsers().getUser();
                 SetupUsers.deleteUsers(users, otbd.getDeleteMethod());
             }
-
             if (otbd.getOrganizations() != null) {
                 List<Organization> organizations = otbd.getOrganizations().getOrganization();
                 SetupOrganizations.deleteOrganization(organizations, otbd.getDeleteMethod());
             }
-
             if (otbd.getCustomFields() != null) {
                 List<CustomFields.Field> customFields = otbd.getCustomFields().getField();
                 SetupCustomFields.deleteCustomFields(customFields, otbd.getDeleteMethod());

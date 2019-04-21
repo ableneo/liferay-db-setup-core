@@ -165,7 +165,7 @@ public class SetupSites {
             return;
         }
 
-        List<UsergroupAsMember> memberGroups = membership.getUsergroupAsMember();
+        List<UserGroupAsMember> memberGroups = membership.getUserGroupAsMember();
         assignMemberGroups(memberGroups, companyId, groupId);
 
         List<UserAsMember> memberUsers = membership.getUserAsMember();
@@ -226,15 +226,15 @@ public class SetupSites {
 
     }
 
-    private static void assignMemberGroups(List<UsergroupAsMember> memberGroups, long companyId, long groupId) {
+    private static void assignMemberGroups(List<UserGroupAsMember> memberGroups, long companyId, long groupId) {
         if (Objects.isNull(memberGroups) || memberGroups.isEmpty()) {
             return;
         }
 
-        for (UsergroupAsMember memberGroup : memberGroups) {
+        for (UserGroupAsMember memberGroup : memberGroups) {
             try {
                 UserGroup liferayUserGroup =
-                        UserGroupLocalServiceUtil.getUserGroup(companyId, memberGroup.getUsergroupName());
+                        UserGroupLocalServiceUtil.getUserGroup(companyId, memberGroup.getUserGroupName());
                 Group liferayGroup = GroupLocalServiceUtil.getGroup(groupId);
                 GroupLocalServiceUtil.addUserGroupGroup(liferayUserGroup.getUserGroupId(), liferayGroup);
                 LOG.info("UserGroup " + liferayUserGroup.getName() + " was assigned as site member to "
@@ -242,7 +242,7 @@ public class SetupSites {
 
                 assignGroupMemberRoles(memberGroup.getRole(), companyId, liferayGroup, liferayUserGroup);
             } catch (PortalException e) {
-                LOG.error("Cannot find UserGroup with name: " + memberGroup.getUsergroupName()
+                LOG.error("Cannot find UserGroup with name: " + memberGroup.getUserGroupName()
                         + ". Group won't be assigned to site.", e);
                 continue;
             }

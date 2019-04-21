@@ -31,7 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
@@ -85,8 +84,9 @@ public final class SetupOrganizations {
                             OrganizationLocalServiceUtil.addOrganization(SetupConfigurationThreadLocal.getRunAsUserId(),
                                     OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, organization.getName(),
                                     "organization", 0, 0, ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
-                                    LiferaySetup.DESCRIPTION, false, new ServiceContext());
-                    addOrganizationUser(newOrganization, UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId()));
+                                    "Created by setup module.", false, new ServiceContext());;
+                    addOrganizationUser(newOrganization,
+                            UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId()));
                     liferayOrg = newOrganization;
                     liferayGroup = liferayOrg.getGroup();
                     groupId = newOrganization.getGroupId();
@@ -150,7 +150,8 @@ public final class SetupOrganizations {
                     SetupCategorization.setupVocabularies(orgSite.getVocabulary(), groupId);
                     LOG.info("Organization Categories setting finished.");
 
-                    SetupArticles.setupSiteArticles(orgSite.getArticle(), orgSite.getAdt(), orgSite.getDdlRecordset(), groupId);
+                    SetupArticles.setupSiteArticles(orgSite.getArticle(), orgSite.getAdt(), orgSite.getDdlRecordset(),
+                            groupId);
                     LOG.info("Organization Articles setting finished.");
 
                     SetupSites.setCustomFields(groupId, orgSite.getCustomFieldSetting());

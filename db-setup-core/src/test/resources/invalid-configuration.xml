@@ -28,7 +28,7 @@
 <setup xmlns="http://www.ableneo.com/liferay/setup">
     <configuration>
         <!-- run as automatically selected admin -->
-        <runasuser></runasuser>
+        <run-as-user-email></run-as-user-email>
         <company>
             <companyid>1</companyid>
         </company>
@@ -37,11 +37,11 @@
     <roles>
         <role name="Some Role" testing="true"></role>
     </roles>
-    <portletPermissions>
-        <portlet portletId="some-portlet">
+    <resource-permissions>
+        <resource resource-id="some-portlet">
             <actionId name="SOME_ACTION">
                 <role name="Some Role"/>
             </actionId>
-        </portlet>
-    </portletPermissions>
+        </resource>
+    </resource-permissions>
 </setup>

@@ -13,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -55,13 +55,13 @@ public final class SetupPermissions {
 
     }
 
-    public static void setupPortletPermissions(final PortletPermissions portletPermissions) {
+    public static void setupPortletPermissions(final ResourcePermissions resourcePermissions) {
 
-        for (PortletPermissions.Portlet portlet : portletPermissions.getPortlet()) {
+        for (ResourcePermissions.Resource resource : resourcePermissions.getResource()) {
 
-            deleteAllPortletPermissions(portlet);
+            deleteAllPortletPermissions(resource);
 
-            Map<String, Set<String>> actionsPerRole = getActionsPerRole(portlet);
+            Map<String, Set<String>> actionsPerRole = getActionsPerRole(resource);
             for (String roleName : actionsPerRole.keySet()) {
                 try {
                     long roleId = RoleLocalServiceUtil.getRole(COMPANY_ID, roleName).getRoleId();
@@ -69,11 +69,11 @@ public final class SetupPermissions {
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
                     ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID,
-                            portlet.getPortletId(), ResourceConstants.SCOPE_COMPANY,
+                            resource.getResourceId(), ResourceConstants.SCOPE_COMPANY,
                             String.valueOf(COMPANY_ID), roleId, actionIds);
                     LOG.info("Set permission for role: " + roleName + " for action ids: " + actionIds);
                 } catch (NestableException e) {
-                    LOG.error("Could not set permission to portlet :" + portlet.getPortletId(),
+                    LOG.error("Could not set permission to resource :" + resource.getResourceId(),
                             e);
                 }
             }
@@ -81,13 +81,13 @@ public final class SetupPermissions {
     }
 
     /**
-     * @param portlet
-     * @return mapping of role name to action ids for the portlet
+     * @param resource
+     * @return mapping of role name to action ids for the resource
      */
-    private static Map<String, Set<String>> getActionsPerRole(PortletPermissions.Portlet portlet) {
+    private static Map<String, Set<String>> getActionsPerRole(ResourcePermissions.Resource resource) {
         Map<String, Set<String>> result = new HashMap<>();
 
-        for (PortletPermissions.Portlet.ActionId actionId : portlet.getActionId()) {
+        for (ResourcePermissions.Resource.ActionId actionId : resource.getActionId()) {
             for (Role role : actionId.getRole()) {
                 final String roleName = role.getName();
                 Set<String> actions = result.get(roleName);
@@ -155,17 +155,17 @@ public final class SetupPermissions {
                 String.valueOf(primaryKey), roleId, actionKeys);
     }
 
-    private static void deleteAllPortletPermissions(final PortletPermissions.Portlet portlet) {
+    private static void deleteAllPortletPermissions(final ResourcePermissions.Resource resource) {
 
         try {
             List<ResourcePermission> resourcePermissions = ResourcePermissionLocalServiceUtil
-                    .getResourcePermissions(COMPANY_ID, portlet.getPortletId(),
+                    .getResourcePermissions(COMPANY_ID, resource.getResourceId(),
                             ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID));
             for (ResourcePermission resourcePermission : resourcePermissions) {
                 ResourcePermissionLocalServiceUtil.deleteResourcePermission(resourcePermission);
             }
         } catch (SystemException e) {
-            LOG.error("could not delete permissions for portlet :" + portlet.getPortletId(), e);
+            LOG.error("could not delete permissions for resource :" + resource.getResourceId(), e);
         }
     }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup" version="1.1">
+           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup" version="2.0">
 
     <xs:element name="setup">
         <xs:annotation>
@@ -15,13 +15,13 @@
                     all operations within setup hook -->
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
                 <xs:element ref="roles" minOccurs="0"/>
-                <xs:element ref="userGroups" minOccurs="0"/>
+                <xs:element ref="user-groups" minOccurs="0"/>
                 <xs:element ref="users" minOccurs="0"/>
-                <xs:element ref="portletPermissions" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="resource-permissions" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="sites" minOccurs="0"/>
                 <xs:element ref="organizations" minOccurs="0"/>
-                <xs:element ref="customFields" minOccurs="0" maxOccurs="1"/>
-                <xs:element ref="deleteLiferayObjects" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="custom-fields" minOccurs="0" maxOccurs="1"/>
+                <xs:element ref="delete-liferay-objects" minOccurs="0" maxOccurs="1"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="page-templates"/>
             </xs:sequence>
         </xs:complexType>
@@ -30,7 +30,7 @@
     <xs:element name="configuration">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0" maxOccurs="1" ref="runasuser"/>
+                <xs:element minOccurs="0" maxOccurs="1" ref="run-as-user-email"/>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="company"/>
             </xs:sequence>
         </xs:complexType>
@@ -52,18 +52,18 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="userGroups">
+    <xs:element name="user-groups">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="userGroup"/>
+                <xs:element maxOccurs="unbounded" ref="user-group"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="portletPermissions">
+    <xs:element name="resource-permissions">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="unbounded" name="portlet">
+                <xs:element maxOccurs="unbounded" name="resource">
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element maxOccurs="unbounded" name="actionId">
@@ -75,7 +75,7 @@
                                 </xs:complexType>
                             </xs:element>
                         </xs:sequence>
-                        <xs:attribute name="portletId" type="xs:string" use="required"/>
+                        <xs:attribute name="resource-id" type="xs:string" use="required"/>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>
@@ -98,14 +98,14 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="objectsToBeDeleted">
+    <xs:element name="objects-to-be-deleted">
         <xs:complexType>
             <xs:choice>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="users"/>
                 <xs:element ref="organizations"/>
                 <xs:element ref="sites"/>
-                <xs:element ref="customFields"/>
+                <xs:element ref="custom-fields"/>
             </xs:choice>
 
             <xs:attribute name="deleteMethod" use="required">
@@ -119,7 +119,7 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="runasuser" type="xs:string">
+    <xs:element name="run-as-user-email" type="xs:string">
         <xs:annotation>
             <xs:documentation>
                 Specify the email address of user, which will be used for performing all operations within setup hook or specific company. When empty: random user that has Administrator role within a company will be used.
@@ -135,12 +135,12 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="runasuser" minOccurs="0" maxOccurs="1"></xs:element>
+                <xs:element ref="run-as-user-email" minOccurs="0" maxOccurs="1"></xs:element>
                 <xs:choice>
                     <xs:element name="companyid" type="xs:long"></xs:element>
                     <xs:element name="companywebid" type="xs:string"></xs:element>
                 </xs:choice>
-                <xs:element name="groupName" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="group-name" type="xs:string" minOccurs="0" maxOccurs="unbounded">
                     <xs:annotation>
                         <xs:documentation>
                             Setup configuration will be executed on every provided group or only on "Guest" group if none is provided. If you need separate setups for different groups create different configuration file per group and execute all of them.
@@ -166,8 +166,8 @@
     <xs:element name="site">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="1" minOccurs="0" ref="public-pages"/>
-                <xs:element maxOccurs="1" minOccurs="0" ref="private-pages"/>
+                <xs:element name="public-pages" type="pages" maxOccurs="1" minOccurs="0" />
+                <xs:element name="private-pages" type="pages" maxOccurs="1" minOccurs="0" />
                 <xs:element ref="document-folder" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="document" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="article-structure" type="structure" minOccurs="0" maxOccurs="unbounded"/>
@@ -196,7 +196,7 @@
     <xs:element name="membership">
         <xs:complexType>
             <xs:sequence>
-                <xs:element minOccurs="0" maxOccurs="unbounded" ref="usergroup-as-member"/>
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="user-group-as-member"/>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="user-as-member" />
             </xs:sequence>
         </xs:complexType>
@@ -222,60 +222,32 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="public-pages">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
-                <xs:element maxOccurs="unbounded" ref="page"/>
-            </xs:sequence>
-            <xs:attribute name="deleteExistingPages" default="false" type="xs:boolean"/>
-            <xs:attribute name="virtual-host" type="xs:string"/>
-            <xs:attribute name="defaultLayout" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>ID of default layout template for this public page set. Note that if the layout
-                        template is part of a Theme plugin, Theme plugin ID must be configured
-                        as the defaultLayoutContainedInThemeWithId attribute.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="defaultLayoutContainedInThemeWithId" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>If Layout template is delivered as a part of Theme plugin, ID
-                        of this Theme plugin must be defined in this attribute.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
+    <xs:complexType name="pages">
+        <xs:sequence>
+            <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
+            <xs:element maxOccurs="unbounded" ref="page"/>
+        </xs:sequence>
+        <xs:attribute name="delete-existing-pages" default="false" type="xs:boolean"/>
+        <xs:attribute name="virtual-host" type="xs:string"/>
+        <xs:attribute name="default-layout" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>ID of default layout template for this public page set. Note that if the layout
+                    template is part of a Theme plugin, Theme plugin ID must be configured
+                    as the defaultLayoutContainedInThemeWithId attribute.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="default-layouts-theme-id" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>If Layout template is delivered as a part of Theme plugin, ID
+                    of this Theme plugin must be defined in this attribute.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
 
-        </xs:complexType>
-    </xs:element>
+    </xs:complexType>
 
-    <xs:element name="private-pages">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
-                <xs:element maxOccurs="unbounded" ref="page"/>
-            </xs:sequence>
-            <xs:attribute name="deleteExistingPages" default="false" type="xs:boolean"/>
-            <xs:attribute name="virtual-host" type="xs:string"/>
-            <xs:attribute name="defaultLayout" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>ID of layout template for this page. Note that if the layout
-                        template is part of a Theme plugin, Theme plugin ID must be configured
-                        as the layoutContainedInThemeWithId attribute.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-            <xs:attribute name="defaultLayoutContainedInThemeWithId" type="xs:string">
-                <xs:annotation>
-                    <xs:documentation>If Layout template is delivered as a part of Theme plugin, ID
-                        of this Theme plugin must be defined in this attribute.
-                    </xs:documentation>
-                </xs:annotation>
-            </xs:attribute>
-        </xs:complexType>
-    </xs:element>
-
-    <xs:element name="pageportlet">
+    <xs:element name="page-portlet">
         <xs:annotation>
             <xs:documentation>
                 Use pageportlet element to add a portlet into the page.<br/>
@@ -288,7 +260,7 @@
             <xs:sequence>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="portlet-preference"/>
             </xs:sequence>
-            <xs:attribute name="portletId" type="xs:string" use="required"/>
+            <xs:attribute name="portlet-id" type="xs:string" use="required"/>
             <xs:attribute name="column" type="xs:string" use="required"/>
             <xs:attribute name="column-position" type="xs:int" default="-1">
             </xs:attribute>
@@ -404,16 +376,16 @@
                 <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
 
-            <xs:attribute name="screenName" use="required" type="xs:string"/>
-            <xs:attribute name="emailAddress" use="required" type="xs:string"/>
+            <xs:attribute name="screen-name" use="required" type="xs:string"/>
+            <xs:attribute name="email-address" use="required" type="xs:string"/>
             <xs:attribute name="password" use="required" type="xs:string"/>
-            <xs:attribute name="firstName" use="required" type="xs:string"/>
-            <xs:attribute name="lastName" use="required" type="xs:string"/>
+            <xs:attribute name="first-name" use="required" type="xs:string"/>
+            <xs:attribute name="last-name" use="required" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
 
-    <xs:element name="userGroup">
+    <xs:element name="user-group">
         <xs:complexType>
             <xs:sequence minOccurs="0">
                 <xs:element maxOccurs="unbounded" ref="role"/>
@@ -438,7 +410,7 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="usergroup-as-member">
+    <xs:element name="user-group-as-member">
         <xs:annotation>
             <xs:appinfo>Represents a generic reference to UserGroup as a member of other entity.</xs:appinfo>
         </xs:annotation>
@@ -446,7 +418,7 @@
             <xs:sequence minOccurs="0">
                 <xs:element ref="role" minOccurs="0" maxOccurs="unbounded" />
             </xs:sequence>
-            <xs:attribute name="usergroup-name" type="xs:string" use="required" />
+            <xs:attribute name="user-group-name" type="xs:string" use="required" />
         </xs:complexType>
     </xs:element>
 
@@ -512,14 +484,14 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="page"/>
-                <xs:element maxOccurs="unbounded" minOccurs="0" ref="pageportlet"/>
+                <xs:element maxOccurs="unbounded" minOccurs="0" ref="page-portlet"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="theme"/>
                 <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
             <xs:attribute name="name" use="required"/>
-            <xs:attribute name="friendlyURL" use="required"/>
+            <xs:attribute name="friendly-url" use="required"/>
             <xs:attribute name="type" default="portlet"/>
             <xs:attribute name="target" use="optional" />
             <xs:attribute name="hidden" type="xs:boolean" default="false"/>
@@ -531,27 +503,27 @@
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="layoutContainedInThemeWithId" type="xs:string">
+            <xs:attribute name="layout-theme-id" type="xs:string">
                 <xs:annotation>
                     <xs:documentation>If Layout template is delivered as a part of Theme plugin, ID
                         of this Theme plugin must be defined in this attribute.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="deleteExistingPages" default="false" type="xs:boolean"/>
+            <xs:attribute name="delete-existing-pages" default="false" type="xs:boolean"/>
 
-            <xs:attribute name="clearPage" default="true" type="xs:boolean">
+            <xs:attribute name="clear-page" default="true" type="xs:boolean">
                 <xs:annotation>
                     <xs:documentation>If this attribute is set to true, all portlets will be removed
                         from the page before the new ones are set up.
                     </xs:documentation>
                 </xs:annotation>
             </xs:attribute>
-            <xs:attribute name="linkToURL" type="xs:string"/>
+            <xs:attribute name="link-to-url" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="customFields">
+    <xs:element name="custom-fields">
         <xs:complexType>
             <xs:sequence>
                 <xs:element maxOccurs="unbounded" name="field">
@@ -574,7 +546,7 @@
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="className" use="required"/>
+                        <xs:attribute name="class-name" use="required"/>
                         <xs:attribute name="indexed" use="optional" default="none">
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
@@ -584,7 +556,7 @@
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="displayType" use="optional" default="text-box">
+                        <xs:attribute name="display-type" use="optional" default="text-box">
                             <xs:simpleType>
                                 <xs:restriction base="xs:string">
                                     <xs:enumeration value="checkbox"/>
@@ -594,7 +566,7 @@
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
-                        <xs:attribute name="defaultData" use="optional"/>
+                        <xs:attribute name="default-data" use="optional"/>
                     </xs:complexType>
                 </xs:element>
             </xs:sequence>
@@ -609,10 +581,10 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="deleteLiferayObjects">
+    <xs:element name="delete-liferay-objects">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="objectsToBeDeleted"/>
+                <xs:element maxOccurs="unbounded" ref="objects-to-be-deleted"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -724,7 +696,7 @@
             <xs:sequence>
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="related-asset"/>
             </xs:sequence>
-            <xs:attribute name="clearAllAssets" type="xs:boolean" default="false"/>
+            <xs:attribute name="clear-all-assets" type="xs:boolean" default="false"/>
         </xs:complexType>
     </xs:element>
 
