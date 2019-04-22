@@ -50,7 +50,6 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
 
 public final class LiferaySetup {
 
@@ -87,11 +86,9 @@ public final class LiferaySetup {
                     Long companyId = company.getCompanyid() != null
                             ? company.getCompanyid() : getCompanyIdFromCompanyWebId(company);
                     if (companyId == -1) {
-                        continue;
-                    } else {
-                        SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
+                        continue; // company not found
                     }
-                    configureThreadPermission(runAsUserEmail, companyId);
+                    configureThreadLocalContet(runAsUserEmail, companyId);
                     executeSetupConfiguration(setup);
 
                     // iterate over group names or choose default group for the company
@@ -105,7 +102,7 @@ public final class LiferaySetup {
                     }
                 }
             } else {
-                configureThreadPermission(runAsUserEmail, PortalUtil.getDefaultCompanyId());
+                configureThreadLocalContet(runAsUserEmail, SetupConfigurationThreadLocal.getRunInCompanyId());
                 executeSetupConfiguration(setup);
                 setupPortalGroup(setup);
             }
@@ -131,14 +128,14 @@ public final class LiferaySetup {
         return -1;
     }
 
-    private static void configureThreadPermission(String runAsUserEmail, long companyId) throws Exception {
+    private static void configureThreadLocalContet(String runAsUserEmail, long companyId) throws Exception {
         if (runAsUserEmail == null || runAsUserEmail.isEmpty()) {
             SetupConfigurationThreadLocal.setRunAsUserId(UserLocalServiceUtil.getDefaultUserId(companyId));
             SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
             setAdminPermissionCheckerForThread();
             LOG.info("Using default administrator.");
         } else {
-            User user = UserLocalServiceUtil.getUserByEmailAddress(PortalUtil.getDefaultCompanyId(), runAsUserEmail);
+            User user = UserLocalServiceUtil.getUserByEmailAddress(companyId, runAsUserEmail);
             SetupConfigurationThreadLocal.setRunAsUserId(user.getUserId());
             SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
             PrincipalThreadLocal.setName(user.getUserId());
@@ -155,7 +152,7 @@ public final class LiferaySetup {
         }
     }
 
-    private static void executeSetupConfiguration(final Setup setup) throws SystemException {
+    private static void executeSetupConfiguration(final Setup setup) throws LiferaySetupException {
         if (setup.getDeleteLiferayObjects() != null) {
             LOG.info(String.format("Deleting : %1$s objects", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
@@ -186,31 +183,25 @@ public final class LiferaySetup {
         }
 
         if (setup.getResourcePermissions() != null) {
-            LOG.info(String.format("Setting up %1$s roles", setup.getResourcePermissions().getResource().size()));
+            LOG.info(String.format("Setting up %1$s resource permissions", setup.getResourcePermissions().getResource().size()));
             SetupPermissions.setupPortletPermissions(setup.getResourcePermissions());
         }
 
         if (setup.getSites() != null) {
             LOG.info(String.format("Setting up %1$s sites", setup.getSites().getSite().size()));
-            SetupSites.setupSites(setup.getSites().getSite(), null);
+            try {
+                SetupSites.setupSites(setup.getSites().getSite(), null);
+            } catch (PortalException e) {
+                throw new LiferaySetupException("", e);
+            }
         }
 
         LOG.info("Setup finished");
     }
 
-    private static void setupPortalGroup(Setup setup) throws SystemException {
-        if (setup.getUsers() != null) {
-            LOG.info(String.format("Setting up %1$s users", setup.getUsers().getUser().size()));
-            SetupUsers.setupUsers(setup.getUsers().getUser());
-        }
-
+    private static void setupPortalGroup(Setup setup) {
         if (setup.getPageTemplates() != null) {
             SetupPages.setupPageTemplates(setup.getPageTemplates());
-        }
-
-        if (setup.getRoles() != null) {
-            LOG.info(String.format("Setting up %1$s roles", setup.getRoles().getRole().size()));
-            SetupRoles.setupRoles(setup.getRoles().getRole());
         }
 
         LOG.info("Setup of portal groups finished");
@@ -227,11 +218,7 @@ public final class LiferaySetup {
         SetupConfigurationThreadLocal.setRunAsUserId(Objects.requireNonNull(adminUser).getUserId());
         PrincipalThreadLocal.setName(adminUser.getUserId());
         PermissionChecker permissionChecker;
-        try {
-            permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
-        } catch (Exception e) {
-            throw new Exception("Cannot obtain permission checker for Liferay Administrator user", e);
-        }
+        permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
         PermissionThreadLocal.setPermissionChecker(permissionChecker);
     }
 
@@ -264,7 +251,7 @@ public final class LiferaySetup {
      *         instance, if no user is found, returns null
      * @throws Exception if cannot obtain permission checker
      */
-    private static User getAdminUser() throws Exception {
+    private static User getAdminUser() throws LiferaySetupException {
 
         try {
             Role adminRole = RoleLocalServiceUtil.getRole(SetupConfigurationThreadLocal.getRunInCompanyId(),
@@ -277,7 +264,7 @@ public final class LiferaySetup {
             return adminUsers.get(0);
 
         } catch (PortalException | SystemException e) {
-            throw new Exception(String.format("Cannot obtain Liferay role for role name: %1$s", RoleConstants.ADMINISTRATOR), e);
+            throw new LiferaySetupException(String.format("Cannot obtain Liferay role for role name: %1$s", RoleConstants.ADMINISTRATOR), e);
         }
     }
 

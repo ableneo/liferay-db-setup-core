@@ -80,9 +80,9 @@ public final class SetupArticles {
     private static final int MIN_DISPLAY_ROWS = 10;
 
     static {
-        DEFAULT_PERMISSIONS = new HashMap<String, List<String>>();
-        DEFAULT_DDM_PERMISSIONS = new HashMap<String, List<String>>();
-        List<String> actionsOwner = new ArrayList<String>();
+        DEFAULT_PERMISSIONS = new HashMap<>();
+        DEFAULT_DDM_PERMISSIONS = new HashMap<>();
+        List<String> actionsOwner = new ArrayList<>();
 
         actionsOwner.add(ActionKeys.VIEW);
         actionsOwner.add(ActionKeys.ADD_DISCUSSION);
@@ -93,7 +93,7 @@ public final class SetupArticles {
         actionsOwner.add(ActionKeys.UPDATE);
         actionsOwner.add(ActionKeys.UPDATE_DISCUSSION);
 
-        List<String> ddmActionsOwner = new ArrayList<String>();
+        List<String> ddmActionsOwner = new ArrayList<>();
 
         ddmActionsOwner.add(ActionKeys.VIEW);
         ddmActionsOwner.add(ActionKeys.DELETE);
@@ -103,12 +103,12 @@ public final class SetupArticles {
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
         DEFAULT_DDM_PERMISSIONS.put(RoleConstants.OWNER, ddmActionsOwner);
 
-        List<String> actionsUser = new ArrayList<String>();
+        List<String> actionsUser = new ArrayList<>();
         actionsUser.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.USER, actionsUser);
         DEFAULT_DDM_PERMISSIONS.put(RoleConstants.USER, actionsUser);
 
-        List<String> actionsGuest = new ArrayList<String>();
+        List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
         DEFAULT_DDM_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
@@ -126,7 +126,7 @@ public final class SetupArticles {
             for (Structure structure : articleStructures) {
                 try {
                     addDDMStructure(structure, groupId, classNameId);
-                } catch (StructureDuplicateStructureKeyException | IOException | URISyntaxException e) {
+                } catch (StructureDuplicateStructureKeyException e) {
                     LOG.error(e);
                 }
             }
@@ -140,7 +140,7 @@ public final class SetupArticles {
                 LOG.info(String.format("Adding DDL structure %1$s", structure.getName()));
                 try {
                     addDDMStructure(structure, groupId, classNameId);
-                } catch (StructureDuplicateStructureKeyException | IOException | URISyntaxException e) {
+                } catch (StructureDuplicateStructureKeyException e) {
                     LOG.error(e);
                 }
             }
@@ -151,7 +151,7 @@ public final class SetupArticles {
             for (ArticleTemplate template : articleTemplates) {
                 try {
                     addDDMTemplate(template);
-                } catch (TemplateDuplicateTemplateKeyException | IOException | URISyntaxException e) {
+                } catch (TemplateDuplicateTemplateKeyException e) {
                     LOG.error(e);
                 }
             }
@@ -159,7 +159,7 @@ public final class SetupArticles {
     }
 
     public static void setupSiteArticles(final List<Article> articles, final List<Adt> adts,
-            final List<DdlRecordset> recordSets, final long groupId) throws PortalException, SystemException {
+            final List<DdlRecordset> recordSets, final long groupId) throws PortalException {
 
         if (articles != null) {
             for (Article article : articles) {
@@ -187,7 +187,7 @@ public final class SetupArticles {
     }
 
     public static void addDDMStructure(final Structure structure, final long groupId, final long classNameId)
-            throws SystemException, PortalException, IOException, URISyntaxException {
+            throws PortalException {
 
         LOG.info(String.format("Adding Article structure %1$s", structure.getName()));
         Map<Locale, String> nameMap = new HashMap<>();
@@ -276,7 +276,7 @@ public final class SetupArticles {
     }
 
     public static void addDDMTemplate(final ArticleTemplate template)
-            throws SystemException, PortalException, IOException, URISyntaxException {
+            throws PortalException {
 
         LOG.info(String.format("Adding Article template %1$s", template.getName()));
         long classNameId = ClassNameLocalServiceUtil.getClassNameId(DDMStructure.class);
@@ -338,7 +338,7 @@ public final class SetupArticles {
     }
 
     public static void addDDMTemplate(final Adt template, final long groupId)
-            throws SystemException, PortalException, IOException {
+            throws PortalException, IOException {
 
         LOG.info(String.format("Adding ADT %1$s", template.getName()));
         long classNameId = PortalUtil.getClassNameId(template.getClassName());
@@ -346,7 +346,7 @@ public final class SetupArticles {
                 ? ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class)
                 : ClassNameLocalServiceUtil.getClassNameId(template.getResourceClassName());
 
-        Map<Locale, String> nameMap = new HashMap<Locale, String>();
+        Map<Locale, String> nameMap = new HashMap<>();
 
         Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
         String name = template.getName();
@@ -355,7 +355,7 @@ public final class SetupArticles {
         }
         nameMap.put(siteDefaultLocale, name);
 
-        Map<Locale, String> descriptionMap = new HashMap<Locale, String>();
+        Map<Locale, String> descriptionMap = new HashMap<>();
         descriptionMap.put(siteDefaultLocale, template.getDescription());
 
         DDMTemplate ddmTemplate = null;
@@ -485,7 +485,7 @@ public final class SetupArticles {
     }
 
     private static void addDDLRecordSet(final DdlRecordset recordSet, final long groupId)
-            throws SystemException, PortalException {
+            throws PortalException {
         LOG.info(String.format("Adding DDLRecordSet %1$s", recordSet.getName()));
         Map<Locale, String> nameMap = new HashMap<>();
         Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);

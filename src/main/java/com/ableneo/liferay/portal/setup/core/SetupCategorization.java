@@ -114,7 +114,7 @@ public final class SetupCategorization {
 
         try {
             ServiceContext serviceContext = new ServiceContext();
-            serviceContext.setCompanyId(PortalUtil.getDefaultCompanyId());
+            serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
             serviceContext.setScopeGroupId(groupId);
             assetVocabulary = AssetVocabularyLocalServiceUtil.addVocabulary(
                     SetupConfigurationThreadLocal.getRunAsUserId(), groupId, null, titleMap, descMap,
@@ -211,7 +211,7 @@ public final class SetupCategorization {
         descMap.put(defaultLocale, description);
 
         ServiceContext serviceContext = new ServiceContext();
-        serviceContext.setCompanyId(PortalUtil.getDefaultCompanyId());
+        serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
         serviceContext.setScopeGroupId(groupId);
 
         AssetCategory assetCategory = null;

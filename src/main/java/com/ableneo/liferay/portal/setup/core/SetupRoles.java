@@ -50,7 +50,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 
 public final class SetupRoles {
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
-    private static final long COMPANY_ID = PortalUtil.getDefaultCompanyId();
 
     private static final String SCOPE_INDIVIDUAL = "individual";
     private static final String SCOPE_SITE = "site";
@@ -65,7 +64,8 @@ public final class SetupRoles {
 
         for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
             try {
-                RoleLocalServiceUtil.getRole(COMPANY_ID, role.getName());
+                long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+                RoleLocalServiceUtil.getRole(companyId, role.getName());
                 LOG.info(String.format("Setup: Role %1$s already exist, not creating...", role.getName()));
             } catch (NoSuchRoleException | ObjectNotFoundException e) {
                 addRole(role);
@@ -92,9 +92,9 @@ public final class SetupRoles {
                 }
             }
 
-            long defaultUserId = UserLocalServiceUtil.getDefaultUserId(COMPANY_ID);
-            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,
-                    null);
+            long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+            long defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
+            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,null);
 
             LOG.info(String.format("Setup: Role %1$s does not exist, adding...", role.getName()));
 
@@ -106,7 +106,7 @@ public final class SetupRoles {
 
     public static void deleteRoles(final List<com.ableneo.liferay.portal.setup.domain.Role> roles,
             final String deleteMethod) {
-
+        long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         switch (deleteMethod) {
             case "excludeListed":
                 Map<String, com.ableneo.liferay.portal.setup.domain.Role> toBeDeletedRoles =
@@ -116,7 +116,7 @@ public final class SetupRoles {
                         String name = role.getName();
                         if (!toBeDeletedRoles.containsKey(name)) {
                             try {
-                                RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
+                                RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(companyId, name));
                                 LOG.info(String.format("Deleting Role %1$s", name));
 
                             } catch (Exception e) {
@@ -133,7 +133,7 @@ public final class SetupRoles {
                 for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
                     String name = role.getName();
                     try {
-                        RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
+                        RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(companyId, name));
                         LOG.info(String.format("Deleting Role %1$s", name));
 
                     } catch (RequiredRoleException e) {
@@ -218,10 +218,6 @@ public final class SetupRoles {
                         try {
                             SetupPermissions.addPermission(role.getName(), permissionName, resourcePrimKey, scope, loa);
                         } catch (SystemException e) {
-                            LOG.error(
-                                    String.format("Error when defining permission %1$s for role %2$s", permissionName, role.getName()),
-                                    e);
-                        } catch (PortalException e) {
                             LOG.error(
                                     String.format("Error when defining permission %1$s for role %2$s", permissionName, role.getName()),
                                     e);

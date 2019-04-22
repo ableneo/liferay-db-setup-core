@@ -145,7 +145,7 @@ public final class SetupUsers {
                         .getOrganization(SetupConfigurationThreadLocal.getRunInCompanyId(), organization.getName());
                 UserLocalServiceUtil.addOrganizationUsers(liferayOrganization.getOrganizationId(),
                         new long[] {liferayUser.getUserId()});
-                LOG.info(String.format("Adding user%1$s to Organization %2$s", setupUser.getEmailAddress(), liferayOrganization.getName()));
+                LOG.info(String.format("Adding user %1$s to Organization %2$s", setupUser.getEmailAddress(), liferayOrganization.getName()));
             }
         } catch (PortalException | SystemException e) {
             LOG.error("cannot add users");
