@@ -77,7 +77,7 @@ public final class SetupCategorization {
 
     private static void setupVocabulary(final Vocabulary vocabulary, final long groupId, final Locale defaultLocale) {
 
-        LOG.info("Setting up vocabulary with name: " + vocabulary.getName());
+        LOG.info(String.format("Setting up vocabulary with name: %1$s", vocabulary.getName()));
 
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(vocabulary.getTitleTranslation(), groupId,
                 vocabulary.getName(), "");
@@ -104,8 +104,7 @@ public final class SetupCategorization {
                 assetVocabulary = AssetVocabularyLocalServiceUtil.updateAssetVocabulary(assetVocabulary);
                 LOG.debug("Vocabulary successfully updated.");
             } catch (SystemException e) {
-                LOG.info("Error while trying to update AssetVocabulary with ID:" + assetVocabulary.getVocabularyId()
-                        + ". Skipping.");
+                LOG.info(String.format("Error while trying to update AssetVocabulary with ID:%1$s. Skipping.", assetVocabulary.getVocabularyId()));
                 return;
             }
 
@@ -120,8 +119,7 @@ public final class SetupCategorization {
             assetVocabulary = AssetVocabularyLocalServiceUtil.addVocabulary(
                     SetupConfigurationThreadLocal.getRunAsUserId(), groupId, null, titleMap, descMap,
                     composeVocabularySettings(vocabulary, groupId), serviceContext);
-            LOG.info("AssetVocabulary successfuly added. ID:" + assetVocabulary.getVocabularyId() + ", group:"
-                    + assetVocabulary.getGroupId());
+            LOG.info(String.format("AssetVocabulary successfuly added. ID:%1$s, group:%2$s", assetVocabulary.getVocabularyId(), assetVocabulary.getGroupId()));
             setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L, vocabulary.getCategory(), defaultLocale);
         } catch (PortalException | SystemException | NullPointerException e) {
             LOG.error(String.format("Error while trying to create vocabulary with title: ", titleMap), e);
@@ -157,7 +155,7 @@ public final class SetupCategorization {
                     subtypePK = ResolverUtil.getStructureId(type.getSubtypeStructureKey(), groupId,
                             Class.forName(type.getClassName()), true);
                 } catch (ClassNotFoundException | PortalException e) {
-                    LOG.error("Class can not be be resolved for classname: " + type.getClassName(), e);
+                    LOG.error(String.format("Class can not be be resolved for classname: %1$s", type.getClassName()), e);
                     continue;
                 }
             }
@@ -184,8 +182,7 @@ public final class SetupCategorization {
         assetVocabularySettingsHelper.setClassNameIdsAndClassTypePKs(ArrayUtil.toLongArray(classNameIds),
                 ArrayUtil.toLongArray(classTypePKs), requiredsArray);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Vocabulary settings composed for vocabulary:" + vocabulary.getName() + ". Content: "
-                    + assetVocabularySettingsHelper.toString());
+            LOG.debug(String.format("Vocabulary settings composed for vocabulary:%1$s. Content: %2$s", vocabulary.getName(), assetVocabularySettingsHelper.toString()));
         }
 
         return assetVocabularySettingsHelper.toString();
@@ -193,7 +190,7 @@ public final class SetupCategorization {
 
     private static void setupCategories(final long vocabularyId, final long groupId, final long parentId,
             final List<Category> categories, final Locale defaultLocale) {
-        LOG.info("Setting up categories for parentId:" + parentId);
+        LOG.info(String.format("Setting up categories for parentId:%1$s", parentId));
 
         if (categories != null && !categories.isEmpty()) {
             for (Category category : categories) {
@@ -205,10 +202,10 @@ public final class SetupCategorization {
     private static void setupCategory(final Category category, final long vocabularyId, final long groupId,
             final Locale defaultLocale, final long parentCategoryId) {
 
-        LOG.info("Setting up category with name:" + category.getName());
+        LOG.info(String.format("Setting up category with name:%1$s", category.getName()));
 
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(category.getTitleTranslation(), groupId,
-                category.getName(), "Category with name: " + category.getName());
+                category.getName(), String.format("Category with name: %1$s", category.getName()));
         Map<Locale, String> descMap = new HashMap<>();
         String description = category.getDescription();
         descMap.put(defaultLocale, description);
@@ -228,7 +225,7 @@ public final class SetupCategorization {
                 }
             }
         } catch (SystemException e) {
-            LOG.error("Error while trying to find category with name: " + category.getName(), e);
+            LOG.error(String.format("Error while trying to find category with name: %1$s", category.getName()), e);
         }
 
         if (assetCategory != null) {
@@ -242,7 +239,7 @@ public final class SetupCategorization {
                 AssetCategoryLocalServiceUtil.updateAssetCategory(assetCategory);
                 LOG.info("Category successfully updated.");
             } catch (SystemException e) {
-                LOG.error("Error while trying to update category with name: " + assetCategory.getName(), e);
+                LOG.error(String.format("Error while trying to update category with name: %1$s", assetCategory.getName()), e);
             }
 
             setupCategories(vocabularyId, groupId, assetCategory.getCategoryId(), category.getCategory(),
@@ -253,13 +250,13 @@ public final class SetupCategorization {
         try {
             assetCategory = AssetCategoryLocalServiceUtil.addCategory(SetupConfigurationThreadLocal.getRunAsUserId(),
                     groupId, parentCategoryId, titleMap, descMap, vocabularyId, null, serviceContext);
-            LOG.info("Category successfully added with title: " + assetCategory.getTitle());
+            LOG.info(String.format("Category successfully added with title: %1$s", assetCategory.getTitle()));
 
             setupCategories(vocabularyId, groupId, assetCategory.getCategoryId(), category.getCategory(),
                     defaultLocale);
 
         } catch (PortalException | SystemException e) {
-            LOG.error("Error in creating category with name: " + category.getName(), e);
+            LOG.error(String.format("Error in creating category with name: %1$s", category.getName()), e);
         }
 
     }

@@ -62,14 +62,14 @@ public class SetupUserGroups {
                 liferayUserGroup = UserGroupLocalServiceUtil.getUserGroup(companyId, userGroup.getName());
                 liferayUserGroupId = liferayUserGroup.getUserGroupId();
             } catch (PortalException e) {
-                LOG.info("UserGroup does not exists, creating new one for name: " + userGroup.getName());
+                LOG.info(String.format("UserGroup does not exists, creating new one for name: %1$s", userGroup.getName()));
             }
             if (liferayUserGroupId == -1) {
                 try {
                     liferayUserGroup = UserGroupLocalServiceUtil.addUserGroup(userId, companyId, userGroup.getName(),
                             userGroup.getDescription(), new ServiceContext());
                 } catch (PortalException e) {
-                    LOG.error("Can not create UserGroup with name: " + userGroup.getName(), e);
+                    LOG.error(String.format("Can not create UserGroup with name: %1$s", userGroup.getName()), e);
                     continue;
                 }
             }
@@ -98,14 +98,12 @@ public class SetupUserGroups {
         for (UserAsMember member : usersAsMember) {
             User user = UserLocalServiceUtil.fetchUserByScreenName(companyId, member.getScreenName());
             if (Objects.isNull(user)) {
-                LOG.error("Can not set user " + member.getScreenName()
-                        + " as member of UserGroup. User does not exists...");
+                LOG.error(String.format("Can not set user %1$s as member of UserGroup. User does not exists...", member.getScreenName()));
                 continue;
             }
 
             UserGroupLocalServiceUtil.addUserUserGroup(user.getUserId(), liferayUserGroup.getUserGroupId());
-            LOG.info("User " + user.getScreenName() + " successfully added as a member to UserGroup "
-                    + liferayUserGroup.getName());
+            LOG.info(String.format("User %1$s successfully added as a member to UserGroup %2$s", user.getScreenName(), liferayUserGroup.getName()));
         }
 
     }
@@ -140,22 +138,21 @@ public class SetupUserGroups {
                 switch (roleType) {
                     case "portal":
                         GroupLocalServiceUtil.addRoleGroup(liferayRole.getRoleId(), liferayUserGroup.getGroupId());
-                        LOG.info("Adding role " + liferayRole.getDescriptiveName() + " to userGroup "
-                                + liferayUserGroup.getName());
+                        LOG.info(String.format("Adding role %1$s to userGroup %2$s", liferayRole.getDescriptiveName(), liferayUserGroup.getName()));
                         break;
 
                     case "site":
                     case "organization":
-                        LOG.error("Adding site or organization roles to UserGroup is not supported. "
-                                + "Bind userGroups to Site Roles within the Site elemennt.");
+                        LOG.error(
+                                "Adding site or organization roles to UserGroup is not supported. Bind userGroups to Site Roles within the Site elemennt.");
                         break;
                     default:
-                        LOG.error("unknown role type " + roleType);
+                        LOG.error(String.format("unknown role type %1$s", roleType));
                         break;
                 }
             }
         } catch (PortalException | SystemException e) {
-            LOG.error("Error in adding roles to userGroup " + userGroup.getName(), e);
+            LOG.error(String.format("Error in adding roles to userGroup %1$s", userGroup.getName()), e);
         }
     }
 }

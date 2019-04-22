@@ -74,14 +74,14 @@ public class SetupSites {
                 long groupId = -1;
                 if (site.isDefault()) {
                     liferayGroup = GroupLocalServiceUtil.getGroup(COMPANY_ID, DEFAULT_GROUP_NAME);
-                    LOG.info("Setup: default site. Group ID: " + groupId);
+                    LOG.info(String.format("Setup: default site. Group ID: %1$s", groupId));
                 } else if (site.getName() == null) {
                     liferayGroup = GroupLocalServiceUtil.getCompanyGroup(COMPANY_ID);
-                    LOG.info("Setup: global site. Group ID: " + groupId);
+                    LOG.info(String.format("Setup: global site. Group ID: %1$s", groupId));
                 } else {
                     try {
                         liferayGroup = GroupLocalServiceUtil.getGroup(COMPANY_ID, site.getName());
-                        LOG.info("Setup: Site " + site.getName() + " already exists in system, not creating...");
+                        LOG.info(String.format("Setup: Site %1$s already exists in system, not creating...", site.getName()));
 
                     } catch (PortalException | SystemException e) {
                         LOG.debug("Site does not exist.", e);
@@ -91,15 +91,15 @@ public class SetupSites {
                 ServiceContext serviceContext = new ServiceContext();
 
                 if (liferayGroup == null) {
-                    LOG.info("Setup: Group (Site) " + site.getName() + " does not exist in system, creating...");
+                    LOG.info(String.format("Setup: Group (Site) %1$s does not exist in system, creating...", site.getName()));
 
                     liferayGroup = GroupLocalServiceUtil.addGroup(defaultUserId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
                             Group.class.getName(), 0, 0, TranslationMapUtil.getLocalizationMap(site.getName()), null,
                             GroupConstants.TYPE_SITE_RESTRICTED, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
                             site.getSiteFriendlyUrl(), true, true, serviceContext);
-                    LOG.info("New Organization created. Group ID: " + groupId);
+                    LOG.info(String.format("New Organization created. Group ID: %1$s", groupId));
                 } else {
-                    LOG.info("Setup: Updating " + site.getName());
+                    LOG.info(String.format("Setup: Updating %1$s", site.getName()));
                     GroupLocalServiceUtil.updateFriendlyURL(liferayGroup.getGroupId(), site.getSiteFriendlyUrl());
                 }
                 groupId = liferayGroup.getGroupId();
@@ -155,7 +155,7 @@ public class SetupSites {
                 setupSites(sites, liferayGroup);
 
             } catch (Exception e) {
-                LOG.error("Error by setting up site " + site.getName(), e);
+                LOG.error(String.format("Error by setting up site %1$s", site.getName()), e);
             }
         }
     }
@@ -181,16 +181,14 @@ public class SetupSites {
         for (UserAsMember memberUser : memberUsers) {
             User user = UserLocalServiceUtil.fetchUserByScreenName(companyId, memberUser.getScreenName());
             if (Objects.isNull(user)) {
-                LOG.error("User with screenName " + memberUser.getScreenName()
-                        + " does not exists. Won't be assigned as site member.");
+                LOG.error(String.format("User with screenName %1$s does not exists. Won't be assigned as site member.", memberUser.getScreenName()));
                 continue;
             }
 
             try {
                 Group liferayGroup = GroupLocalServiceUtil.getGroup(groupId);
                 GroupLocalServiceUtil.addUserGroup(user.getUserId(), liferayGroup.getGroupId());
-                LOG.info("User " + user.getScreenName() + " was assigned as member of site "
-                        + liferayGroup.getDescriptiveName());
+                LOG.info(String.format("User %1$s was assigned as member of site %2$s", user.getScreenName(), liferayGroup.getDescriptiveName()));
 
                 assignUserMemberRoles(memberUser.getRole(), companyId, liferayGroup, user);
 
@@ -219,8 +217,7 @@ public class SetupSites {
 
                 LOG.info(sb.toString());
             } catch (PortalException e) {
-                LOG.error("Can not add role with name" + membershipRole.getName()
-                        + " does not exists. Will not be assigned.");
+                LOG.error(String.format("Can not add role with name%1$s does not exists. Will not be assigned.", membershipRole.getName()));
             }
         }
 
@@ -237,13 +234,11 @@ public class SetupSites {
                         UserGroupLocalServiceUtil.getUserGroup(companyId, memberGroup.getUserGroupName());
                 Group liferayGroup = GroupLocalServiceUtil.getGroup(groupId);
                 GroupLocalServiceUtil.addUserGroupGroup(liferayUserGroup.getUserGroupId(), liferayGroup);
-                LOG.info("UserGroup " + liferayUserGroup.getName() + " was assigned as site member to "
-                        + liferayGroup.getDescriptiveName());
+                LOG.info(String.format("UserGroup %1$s was assigned as site member to %2$s", liferayUserGroup.getName(), liferayGroup.getDescriptiveName()));
 
                 assignGroupMemberRoles(memberGroup.getRole(), companyId, liferayGroup, liferayUserGroup);
             } catch (PortalException e) {
-                LOG.error("Cannot find UserGroup with name: " + memberGroup.getUserGroupName()
-                        + ". Group won't be assigned to site.", e);
+                LOG.error(String.format("Cannot find UserGroup with name: %1$s. Group won't be assigned to site.", memberGroup.getUserGroupName()), e);
                 continue;
             }
         }
@@ -267,8 +262,7 @@ public class SetupSites {
 
                 LOG.info(sb.toString());
             } catch (PortalException e) {
-                LOG.error("Can not add role with name" + membershipRole.getName()
-                        + " does not exists. Will not be assigned.");
+                LOG.error(String.format("Can not add role with name%1$s does not exists. Will not be assigned.", membershipRole.getName()));
             }
         }
     }
@@ -280,7 +274,7 @@ public class SetupSites {
         }
 
         // only local staging supported, yet
-        LOG.info("Setting up staging for site: " + liveGroup.getName());
+        LOG.info(String.format("Setting up staging for site: %1$s", liveGroup.getName()));
         try {
             if (staging.getType().equals("local")) {
                 ServiceContext serviceContext = new ServiceContext();
@@ -374,13 +368,13 @@ public class SetupSites {
                     } catch (Exception e) {
                         LOG.error("Error by deleting Site !", e);
                     }
-                    LOG.info("Deleting Site " + name);
+                    LOG.info(String.format("Deleting Site %1$s", name));
                 }
 
                 break;
 
             default:
-                LOG.error("Unknown delete method : " + deleteMethod);
+                LOG.error(String.format("Unknown delete method : %1$s", deleteMethod));
                 break;
         }
     }
@@ -388,14 +382,14 @@ public class SetupSites {
     private static void deleteLiferayGroup(Group siteGroup) {
         try {
             GroupLocalServiceUtil.deleteGroup(siteGroup.getGroupId());
-            LOG.info("Deleting Site" + siteGroup.getName());
+            LOG.info(String.format("Deleting Site %1$s", siteGroup.getName()));
         } catch (Exception e) {
             LOG.error("Error by deleting Site !", e);
         }
     }
 
     public static void addSiteUser(com.liferay.portal.kernel.model.Group group, User user) {
-        LOG.info("Adding user with screenName: " + user.getScreenName() + "to group with name: " + group.getName());
+        LOG.info(String.format("Adding user with screenName: %1$sto group with name: %2$s", user.getScreenName(), group.getName()));
         GroupLocalServiceUtil.addUserGroup(user.getUserId(), group);
     }
 

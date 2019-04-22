@@ -116,10 +116,10 @@ public final class TaggingUtil {
                 try {
                     assetTag = AssetTagLocalServiceUtil.addTag(runAsUser, groupId, name, new ServiceContext());
                 } catch (PortalException | SystemException e1) {
-                    LOG.error("Category " + name + " not found! ", e1);
+                    LOG.error(String.format("Category %1$s not found! ", name), e1);
                 }
             } catch (PortalException | SystemException e) {
-                LOG.error("Category " + name + " not found! ", e);
+                LOG.error(String.format("Category %1$s not found! ", name), e);
             }
 
             if (assetTag != null) {

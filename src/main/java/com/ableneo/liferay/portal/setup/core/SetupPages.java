@@ -115,7 +115,7 @@ public final class SetupPages {
                 setupTheme(groupId, publicPages.getTheme(), false);
             }
             if (publicPages.isDeleteExistingPages()) {
-                LOG.info("Setup: Deleting pages from site " + site.getName());
+                LOG.info(String.format("Setup: Deleting pages from site %1$s", site.getName()));
                 deletePages(groupId, false);
             }
             addPages(publicPages.getPage(), publicPages.getDefaultLayout(), publicPages.getDefaultLayoutsThemeId(),
@@ -131,7 +131,7 @@ public final class SetupPages {
                 setupTheme(groupId, privatePages.getTheme(), true);
             }
             if (privatePages.isDeleteExistingPages()) {
-                LOG.info("Setup: Deleting pages from site " + site.getName());
+                LOG.info(String.format("Setup: Deleting pages from site %1$s", site.getName()));
                 deletePages(groupId, true);
             }
             addPages(privatePages.getPage(), privatePages.getDefaultLayout(), privatePages.getDefaultLayoutsThemeId(),
@@ -163,10 +163,12 @@ public final class SetupPages {
                     if (listLayoutPrototype != null && listLayoutPrototype.size() > 0) {
                         lp = listLayoutPrototype.get(0);
                     } else {
-                        Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(
-                                pageTemplate.getTitleTranslation(), groupId, name, " Page template  " + name);
-                        Map<Locale, String> nameMap = TranslationMapUtil.getTranslationMap(
-                                pageTemplate.getTitleTranslation(), groupId, name, " Page template  " + name);
+                        Map<Locale, String> titleMap =
+                                TranslationMapUtil.getTranslationMap(pageTemplate.getTitleTranslation(), groupId, name,
+                                        String.format(" Page template  %1$s", name));
+                        Map<Locale, String> nameMap =
+                                TranslationMapUtil.getTranslationMap(pageTemplate.getTitleTranslation(), groupId, name,
+                                        String.format(" Page template  %1$s", name));
                         lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(userid, company, titleMap, nameMap,
                                 true, new ServiceContext());
                     }
@@ -175,13 +177,12 @@ public final class SetupPages {
                         if (pageTemplate.getPage() != null) {
                             Page page = pageTemplate.getPage();
                             if (page.getFriendlyUrl() != null && !page.getFriendlyUrl().equals("")) {
-                                LOG.error("The page of page template " + name + " may not have a "
-                                        + "friendly URL! Will ignore it!");
+                                LOG.error(String.format("The page of page template %1$s may not have a friendly URL! Will ignore it!", name));
                             }
                             setupLiferayPage(layout, page, null, null, groupId, false, company, userid, name);
                         }
                     } else {
-                        LOG.error("Could not create or find the page template " + name);
+                        LOG.error(String.format("Could not create or find the page template %1$s", name));
                     }
                 }
             }
@@ -232,7 +233,7 @@ public final class SetupPages {
             Layout layout = null;
             try {
                 layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, isPrivate, page.getFriendlyUrl());
-                LOG.info("Setup: Page " + page.getName() + " already exist, not creating...");
+                LOG.info(String.format("Setup: Page %1$s already exist, not creating...", page.getName()));
                 if (layout != null && page.isDeleteExistingPages()) {
                     LayoutLocalServiceUtil.deleteLayout(layout);
                     if (page.getLinkToUrl() == null || page.getLinkToUrl().equals("")) {
@@ -249,7 +250,7 @@ public final class SetupPages {
                 } else {
                     layout = createLinkPage(page, groupId, parentLayoutId, userId);
                 }
-                LOG.info("Setup: Page " + page.getName() + " created...");
+                LOG.info(String.format("Setup: Page %1$s created...", page.getName()));
             } catch (Exception ex) {
                 LOG.error(ex);
             }
@@ -295,7 +296,7 @@ public final class SetupPages {
         List<Page> subPages = page.getPage();
         if (subPages != null && !subPages.isEmpty()) {
             if (pageTemplateName != null && !pageTemplateName.equals("")) {
-                LOG.error("Page template " + pageTemplateName + " may not have any sub-pages! " + "Will ignore them!");
+                LOG.error(String.format("Page template %1$s may not have any sub-pages! Will ignore them!", pageTemplateName));
             } else {
                 addPages(subPages, defaultLayout, defaultLayoutContainedInThemeWithId, groupId, isPrivate,
                         layout.getLayoutId(), company, userId);
@@ -306,8 +307,8 @@ public final class SetupPages {
             setCustomFields(userId, groupId, company, page, layout);
         }
 
-        SetupPermissions.updatePermission("Page " + page.getFriendlyUrl(), groupId, company, layout.getPlid(),
-                Layout.class, page.getRolePermissions(), getDefaultPermissions(isPrivate));
+        SetupPermissions.updatePermission(String.format("Page %1$s", page.getFriendlyUrl()), groupId, company,
+                layout.getPlid(), Layout.class, page.getRolePermissions(), getDefaultPermissions(isPrivate));
     }
 
     private static HashMap<String, List<String>> getDefaultPermissions(final boolean isPrivate) {
@@ -341,7 +342,7 @@ public final class SetupPages {
             LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
                     layout.getTypeSettings());
         } catch (PortalException | SystemException e) {
-            LOG.error("Could not create link page " + p.getFriendlyUrl() + " with link to url " + p.getLinkToUrl(), e);
+            LOG.error(String.format("Could not create link page %1$s with link to url %2$s", p.getFriendlyUrl(), p.getLinkToUrl()), e);
         }
         return layout;
     }
@@ -363,7 +364,7 @@ public final class SetupPages {
             }
         } catch (PortalException | SystemException e) {
             LOG.error(
-                    "Could not update link page " + page.getFriendlyUrl() + " with link to url " + page.getLinkToUrl(),
+                    String.format("Could not update link page %1$s with link to url %2$s", page.getFriendlyUrl(), page.getLinkToUrl()),
                     e);
         }
     }
@@ -372,7 +373,7 @@ public final class SetupPages {
             final boolean isPrivate) throws SystemException, PortalException {
 
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(currentPage.getTitleTranslation(), groupId,
-                currentPage.getName(), " Page with title " + currentPage.getFriendlyUrl());
+                currentPage.getName(), String.format(" Page with title %1$s", currentPage.getFriendlyUrl()));
 
         Locale locale = LocaleUtil.getSiteDefault();
 
@@ -424,7 +425,7 @@ public final class SetupPages {
             } catch (PortalException e) {
                 LOG.error(e);
             }
-            LOG.info("setting theme on page: " + page.getName() + " : " + theme.getName());
+            LOG.info(String.format("setting theme on page: %1$s : %2$s", page.getName(), theme.getName()));
         }
     }
 
@@ -432,8 +433,8 @@ public final class SetupPages {
             final long companyId, final long groupId)
             throws SystemException, ValidatorException, IOException, PortalException {
         if (page.getLinkToUrl() != null && !page.getLinkToUrl().equals("")) {
-            LOG.error("This is a link page! It cannot be cleared. If you intend to use this page "
-                    + "for portlets, please" + " delete this page, or remove the link from the page!");
+            LOG.error(
+                    "This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
         } else {
             long plid = layout.getPlid();
             long ownerId = PortletKeys.PREFS_OWNER_ID_DEFAULT;
@@ -509,7 +510,7 @@ public final class SetupPages {
      */
     private static String resolvePortletPrefValue(final String key, final String value, final PagePortlet portlet,
             final long company, final long groupId, final long runAsUserId) {
-        String locationHint = "Key: " + key + " of portlet " + portlet.getPortletId();
+        String locationHint = String.format("Key: %1$s of portlet %2$s", key, portlet.getPortletId());
         return ResolverUtil.lookupAll(runAsUserId, groupId, company, value, locationHint);
     }
 
@@ -520,8 +521,7 @@ public final class SetupPages {
             if (page.isClearPage()) {
                 if (page.getPagePortlet() != null && page.getPagePortlet().size() > 0 && page.getLinkToUrl() != null
                         && !page.getLinkToUrl().equals("")) {
-                    LOG.error("This is a link page! It cannot be cleared. If you intend to use " + "this page for "
-                            + "portlets, please" + " delete this page, or remove the link from the page!");
+                    LOG.error("This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
                 } else {
                     removeAllPortlets(userid, portletLayout, layout);
                 }
@@ -536,24 +536,24 @@ public final class SetupPages {
                         LayoutTemplateLocalServiceUtil.getLayoutTemplate(page.getLayout(), false, themeId);
 
                 if (layoutTemplate != null) {
-                    LOG.info("Setting layout to " + page.getLayout() + " for page " + page.getName());
+                    LOG.info(String.format("Setting layout to %1$s for page %2$s", page.getLayout(), page.getName()));
                     if (themeId != null) {
-                        LOG.info("Layout was looked up in theme " + themeId);
+                        LOG.info(String.format("Layout was looked up in theme %1$s", themeId));
                     }
                     portletLayout.setLayoutTemplateId(UserLocalServiceUtil.getDefaultUserId(layout.getCompanyId()),
                             layoutTemplate.getLayoutTemplateId());
                     LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(),
                             layout.getLayoutId(), layout.getTypeSettings());
                 } else {
-                    LOG.error("Layout template " + page.getLayout() + " not found !");
+                    LOG.error(String.format("Layout template %1$s not found !", page.getLayout()));
                     if (themeId != null) {
-                        LOG.error("Layout was looked up in theme " + themeId);
+                        LOG.error(String.format("Layout was looked up in theme %1$s", themeId));
                     }
                 }
             } catch (Exception e) {
-                LOG.error("Error by setting layout template : " + page.getLayout(), e);
+                LOG.error(String.format("Error by setting layout template : %1$s", page.getLayout()), e);
                 if (themeId != null) {
-                    LOG.error("Layout was looked up in theme " + themeId);
+                    LOG.error(String.format("Layout was looked up in theme %1$s", themeId));
                 }
             }
 
@@ -575,10 +575,10 @@ public final class SetupPages {
 
                 try {
                     if (layoutTypePortlet.hasPortletId(portletId)) {
-                        LOG.debug("Removing portlet " + portletId);
+                        LOG.debug(String.format("Removing portlet %1$s", portletId));
                         layoutTypePortlet.removePortletId(runasUser, portletId);
                         String rootPortletId = PortletIdCodec.decodePortletName(portletId);
-                        LOG.debug("Root portletId: " + rootPortletId);
+                        LOG.debug(String.format("Root portletId: %1$s", rootPortletId));
                         ResourceLocalServiceUtil.deleteResource(layout.getCompanyId(), rootPortletId,
                                 ResourceConstants.SCOPE_INDIVIDUAL,
                                 PortletPermissionUtil.getPrimaryKey(layout.getPlid(), portletId));
@@ -604,7 +604,7 @@ public final class SetupPages {
             LayoutLocalServiceUtil.deleteLayouts(groupId, privatePages, serviceContext);
             LOG.info("Setup: Pages removed.");
         } catch (PortalException | SystemException e) {
-            LOG.error("cannot remove pages: " + e);
+            LOG.error(String.format("cannot remove pages: %1$s", e));
         }
     }
 

@@ -70,11 +70,11 @@ public final class DocumentUtil {
             try {
                 entry = DLAppLocalServiceUtil.getFileEntry(groupId, folder.getFolderId(), documentName);
             } catch (NoSuchFileEntryException e) {
-                LOG.info("Document not found: " + documentName);
+                LOG.info(String.format("Document not found: %1$s", documentName));
             } catch (PortalException e) {
-                LOG.error("Error while trying to find document: " + documentName);
+                LOG.error(String.format("Error while trying to find document: %1$s", documentName));
             } catch (SystemException e) {
-                LOG.error("Error while trying to find document: " + documentName);
+                LOG.error(String.format("Error while trying to find document: %1$s", documentName));
             }
         }
 
@@ -125,7 +125,7 @@ public final class DocumentUtil {
             DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
                     fe.getTitle(), fe.getDescription(), "update content", true, content, new ServiceContext());
         } catch (Exception e) {
-            LOG.error("Can not update Liferay Document entry with ID:" + fe.getFileEntryId(), e);
+            LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
     }
 
@@ -168,20 +168,20 @@ public final class DocumentUtil {
         try {
             fileEntry = DLAppLocalServiceUtil.getFileEntry(groupId, folderId, title);
         } catch (NoSuchFileEntryException nsfee) {
-            LOG.info("Document not found: " + title);
+            LOG.info(String.format("Document not found: %1$s", title));
         } catch (PortalException e) {
-            LOG.error("Error while trying to get file: " + title, e);
+            LOG.error(String.format("Error while trying to get file: %1$s", title), e);
         } catch (SystemException e) {
-            LOG.error("Error while trying to get file: " + title, e);
+            LOG.error(String.format("Error while trying to get file: %1$s", title), e);
         }
         if (fileEntry == null) {
             try {
                 fileEntry = DLAppLocalServiceUtil.addFileEntry(userId, repoId, folderId, fname, mtype, title, title,
                         "Ableneo import", content, new ServiceContext());
             } catch (PortalException e) {
-                LOG.error("Error while trying to add file entry: " + title, e);
+                LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
             } catch (SystemException e) {
-                LOG.error("Error while trying to add file entry: " + title, e);
+                LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
             }
 
         }

@@ -66,7 +66,7 @@ public final class SetupRoles {
         for (com.ableneo.liferay.portal.setup.domain.Role role : roles) {
             try {
                 RoleLocalServiceUtil.getRole(COMPANY_ID, role.getName());
-                LOG.info("Setup: Role " + role.getName() + " already exist, not creating...");
+                LOG.info(String.format("Setup: Role %1$s already exist, not creating...", role.getName()));
             } catch (NoSuchRoleException | ObjectNotFoundException e) {
                 addRole(role);
 
@@ -96,7 +96,7 @@ public final class SetupRoles {
             RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,
                     null);
 
-            LOG.info("Setup: Role " + role.getName() + " does not exist, adding...");
+            LOG.info(String.format("Setup: Role %1$s does not exist, adding...", role.getName()));
 
         } catch (PortalException | SystemException e) {
             LOG.error("error while adding up roles", e);
@@ -117,10 +117,10 @@ public final class SetupRoles {
                         if (!toBeDeletedRoles.containsKey(name)) {
                             try {
                                 RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
-                                LOG.info("Deleting Role " + name);
+                                LOG.info(String.format("Deleting Role %1$s", name));
 
                             } catch (Exception e) {
-                                LOG.info("Skipping deletion fo system role " + name);
+                                LOG.info(String.format("Skipping deletion fo system role %1$s", name));
                             }
                         }
                     }
@@ -134,10 +134,10 @@ public final class SetupRoles {
                     String name = role.getName();
                     try {
                         RoleLocalServiceUtil.deleteRole(RoleLocalServiceUtil.getRole(COMPANY_ID, name));
-                        LOG.info("Deleting Role " + name);
+                        LOG.info(String.format("Deleting Role %1$s", name));
 
                     } catch (RequiredRoleException e) {
-                        LOG.info("Skipping deletion fo system role " + name);
+                        LOG.info(String.format("Skipping deletion fo system role %1$s", name));
 
                     } catch (PortalException | SystemException e) {
                         LOG.error("Unable to delete role.", e);
@@ -146,7 +146,7 @@ public final class SetupRoles {
                 break;
 
             default:
-                LOG.error("Unknown delete method : " + deleteMethod);
+                LOG.error(String.format("Unknown delete method : %1$s", deleteMethod));
                 break;
         }
 
@@ -156,9 +156,7 @@ public final class SetupRoles {
         if (role.getDefinePermissions() != null) {
             String siteName = role.getSite();
             if (siteName != null && !siteName.equals("")) {
-                LOG.warn("Note, refering a site inside a role definition makes no sense and will be ignored! This "
-                        + "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"
-                        + " When doing so, it is necessary to refer a site!");
+                LOG.warn(String.format("Note, refering a site inside a role definition makes no sense and will be ignored! This %1$s When doing so, it is necessary to refer a site!", "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"));
             }
             DefinePermissions permissions = role.getDefinePermissions();
             if (permissions.getDefinePermission() != null && permissions.getDefinePermission().size() > 0) {
@@ -172,7 +170,7 @@ public final class SetupRoles {
                         long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
                         resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
                                 permission.getElementPrimaryKey(),
-                                "Role " + role.getName() + " permission name " + permissionName);
+                                String.format("Role %1$s permission name %2$s", role.getName(), permissionName));
                     }
                     String type = role.getType();
                     int scope = ResourceConstants.SCOPE_COMPANY;
@@ -221,11 +219,11 @@ public final class SetupRoles {
                             SetupPermissions.addPermission(role.getName(), permissionName, resourcePrimKey, scope, loa);
                         } catch (SystemException e) {
                             LOG.error(
-                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
+                                    String.format("Error when defining permission %1$s for role %2$s", permissionName, role.getName()),
                                     e);
                         } catch (PortalException e) {
                             LOG.error(
-                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
+                                    String.format("Error when defining permission %1$s for role %2$s", permissionName, role.getName()),
                                     e);
                         }
                     } else {

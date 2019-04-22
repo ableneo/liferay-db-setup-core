@@ -68,7 +68,7 @@ public final class TranslationMapUtil {
                     }
                     translationMap.put(l, tt.getText());
                 } catch (Exception ex) {
-                    LOG.error("Exception while retrieving locale " + tt.getLocale() + " for " + locationHint);
+                    LOG.error(String.format("Exception while retrieving locale %1$s for %2$s", tt.getLocale(), locationHint));
                 }
             }
         }
@@ -80,7 +80,7 @@ public final class TranslationMapUtil {
         try {
             siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
         } catch (PortalException | SystemException e) {
-            LOG.error("Error Reading Locale while for " + locationHint);
+            LOG.error(String.format("Error Reading Locale while for %1$s", locationHint));
         }
         return siteDefaultLocale;
     }

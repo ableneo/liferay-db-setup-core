@@ -100,7 +100,7 @@ public final class SetupDocuments {
             try {
                 fileBytes = ResourcesUtil.getFileBytes(filenameInFilesystem);
             } catch (IOException e) {
-                LOG.error("Can not read file: " + filenameInFilesystem + ". Skipping file");
+                LOG.error(String.format("Can not read file: %1$s. Skipping file", filenameInFilesystem));
                 continue;
             }
             if (fileBytes != null) {
@@ -112,7 +112,7 @@ public final class SetupDocuments {
                     LOG.info(documentName + " is found! Content will be updated! ");
                     DocumentUtil.updateFile(fe, fileBytes, userId, documentName);
                 }
-                SetupPermissions.updatePermission("Document " + folderPath + "/" + documentName, groupId, company,
+                SetupPermissions.updatePermission(String.format("Document %1$s/%2$s", folderPath, documentName), groupId, company,
                         fe.getFileEntryId(), DLFileEntry.class, doc.getRolePermissions(), DEFAULT_PERMISSIONS);
             }
         }

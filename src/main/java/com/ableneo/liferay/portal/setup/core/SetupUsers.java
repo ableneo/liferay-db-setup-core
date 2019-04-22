@@ -59,13 +59,13 @@ public final class SetupUsers {
             long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             try {
                 liferayUser = UserLocalServiceUtil.getUserByEmailAddress(runInCompanyId, user.getEmailAddress());
-                LOG.info("User " + liferayUser.getEmailAddress() + " already exist, not creating...");
+                LOG.info(String.format("User %1$s already exist, not creating...", liferayUser.getEmailAddress()));
 
             } catch (NoSuchUserException e) {
                 liferayUser = addUser(user);
 
             } catch (Exception e) {
-                LOG.error("Error by retrieving user " + user.getEmailAddress());
+                LOG.error(String.format("Error by retrieving user %1$s", user.getEmailAddress()));
             }
 
             if (null != liferayUser) {
@@ -76,7 +76,7 @@ public final class SetupUsers {
                             SetupConfigurationThreadLocal.getRunInGroupId(), runInCompanyId, liferayUser, user);
                 }
             } else {
-                LOG.warn("Could not create user with screenName '" + user.getScreenName() + "'");
+                LOG.warn(String.format("Could not create user with screenName '%1$s'", user.getScreenName()));
             }
         }
     }
@@ -94,7 +94,7 @@ public final class SetupUsers {
 
     private static User addUser(final com.ableneo.liferay.portal.setup.domain.User setupUser) {
 
-        LOG.info("User " + setupUser.getEmailAddress() + " not exists, creating...");
+        LOG.info(String.format("User %1$s not exists, creating...", setupUser.getEmailAddress()));
 
         User liferayUser = null;
         long creatorUserId = 0;
@@ -127,10 +127,10 @@ public final class SetupUsers {
                     facebookId, openId, locale, setupUser.getFirstName(), middleName, setupUser.getLastName(), prefixId,
                     suffixId, male, birthdayMonth, birthdayDay, birthdayYear, jobTitle, groupIds, organizationIds,
                     roleIds, userGroupIds, sendEmail, serviceContext);
-            LOG.info("User " + setupUser.getEmailAddress() + " created");
+            LOG.info(String.format("User %1$s created", setupUser.getEmailAddress()));
 
         } catch (Exception ex) {
-            LOG.error("Error by adding user " + setupUser.getEmailAddress(), ex);
+            LOG.error(String.format("Error by adding user %1$s", setupUser.getEmailAddress()), ex);
         }
 
         return liferayUser;
@@ -145,8 +145,7 @@ public final class SetupUsers {
                         .getOrganization(SetupConfigurationThreadLocal.getRunInCompanyId(), organization.getName());
                 UserLocalServiceUtil.addOrganizationUsers(liferayOrganization.getOrganizationId(),
                         new long[] {liferayUser.getUserId()});
-                LOG.info("Adding user" + setupUser.getEmailAddress() + " to Organization "
-                        + liferayOrganization.getName());
+                LOG.info(String.format("Adding user%1$s to Organization %2$s", setupUser.getEmailAddress(), liferayOrganization.getName()));
             }
         } catch (PortalException | SystemException e) {
             LOG.error("cannot add users");
@@ -167,8 +166,7 @@ public final class SetupUsers {
                 switch (roleType) {
                     case "portal":
                         RoleLocalServiceUtil.addUserRoles(liferayUser.getUserId(), roleIds);
-                        LOG.info("Adding regular role " + userRole.getName() + " to user "
-                                + liferayUser.getEmailAddress());
+                        LOG.info(String.format("Adding regular role %1$s to user %2$s", userRole.getName(), liferayUser.getEmailAddress()));
                         break;
 
                     case "site":
@@ -182,12 +180,12 @@ public final class SetupUsers {
                         break;
 
                     default:
-                        LOG.error("unknown role type " + roleType);
+                        LOG.error(String.format("unknown role type %1$s", roleType));
                         break;
                 }
             }
         } catch (PortalException | SystemException e) {
-            LOG.error("Error in adding roles to user " + setupUser.getEmailAddress(), e);
+            LOG.error(String.format("Error in adding roles to user %1$s", setupUser.getEmailAddress()), e);
         }
     }
 
@@ -208,14 +206,14 @@ public final class SetupUsers {
                     for (User user : allUsers) {
                         if (!usersMap.containsKey(user.getEmailAddress())) {
                             if (user.isDefaultUser() || PortalUtil.isOmniadmin(user.getUserId())) {
-                                LOG.info("Skipping deletion of system user " + user.getEmailAddress());
+                                LOG.info(String.format("Skipping deletion of system user %1$s", user.getEmailAddress()));
                             } else {
                                 try {
                                     UserLocalServiceUtil.deleteUser(user.getUserId());
                                 } catch (PortalException | SystemException e) {
                                     LOG.error("Unable to delete user.", e);
                                 }
-                                LOG.info("Deleting User " + user.getEmailAddress());
+                                LOG.info(String.format("Deleting User %1$s", user.getEmailAddress()));
                             }
                         }
                     }
@@ -233,7 +231,7 @@ public final class SetupUsers {
                                 .getUserByEmailAddress(SetupConfigurationThreadLocal.getRunInCompanyId(), email);
                         UserLocalServiceUtil.deleteUser(u);
 
-                        LOG.info("Deleting User " + email);
+                        LOG.info(String.format("Deleting User %1$s", email));
                     } catch (PortalException | SystemException e) {
                         LOG.error("Unable to delete user.", e);
                     }
@@ -241,7 +239,7 @@ public final class SetupUsers {
                 break;
 
             default:
-                LOG.error("Unknown delete method : " + deleteMethod);
+                LOG.error(String.format("Unknown delete method : %1$s", deleteMethod));
                 break;
         }
     }

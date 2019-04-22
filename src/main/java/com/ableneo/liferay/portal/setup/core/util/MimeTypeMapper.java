@@ -109,7 +109,7 @@ public final class MimeTypeMapper {
 
     private String getDottedExtension(final String extension) {
         if (!extension.startsWith(".")) {
-            return "." + extension;
+            return String.format(".%1$s", extension);
         }
         return extension;
     }
@@ -782,8 +782,8 @@ public final class MimeTypeMapper {
         addEntry(".zoo", "application/octet-stream");
         addEntry(".zsh", "text/x-script.zsh");
 
-        addEntry(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".document");
-        addEntry(".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml" + ".template");
+        addEntry(".docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        addEntry(".dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template");
         addEntry(".docm", "application/vnd.ms-word.document.macroEnabled.12");
         addEntry(".dotm", "application/vnd.ms-word.template.macroEnabled.12");
         addEntry(".xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -792,7 +792,7 @@ public final class MimeTypeMapper {
         addEntry(".xltm", "application/vnd.ms-excel.template.macroEnabled.12");
         addEntry(".xlam", "application/vnd.ms-excel.addin.macroEnabled.12");
         addEntry(".xlsb", "application/vnd.ms-excel.sheet.binary.macroEnabled.12");
-        addEntry(".pptx", "application/vnd.openxmlformats-officedocument.presentationml" + ".presentation");
+        addEntry(".pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
         addEntry(".potx", "application/vnd.openxmlformats-officedocument.presentationml.template");
         addEntry(".ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow");
         addEntry(".ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12");

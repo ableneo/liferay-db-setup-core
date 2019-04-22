@@ -82,7 +82,7 @@ public final class SetupCustomFields {
                     all.addAll(columns);
                 }
             } catch (PortalException | SystemException e) {
-                LOG.error("Error in getAllExpandoColumns()." + e.getMessage());
+                LOG.error(String.format("Error in getAllExpandoColumns().%1$s", e.getMessage()));
             }
         }
         return all;
@@ -109,7 +109,7 @@ public final class SetupCustomFields {
             bridge.setAttributeProperties(name, properties);
             setCustomFieldPermission(field.getRolePermission(), bridge, name);
         } catch (PortalException | SystemException e) {
-            LOG.error("Could not set custom attribute: " + name, e);
+            LOG.error(String.format("Could not set custom attribute: %1$s", name), e);
         }
     }
 
@@ -127,12 +127,12 @@ public final class SetupCustomFields {
                     case "update":
                         SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
                                 String.valueOf(column.getColumnId()));
-                        LOG.info("Added update permission on field " + fieldName + " for role " + roleName);
+                        LOG.info(String.format("Added update permission on field %1$s for role %2$s", fieldName, roleName));
                         break;
                     case "view":
                         SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
                                 String.valueOf(column.getColumnId()));
-                        LOG.info("Added read permission on field " + fieldName + " for role " + roleName);
+                        LOG.info(String.format("Added read permission on field %1$s for role %2$s", fieldName, roleName));
                         break;
                     default:
                         LOG.info("Unknown permission:" + permission + ". No permission added on " + "field " + fieldName
@@ -141,7 +141,7 @@ public final class SetupCustomFields {
                 }
 
             } catch (PortalException e) {
-                LOG.error("Could not set permission to " + roleName + " on " + fieldName, e);
+                LOG.error(String.format("Could not set permission to %1$s on %2$s", roleName, fieldName), e);
             }
         }
     }
@@ -162,7 +162,7 @@ public final class SetupCustomFields {
                         try {
                             ExpandoColumnLocalServiceUtil.deleteColumn(expandoColumn.getColumnId());
                         } catch (PortalException | SystemException e) {
-                            LOG.error("Could not delete CustomField " + expandoColumn.getName(), e);
+                            LOG.error(String.format("Could not delete CustomField %1$s", expandoColumn.getName()), e);
                         }
                     }
                 }
@@ -174,10 +174,10 @@ public final class SetupCustomFields {
                     ExpandoColumnLocalServiceUtil.deleteColumn(COMPANY_ID, field.getClassName(), table.getName(),
                             field.getName());
                 } catch (PortalException | SystemException e) {
-                    LOG.error("Could not delete Custom Field " + field.getName(), e);
+                    LOG.error(String.format("Could not delete Custom Field %1$s", field.getName()), e);
                     continue;
                 }
-                LOG.info("custom field " + field.getName() + " deleted ");
+                LOG.info(String.format("custom field %1$s deleted ", field.getName()));
             }
         }
     }
@@ -208,7 +208,7 @@ public final class SetupCustomFields {
         if ("float".equals(name)) {
             return ExpandoColumnConstants.FLOAT;
         }
-        LOG.error("bad setup name: " + name);
+        LOG.error(String.format("bad setup name: %1$s", name));
         return -1;
     }
 
@@ -232,7 +232,7 @@ public final class SetupCustomFields {
         } else if ("keyword".equals(indexed)) {
             return ExpandoColumnConstants.INDEX_TYPE_KEYWORD;
         } else {
-            LOG.error("cannot get unknown index type: " + indexed);
+            LOG.error(String.format("cannot get unknown index type: %1$s", indexed));
             return 0;
         }
     }
@@ -247,7 +247,7 @@ public final class SetupCustomFields {
         } else if ("text-box".equals(displayType)) {
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX;
         } else {
-            LOG.error("cannot get unknown display type: " + displayType);
+            LOG.error(String.format("cannot get unknown display type: %1$s", displayType));
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX;
         }
     }

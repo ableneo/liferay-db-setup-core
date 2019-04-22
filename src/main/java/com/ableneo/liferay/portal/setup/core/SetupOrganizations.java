@@ -69,8 +69,7 @@ public final class SetupOrganizations {
                     liferayGroup = org.getGroup();
                     groupId = org.getGroupId();
                     liferayOrg = org;
-                    LOG.info("Setup: Organization " + organization.getName()
-                            + " already exist in system, not creating...");
+                    LOG.info(String.format("Setup: Organization %1$s already exist in system, not creating...", organization.getName()));
 
                 } catch (PortalException | SystemException e) {
                     LOG.debug("Organization does not exist.", e);
@@ -78,7 +77,7 @@ public final class SetupOrganizations {
 
                 if (groupId == -1) {
                     LOG.info(
-                            "Setup: Organization " + organization.getName() + " does not exist in system, creating...");
+                            String.format("Setup: Organization %1$s does not exist in system, creating...", organization.getName()));
 
                     Organization newOrganization =
                             OrganizationLocalServiceUtil.addOrganization(SetupConfigurationThreadLocal.getRunAsUserId(),
@@ -91,7 +90,7 @@ public final class SetupOrganizations {
                     liferayGroup = liferayOrg.getGroup();
                     groupId = newOrganization.getGroupId();
 
-                    LOG.info("New Organization created. Group ID: " + groupId);
+                    LOG.info(String.format("New Organization created. Group ID: %1$s", groupId));
                 }
 
                 if (parentOrg != null && liferayOrg != null && organization.isMaintainOrganizationHierarchy()) {
@@ -163,7 +162,7 @@ public final class SetupOrganizations {
                 setupOrganizations(orgs, liferayOrg, liferayGroup);
 
             } catch (Exception e) {
-                LOG.error("Error by setting up organization " + organization.getName(), e);
+                LOG.error(String.format("Error by setting up organization %1$s", organization.getName()), e);
             }
         }
 
@@ -196,7 +195,7 @@ public final class SetupOrganizations {
                         if (!toBeDeletedOrganisations.containsKey(organisation.getName())) {
                             try {
                                 OrganizationLocalServiceUtil.deleteOrganization(organisation.getOrganizationId());
-                                LOG.info("Deleting Organisation" + organisation.getName());
+                                LOG.info(String.format("Deleting Organisation%1$s", organisation.getName()));
                             } catch (Exception e) {
                                 LOG.error("Error by deleting Organisation !", e);
                             }
@@ -217,20 +216,19 @@ public final class SetupOrganizations {
                     } catch (Exception e) {
                         LOG.error("Error by deleting Organisation !", e);
                     }
-                    LOG.info("Deleting Organisation " + name);
+                    LOG.info(String.format("Deleting Organisation %1$s", name));
                 }
 
                 break;
 
             default:
-                LOG.error("Unknown delete method : " + deleteMethod);
+                LOG.error(String.format("Unknown delete method : %1$s", deleteMethod));
                 break;
         }
     }
 
     public static void addOrganizationUser(Organization organization, User user) {
-        LOG.info("Adding user with screenName: " + user.getScreenName() + "to organization with name: "
-                + organization.getName());
+        LOG.info(String.format("Adding user with screenName: %1$sto organization with name: %2$s", user.getScreenName(), organization.getName()));
         OrganizationLocalServiceUtil.addUserOrganization(user.getUserId(), organization);
     }
 

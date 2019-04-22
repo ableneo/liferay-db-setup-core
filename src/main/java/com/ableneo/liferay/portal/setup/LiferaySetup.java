@@ -147,51 +147,51 @@ public final class LiferaySetup {
                 permissionChecker = PermissionCheckerFactoryUtil.create(user);
             } catch (Exception e) {
                 throw new LiferaySetupException(
-                        "An error occured while trying to create permissionchecker for user: " + runAsUserEmail, e);
+                        String.format("An error occured while trying to create permissionchecker for user: %1$s", runAsUserEmail), e);
             }
             PermissionThreadLocal.setPermissionChecker(permissionChecker);
 
-            LOG.info("Execute setup module as user " + runAsUserEmail);
+            LOG.info(String.format("Execute setup module as user %1$s", runAsUserEmail));
         }
     }
 
     private static void executeSetupConfiguration(final Setup setup) throws SystemException {
         if (setup.getDeleteLiferayObjects() != null) {
-            LOG.info("Deleting : " + setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size() + " objects");
+            LOG.info(String.format("Deleting : %1$s objects", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
 
         if (setup.getCustomFields() != null) {
-            LOG.info("Setting up " + setup.getCustomFields().getField().size() + " custom fields");
+            LOG.info(String.format("Setting up %1$s custom fields", setup.getCustomFields().getField().size()));
             SetupCustomFields.setupExpandoFields(setup.getCustomFields().getField());
         }
 
         if (setup.getRoles() != null) {
-            LOG.info("Setting up " + setup.getRoles().getRole().size() + " roles");
+            LOG.info(String.format("Setting up %1$s roles", setup.getRoles().getRole().size()));
             SetupRoles.setupRoles(setup.getRoles().getRole());
         }
         if (setup.getUsers() != null) {
-            LOG.info("Setting up " + setup.getUsers().getUser().size() + " users");
+            LOG.info(String.format("Setting up %1$s users", setup.getUsers().getUser().size()));
             SetupUsers.setupUsers(setup.getUsers().getUser());
         }
 
         if (setup.getOrganizations() != null) {
-            LOG.info("Setting up " + setup.getOrganizations().getOrganization().size() + " organizations");
+            LOG.info(String.format("Setting up %1$s organizations", setup.getOrganizations().getOrganization().size()));
             SetupOrganizations.setupOrganizations(setup.getOrganizations().getOrganization(), null, null);
         }
 
         if (setup.getUserGroups() != null) {
-            LOG.info("Setting up " + setup.getUserGroups().getUserGroup().size() + " User Groups");
+            LOG.info(String.format("Setting up %1$s User Groups", setup.getUserGroups().getUserGroup().size()));
             SetupUserGroups.setupUserGroups(setup.getUserGroups().getUserGroup());
         }
 
         if (setup.getResourcePermissions() != null) {
-            LOG.info("Setting up " + setup.getResourcePermissions().getResource().size() + " roles");
+            LOG.info(String.format("Setting up %1$s roles", setup.getResourcePermissions().getResource().size()));
             SetupPermissions.setupPortletPermissions(setup.getResourcePermissions());
         }
 
         if (setup.getSites() != null) {
-            LOG.info("Setting up " + setup.getSites().getSite().size() + " sites");
+            LOG.info(String.format("Setting up %1$s sites", setup.getSites().getSite().size()));
             SetupSites.setupSites(setup.getSites().getSite(), null);
         }
 
@@ -200,7 +200,7 @@ public final class LiferaySetup {
 
     private static void setupPortalGroup(Setup setup) throws SystemException {
         if (setup.getUsers() != null) {
-            LOG.info("Setting up " + setup.getUsers().getUser().size() + " users");
+            LOG.info(String.format("Setting up %1$s users", setup.getUsers().getUser().size()));
             SetupUsers.setupUsers(setup.getUsers().getUser());
         }
 
@@ -209,7 +209,7 @@ public final class LiferaySetup {
         }
 
         if (setup.getRoles() != null) {
-            LOG.info("Setting up " + setup.getRoles().getRole().size() + " roles");
+            LOG.info(String.format("Setting up %1$s roles", setup.getRoles().getRole().size()));
             SetupRoles.setupRoles(setup.getRoles().getRole());
         }
 
@@ -277,7 +277,7 @@ public final class LiferaySetup {
             return adminUsers.get(0);
 
         } catch (PortalException | SystemException e) {
-            throw new Exception("Cannot obtain Liferay role for role name: " + RoleConstants.ADMINISTRATOR, e);
+            throw new Exception(String.format("Cannot obtain Liferay role for role name: %1$s", RoleConstants.ADMINISTRATOR), e);
         }
     }
 

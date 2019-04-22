@@ -69,9 +69,9 @@ public final class SetupPermissions {
 
                     ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, resource.getResourceId(),
                             ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID), roleId, actionIds);
-                    LOG.info("Set permission for role: " + roleName + " for action ids: " + actionIds);
+                    LOG.info(String.format("Set permission for role: %1$s for action ids: %2$s", roleName, actionIds));
                 } catch (NestableException e) {
-                    LOG.error("Could not set permission to resource :" + resource.getResourceId(), e);
+                    LOG.error(String.format("Could not set permission to resource :%1$s", resource.getResourceId()), e);
                 }
             }
         }
@@ -156,7 +156,7 @@ public final class SetupPermissions {
                 ResourcePermissionLocalServiceUtil.deleteResourcePermission(resourcePermission);
             }
         } catch (SystemException e) {
-            LOG.error("could not delete permissions for resource :" + resource.getResourceId(), e);
+            LOG.error(String.format("could not delete permissions for resource :%1$s", resource.getResourceId()), e);
         }
     }
 
@@ -183,9 +183,9 @@ public final class SetupPermissions {
                 try {
                     SetupPermissions.removePermission(companyId, className, Long.toString(elementId));
                 } catch (PortalException e) {
-                    LOG.error("Permissions for " + locationHint + " could not be cleared. ", e);
+                    LOG.error(String.format("Permissions for %1$s could not be cleared. ", locationHint), e);
                 } catch (SystemException e) {
-                    LOG.error("Permissions for " + locationHint + " could not be cleared. ", e);
+                    LOG.error(String.format("Permissions for %1$s could not be cleared. ", locationHint), e);
                 }
             }
             List<String> actions = new ArrayList<String>();
