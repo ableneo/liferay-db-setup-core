@@ -67,7 +67,7 @@ public final class FolderUtil {
                         final String locationHint = String.format("Folder %1$s, creating folder segment %2$s", name, folder);
                         SetupPermissions.updatePermission(locationHint,
                                 groupId, company, foundFolder.getFolderId(), JournalFolder.class, null,
-                                SetupWebFolders.DEFAULT_PERMISSIONS);
+                                SetupWebFolders.getDefaultPermissions());
                     }
                 }
 

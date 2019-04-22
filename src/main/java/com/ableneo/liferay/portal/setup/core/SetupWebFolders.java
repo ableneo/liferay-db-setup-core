@@ -70,6 +70,10 @@ public final class SetupWebFolders {
 
     }
 
+    public static HashMap<String, List<String>> getDefaultPermissions() {
+        return DEFAULT_PERMISSIONS;
+    }
+
     public static void setupWebFolders(final Site group, final long groupId) {
         for (ArticleFolder af : group.getArticleFolder()) {
             String webFolderPath = af.getFolderPath();
