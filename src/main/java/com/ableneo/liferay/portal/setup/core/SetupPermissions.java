@@ -69,7 +69,7 @@ public final class SetupPermissions {
 
                     ResourcePermissionLocalServiceUtil.setResourcePermissions(COMPANY_ID, resource.getResourceId(),
                             ResourceConstants.SCOPE_COMPANY, String.valueOf(COMPANY_ID), roleId, actionIds);
-                    LOG.info("Set permission for role: " + roleName + " for action ids: " + actionIds);
+                    LOG.info(String.format("Set permission for role: %1$s for action ids: %2$s",roleName,actionIds));
                 } catch (NestableException e) {
                     LOG.error("Could not set permission to resource :" + resource.getResourceId(), e);
                 }

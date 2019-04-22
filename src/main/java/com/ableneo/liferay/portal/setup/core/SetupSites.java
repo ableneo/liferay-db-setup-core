@@ -189,8 +189,7 @@ public class SetupSites {
             try {
                 Group liferayGroup = GroupLocalServiceUtil.getGroup(groupId);
                 GroupLocalServiceUtil.addUserGroup(user.getUserId(), liferayGroup.getGroupId());
-                LOG.info("User " + user.getScreenName() + " was assigned as member of site "
-                        + liferayGroup.getDescriptiveName());
+                LOG.info(String.format("User %1$s was assigned as member of site %2$s",user.getScreenName(),liferayGroup.getDescriptiveName()));
 
                 assignUserMemberRoles(memberUser.getRole(), companyId, liferayGroup, user);
 
@@ -237,8 +236,7 @@ public class SetupSites {
                         UserGroupLocalServiceUtil.getUserGroup(companyId, memberGroup.getUserGroupName());
                 Group liferayGroup = GroupLocalServiceUtil.getGroup(groupId);
                 GroupLocalServiceUtil.addUserGroupGroup(liferayUserGroup.getUserGroupId(), liferayGroup);
-                LOG.info("UserGroup " + liferayUserGroup.getName() + " was assigned as site member to "
-                        + liferayGroup.getDescriptiveName());
+                LOG.info(String.format("UserGroup %1$s was assigned as site member to %2$s",liferayUserGroup.getName(),liferayGroup.getDescriptiveName()));
 
                 assignGroupMemberRoles(memberGroup.getRole(), companyId, liferayGroup, liferayUserGroup);
             } catch (PortalException e) {
@@ -395,7 +393,7 @@ public class SetupSites {
     }
 
     public static void addSiteUser(com.liferay.portal.kernel.model.Group group, User user) {
-        LOG.info("Adding user with screenName: " + user.getScreenName() + "to group with name: " + group.getName());
+        LOG.info(String.format("Adding user with screenName: %1$s to group with name: %2$s",user.getScreenName(),group.getName()));
         GroupLocalServiceUtil.addUserGroup(user.getUserId(), group);
     }
 

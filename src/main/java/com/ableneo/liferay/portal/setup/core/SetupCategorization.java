@@ -120,8 +120,7 @@ public final class SetupCategorization {
             assetVocabulary = AssetVocabularyLocalServiceUtil.addVocabulary(
                     SetupConfigurationThreadLocal.getRunAsUserId(), groupId, null, titleMap, descMap,
                     composeVocabularySettings(vocabulary, groupId), serviceContext);
-            LOG.info("AssetVocabulary successfuly added. ID:" + assetVocabulary.getVocabularyId() + ", group:"
-                    + assetVocabulary.getGroupId());
+            LOG.info(String.format("AssetVocabulary successfuly added. ID:%1$s , group:%2$s",assetVocabulary.getVocabularyId(),assetVocabulary.getGroupId()));
             setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L, vocabulary.getCategory(), defaultLocale);
         } catch (PortalException | SystemException | NullPointerException e) {
             LOG.error(String.format("Error while trying to create vocabulary with title: ", titleMap), e);
@@ -184,8 +183,7 @@ public final class SetupCategorization {
         assetVocabularySettingsHelper.setClassNameIdsAndClassTypePKs(ArrayUtil.toLongArray(classNameIds),
                 ArrayUtil.toLongArray(classTypePKs), requiredsArray);
         if (LOG.isDebugEnabled()) {
-            LOG.debug("Vocabulary settings composed for vocabulary:" + vocabulary.getName() + ". Content: "
-                    + assetVocabularySettingsHelper.toString());
+            LOG.debug(String.format("Vocabulary settings composed for vocabulary:%1$s . Content: %2$s",vocabulary.getName(),assetVocabularySettingsHelper.toString()));
         }
 
         return assetVocabularySettingsHelper.toString();

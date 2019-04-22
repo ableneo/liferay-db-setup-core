@@ -127,12 +127,12 @@ public final class SetupCustomFields {
                     case "update":
                         SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
                                 String.valueOf(column.getColumnId()));
-                        LOG.info("Added update permission on field " + fieldName + " for role " + roleName);
+                        LOG.info(String.format("Added update permission on field %1$s for role %2$s",fieldName,roleName));
                         break;
                     case "view":
                         SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
                                 String.valueOf(column.getColumnId()));
-                        LOG.info("Added read permission on field " + fieldName + " for role " + roleName);
+                        LOG.info(String.format("Added read permission on field %1$s for role %2$s",fieldName,roleName));
                         break;
                     default:
                         LOG.info("Unknown permission:" + permission + ". No permission added on " + "field " + fieldName
@@ -141,7 +141,7 @@ public final class SetupCustomFields {
                 }
 
             } catch (PortalException e) {
-                LOG.error("Could not set permission to " + roleName + " on " + fieldName, e);
+                LOG.error(String.format("Could not set permission to %1$s on %2$s",roleName,fieldName), e);
             }
         }
     }
