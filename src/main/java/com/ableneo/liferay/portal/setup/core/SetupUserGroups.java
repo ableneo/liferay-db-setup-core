@@ -104,7 +104,8 @@ public class SetupUserGroups {
             }
 
             UserGroupLocalServiceUtil.addUserUserGroup(user.getUserId(), liferayUserGroup.getUserGroupId());
-            LOG.info(String.format("User %1$s successfully added as a member to UserGroup %2$s",user.getScreenName(),liferayUserGroup.getName()));
+            LOG.info("User " + user.getScreenName() + " successfully added as a member to UserGroup "
+                    + liferayUserGroup.getName());
         }
 
     }
@@ -139,7 +140,8 @@ public class SetupUserGroups {
                 switch (roleType) {
                     case "portal":
                         GroupLocalServiceUtil.addRoleGroup(liferayRole.getRoleId(), liferayUserGroup.getGroupId());
-                        LOG.info(String.format("Adding role %1$s to userGroup %2$s",liferayRole.getDescriptiveName(),liferayUserGroup.getName()));
+                        LOG.info("Adding role " + liferayRole.getDescriptiveName() + " to userGroup "
+                                + liferayUserGroup.getName());
                         break;
 
                     case "site":

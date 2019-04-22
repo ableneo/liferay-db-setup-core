@@ -455,7 +455,8 @@ public final class SetupArticles {
                         StringPool.BLANK, 1, 1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true,
                         true, false, StringPool.BLANK, null, null, StringPool.BLANK, serviceContext);
 
-                LOG.info(String.format("Added JournalArticle %1$s with ID: %2$s",journalArticle.getTitle(),journalArticle.getArticleId()));
+                LOG.info("Added JournalArticle " + journalArticle.getTitle() + " with ID: "
+                        + journalArticle.getArticleId());
                 Indexer bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
                 if (bi != null) {
                     bi.reindex(journalArticle);

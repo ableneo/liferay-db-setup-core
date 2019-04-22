@@ -145,7 +145,8 @@ public final class SetupUsers {
                         .getOrganization(SetupConfigurationThreadLocal.getRunInCompanyId(), organization.getName());
                 UserLocalServiceUtil.addOrganizationUsers(liferayOrganization.getOrganizationId(),
                         new long[] {liferayUser.getUserId()});
-                LOG.info(String.format("Adding user%1$s to Organization %2$s",setupUser.getEmailAddress(),liferayOrganization.getName()));
+                LOG.info("Adding user" + setupUser.getEmailAddress() + " to Organization "
+                        + liferayOrganization.getName());
             }
         } catch (PortalException | SystemException e) {
             LOG.error("cannot add users");
@@ -166,7 +167,8 @@ public final class SetupUsers {
                 switch (roleType) {
                     case "portal":
                         RoleLocalServiceUtil.addUserRoles(liferayUser.getUserId(), roleIds);
-                        LOG.info(String.format("Adding regular role %1$s to user %2$s",userRole.getName(),liferayUser.getEmailAddress()));
+                        LOG.info("Adding regular role " + userRole.getName() + " to user "
+                                + liferayUser.getEmailAddress());
                         break;
 
                     case "site":

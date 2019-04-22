@@ -234,7 +234,7 @@ public final class ResolverUtil {
                             + valueCopy.substring(pos2 + CLOSING_TAG.length(), valueCopy.length());
                     valueCopy = retVal;
                 } catch (Exception ex) {
-                    LOG.error(String.format("Could not resolve class %1$s for %2$s",name,locationHint), ex);
+                    LOG.error("Could not resolve class " + name + " for " + locationHint, ex);
                 }
             } else {
                 LOG.warn("Could not resolve site name, as the syntax is offendended, closing $}} " + "is missing for "
@@ -265,10 +265,10 @@ public final class ResolverUtil {
                 // look up default site
                 siteGroupId = GroupLocalServiceUtil.getGroup(company, getSiteName(siteName)).getGroupId();
             } catch (PortalException e) {
-                LOG.error(String.format("Id of site %1$s could not be retrieved for %2$s",siteName,locationName));
+                LOG.error("Id of site " + siteName + " could not be retrieved for " + locationName);
                 LOG.error((Throwable) e);
             } catch (SystemException e) {
-                LOG.error(String.format("Id of site %1$s could not be retrieved for%2$s",siteName,locationName));
+                LOG.error("Id of site " + siteName + " could not be retrieved for" + locationName);
                 LOG.error((Throwable) e);
             }
         }
@@ -315,7 +315,7 @@ public final class ResolverUtil {
         while (pos > -1) {
             int pos2 = result.indexOf(CLOSING_TAG, pos);
             if (pos2 < 0) {
-                LOG.error(String.format("No closing Tag, pos %1$s in file %2$s",pos,locationHint));
+                LOG.error("No closing Tag, pos " + pos + " in file " + locationHint);
                 break;
             } else {
                 // by default the referred file is looked up in current site.
@@ -331,7 +331,7 @@ public final class ResolverUtil {
 
                 FileEntry fe = DocumentUtil.findDocument(filePath, siteGroupId, repoId);
                 if (fe == null) {
-                    LOG.error(String.format("Referred file %1$s is not found in documents and media%2$s",filePath,"."));
+                    LOG.error("Referred file " + filePath + " is not found in documents and media" + ".");
                     result = result.substring(0, pos) + " <file-not-found /> "
                             + result.substring(pos2 + CLOSING_TAG.length(), result.length());
                 } else {
@@ -489,7 +489,7 @@ public final class ResolverUtil {
                     if (org) {
                         type = "organization";
                     }
-                    LOG.error(String.format("Could not resolve  %1$s name for %2$s",type,locationHint), ex);
+                    LOG.error("Could not resolve  " + type + " name for " + locationHint, ex);
                 }
             } else {
                 String type = "user group";
@@ -545,11 +545,11 @@ public final class ResolverUtil {
                             templateId = Long.toString(ja.getResourcePrimKey());
                         }
                     } else {
-                        LOG.error(String.format("Article with article id %1$s not found for %2$s",name,locationHint));
+                        LOG.error("Article with article id " + name + " not found for " + locationHint);
                         templateId = "!!NOTFOUND!!";
                     }
                 } catch (SystemException e) {
-                    LOG.error(String.format("Article with article id %1$s not found for %2$s",name,locationHint));
+                    LOG.error("Article with article id " + name + " not found for " + locationHint);
                     LOG.error((Throwable) e);
                 }
 
@@ -589,7 +589,7 @@ public final class ResolverUtil {
         while (pos > -1) {
             int pos2 = contentCopy.indexOf(CLOSING_TAG, pos);
             if (pos2 < 0) {
-                LOG.error(String.format("No closing Tag, pos %1$s for %2$s",pos,locationHint));
+                LOG.error("No closing Tag, pos " + pos + " for " + locationHint);
                 break;
             } else {
                 // by default the referred file is looked up in current site.
@@ -647,7 +647,7 @@ public final class ResolverUtil {
         while (pos > -1) {
             int pos2 = contentCopy.indexOf(CLOSING_TAG, pos);
             if (pos2 < 0) {
-                LOG.error(String.format("No closing Tag, pos %1$s for %2$s",pos,locationHint));
+                LOG.error("No closing Tag, pos " + pos + " for " + locationHint);
                 break;
             } else {
                 // by default the referred file is looked up in current site.
@@ -735,7 +735,7 @@ public final class ResolverUtil {
                         }
                     }
                 } catch (PortalException | SystemException e) {
-                    LOG.error(String.format("Template with key contentCopy %1$s not found for %2$s",name,locationHint));
+                    LOG.error("Template with key contentCopy " + name + " not found for " + locationHint);
                     LOG.error((Throwable) e);
                 }
 
@@ -793,9 +793,9 @@ public final class ResolverUtil {
         try {
             o = OrganizationLocalServiceUtil.getOrganization(companyId, name);
         } catch (PortalException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s",name,locationHint));
+            LOG.error("Could not retrieve organization " + name + " in context " + locationHint);
         } catch (SystemException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s",name,locationHint));
+            LOG.error("Could not retrieve organization " + name + " in context " + locationHint);
         }
         return o;
     }
@@ -805,9 +805,9 @@ public final class ResolverUtil {
         try {
             o = UserGroupLocalServiceUtil.getUserGroup(companyId, name);
         } catch (PortalException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s",name,locationHint));
+            LOG.error("Could not retrieve organization " + name + " in context " + locationHint);
         } catch (SystemException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s",name,locationHint));
+            LOG.error("Could not retrieve organization " + name + " in context " + locationHint);
         }
         return o;
     }

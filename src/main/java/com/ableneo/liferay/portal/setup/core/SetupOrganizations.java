@@ -229,7 +229,8 @@ public final class SetupOrganizations {
     }
 
     public static void addOrganizationUser(Organization organization, User user) {
-        LOG.info(String.format("Adding user with screenName: %1$s to organization with name: %2$s",user.getScreenName(),organization.getName()));
+        LOG.info("Adding user with screenName: " + user.getScreenName() + "to organization with name: "
+                + organization.getName());
         OrganizationLocalServiceUtil.addUserOrganization(user.getUserId(), organization);
     }
 

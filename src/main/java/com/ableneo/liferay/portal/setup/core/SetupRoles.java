@@ -172,7 +172,7 @@ public final class SetupRoles {
                         long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
                         resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
                                 permission.getElementPrimaryKey(),
-                                String.format("Role %1$s permission name %2$s",role.getName(),permissionName));
+                                "Role " + role.getName() + " permission name " + permissionName);
                     }
                     String type = role.getType();
                     int scope = ResourceConstants.SCOPE_COMPANY;
@@ -221,11 +221,11 @@ public final class SetupRoles {
                             SetupPermissions.addPermission(role.getName(), permissionName, resourcePrimKey, scope, loa);
                         } catch (SystemException e) {
                             LOG.error(
-                                    String.format("Error when defining permission %1$s for role %2$s",permissionName,role.getName()),
+                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
                                     e);
                         } catch (PortalException e) {
                             LOG.error(
-                                    String.format("Error when defining permission %1$s for role %2$s",permissionName,role.getName()),
+                                    "Error when defining permission " + permissionName + " for role " + role.getName(),
                                     e);
                         }
                     } else {
