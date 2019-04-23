@@ -105,7 +105,7 @@ public final class SetupDocuments {
             }
             if (fileBytes != null) {
                 if (fe == null) {
-                    fe = DocumentUtil.createDocument(company, groupId, folderId, documentName, documentTitle, userId,
+                    fe = DocumentUtil.createDocument(company, groupId, documentName, documentTitle, userId,
                             repoId, fileBytes);
                     LOG.info(documentName + " is not found! It will be created! ");
                 } else {

@@ -60,14 +60,14 @@ public final class CustomFieldSettingUtil {
      * @return Returns false, if the expando field or the value is not defined.
      */
     // CHECKSTYLE:OFF
-    public static void setExpandoValue(final String resolverHint, final long runAsUserId, final long groupId,
+    public static void setExpandoValue(final String resolverHint, final long groupId,
             final long company, final Class clazz, final long id, final String key, final String value) {
         String valueCopy = value;
         try {
 
             ExpandoValue ev = ExpandoValueLocalServiceUtil.getValue(company, clazz.getName(), "CUSTOM_FIELDS", key, id);
             // resolve any values to be substituted
-            valueCopy = ResolverUtil.lookupAll(runAsUserId, groupId, company, valueCopy, resolverHint);
+            valueCopy = ResolverUtil.lookupAll(groupId, company, valueCopy, resolverHint);
             if (ev == null) {
                 long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz.getName());
 
@@ -76,17 +76,15 @@ public final class CustomFieldSettingUtil {
                 ExpandoColumn expandoColumn =
                         ExpandoColumnLocalServiceUtil.getColumn(company, classNameId, expandoTable.getName(), key);
 
-                // In this we are adding MyUserColumnData for the column
-                // MyUserColumn. See the
-                // above line
-                ev = ExpandoValueLocalServiceUtil.addValue(classNameId, expandoTable.getTableId(),
+                // In this we are adding MyUserColumnData for the column MyUserColumn. See the above line
+                ExpandoValueLocalServiceUtil.addValue(classNameId, expandoTable.getTableId(),
                         expandoColumn.getColumnId(), id, valueCopy);
             } else {
                 ev.setData(valueCopy);
                 ExpandoValueLocalServiceUtil.updateExpandoValue(ev);
             }
         } catch (Exception ex) {
-            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for " + "class "
+            LOG.error("Expando (custom field) not found or problem accessing it: " + key + " for class "
                     + clazz.getName() + " with id " + id, ex);
         }
 

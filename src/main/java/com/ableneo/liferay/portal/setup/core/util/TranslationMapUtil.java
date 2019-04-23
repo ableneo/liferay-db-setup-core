@@ -99,11 +99,6 @@ public final class TranslationMapUtil {
             writer.writeStartElement("root");
             String langs = StringUtil.merge(locales, ",");
 
-            /*
-             * TODO remove boolean first = true; for (Locale l : locales) {
-             * langs += ((!first) ? "," : "") + l.toString(); first = false; }
-             */
-
             writer.writeAttribute("default-locale", defaultLocale.toString());
             writer.writeAttribute("available-locales", langs);
 

@@ -28,7 +28,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  */
 
 import java.util.List;
-import java.util.Optional;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.domain.Article;
@@ -60,32 +59,16 @@ public final class TaggingUtil {
             tagNames = tags.stream().map(Tag::getName).toArray(String[]::new);
         }
 
-        long[] categoryIds = article.getCategory().stream()
-                .map(category -> ResolverUtil.lookupAll(SetupConfigurationThreadLocal.getRunAsUserId(), groupId,
-                        journalArticle.getCompanyId(), category.getId(), article.getPath()))
-                .filter(categoryString -> Validator.isNumber(categoryString))
-                .mapToLong(categoryString -> Long.parseLong(categoryString)).toArray();
+        long[] categoryIds = article
+                .getCategory().stream().map(category -> ResolverUtil.lookupAll(groupId, journalArticle.getCompanyId(),
+                        category.getId(), article.getPath()))
+                .filter(Validator::isNumber).mapToLong(Long::parseLong).toArray();
 
         AssetEntry entry = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(),
                 journalArticle.getResourcePrimKey());
         AssetEntryLocalServiceUtil.updateEntry(SetupConfigurationThreadLocal.getRunAsUserId(), groupId,
                 JournalArticle.class.getName(), entry.getClassPK(), categoryIds, tagNames);
     }
-
-    /*
-     * public static void associateCategories(long groupId, Article article, JournalArticle journalArticle) {
-     *
-     * List<CategoryRef> categories = article.getCategoryRef();
-     * String[] categoryTitles = null;
-     * if (categories != null) {
-     * categoryTitles = categories.stream().map(CategoryRef -> {
-     * AssetCategoryLocalServiceUtil.get
-     * });
-     * }
-     * AssetCategoryLocalServiceUtil.
-     *
-     * }
-     */
 
     public static void associateTagsWithJournalArticle(final List<String> tags, final List<String> categories,
             final long userId, final long groupId, final long primaryKey) {

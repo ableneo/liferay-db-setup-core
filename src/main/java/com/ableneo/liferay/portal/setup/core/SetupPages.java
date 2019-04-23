@@ -177,7 +177,9 @@ public final class SetupPages {
                         if (pageTemplate.getPage() != null) {
                             Page page = pageTemplate.getPage();
                             if (page.getFriendlyUrl() != null && !page.getFriendlyUrl().equals("")) {
-                                LOG.error(String.format("The page of page template %1$s may not have a friendly URL! Will ignore it!", name));
+                                LOG.error(String.format(
+                                        "The page of page template %1$s may not have a friendly URL! Will ignore it!",
+                                        name));
                             }
                             setupLiferayPage(layout, page, null, null, groupId, false, company, userid, name);
                         }
@@ -296,7 +298,8 @@ public final class SetupPages {
         List<Page> subPages = page.getPage();
         if (subPages != null && !subPages.isEmpty()) {
             if (pageTemplateName != null && !pageTemplateName.equals("")) {
-                LOG.error(String.format("Page template %1$s may not have any sub-pages! Will ignore them!", pageTemplateName));
+                LOG.error(String.format("Page template %1$s may not have any sub-pages! Will ignore them!",
+                        pageTemplateName));
             } else {
                 addPages(subPages, defaultLayout, defaultLayoutContainedInThemeWithId, groupId, isPrivate,
                         layout.getLayoutId(), company, userId);
@@ -342,7 +345,8 @@ public final class SetupPages {
             LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
                     layout.getTypeSettings());
         } catch (PortalException | SystemException e) {
-            LOG.error(String.format("Could not create link page %1$s with link to url %2$s", p.getFriendlyUrl(), p.getLinkToUrl()), e);
+            LOG.error(String.format("Could not create link page %1$s with link to url %2$s", p.getFriendlyUrl(),
+                    p.getLinkToUrl()), e);
         }
         return layout;
     }
@@ -363,9 +367,8 @@ public final class SetupPages {
                         layout.getTypeSettings());
             }
         } catch (PortalException | SystemException e) {
-            LOG.error(
-                    String.format("Could not update link page %1$s with link to url %2$s", page.getFriendlyUrl(), page.getLinkToUrl()),
-                    e);
+            LOG.error(String.format("Could not update link page %1$s with link to url %2$s", page.getFriendlyUrl(),
+                    page.getLinkToUrl()), e);
         }
     }
 
@@ -397,7 +400,7 @@ public final class SetupPages {
             String key = cfs.getKey();
             String value = cfs.getValue();
             CustomFieldSettingUtil.setExpandoValue(resolverHint.replace("%%key%%", key).replace("%%value%%", value),
-                    runAsUserId, groupId, company, clazz, layout.getPlid(), key, value);
+                    groupId, company, clazz, layout.getPlid(), key, value);
         }
     }
 
@@ -511,7 +514,7 @@ public final class SetupPages {
     private static String resolvePortletPrefValue(final String key, final String value, final PagePortlet portlet,
             final long company, final long groupId, final long runAsUserId) {
         String locationHint = String.format("Key: %1$s of portlet %2$s", key, portlet.getPortletId());
-        return ResolverUtil.lookupAll(runAsUserId, groupId, company, value, locationHint);
+        return ResolverUtil.lookupAll(groupId, company, value, locationHint);
     }
 
     public static void setLayoutTemplate(final Layout layout, final Page page, final long userid) {
@@ -521,7 +524,8 @@ public final class SetupPages {
             if (page.isClearPage()) {
                 if (page.getPagePortlet() != null && page.getPagePortlet().size() > 0 && page.getLinkToUrl() != null
                         && !page.getLinkToUrl().equals("")) {
-                    LOG.error("This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
+                    LOG.error(
+                            "This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
                 } else {
                     removeAllPortlets(userid, portletLayout, layout);
                 }

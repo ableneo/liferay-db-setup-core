@@ -30,6 +30,7 @@ package com.ableneo.liferay.portal.setup.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.WebFolderUtil;
@@ -70,7 +71,7 @@ public final class SetupWebFolders {
 
     }
 
-    public static HashMap<String, List<String>> getDefaultPermissions() {
+    public static Map<String, List<String>> getDefaultPermissions() {
         return DEFAULT_PERMISSIONS;
     }
 
@@ -81,8 +82,8 @@ public final class SetupWebFolders {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId,
                     SetupConfigurationThreadLocal.getRunAsUserId(), webFolderPath, description, true);
-            SetupPermissions.updatePermission(String.format("Folder %1$s", af.getFolderPath()), groupId, companyId, jf.getFolderId(),
-                    JournalFolder.class, af.getRolePermissions(), DEFAULT_PERMISSIONS);
+            SetupPermissions.updatePermission(String.format("Folder %1$s", af.getFolderPath()), groupId, companyId,
+                    jf.getFolderId(), JournalFolder.class, af.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }
 

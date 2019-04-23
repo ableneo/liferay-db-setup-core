@@ -69,15 +69,16 @@ public final class SetupOrganizations {
                     liferayGroup = org.getGroup();
                     groupId = org.getGroupId();
                     liferayOrg = org;
-                    LOG.info(String.format("Setup: Organization %1$s already exist in system, not creating...", organization.getName()));
+                    LOG.info(String.format("Setup: Organization %1$s already exist in system, not creating...",
+                            organization.getName()));
 
                 } catch (PortalException | SystemException e) {
                     LOG.debug("Organization does not exist.", e);
                 }
 
                 if (groupId == -1) {
-                    LOG.info(
-                            String.format("Setup: Organization %1$s does not exist in system, creating...", organization.getName()));
+                    LOG.info(String.format("Setup: Organization %1$s does not exist in system, creating...",
+                            organization.getName()));
 
                     Organization newOrganization =
                             OrganizationLocalServiceUtil.addOrganization(SetupConfigurationThreadLocal.getRunAsUserId(),
@@ -179,7 +180,7 @@ public final class SetupOrganizations {
             String value = cfs.getValue();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             CustomFieldSettingUtil.setExpandoValue(resolverHint.replace("%%key%%", key).replace("%%value%%", value),
-                    runAsUserId, groupId, company, clazz, liferayOrg.getOrganizationId(), key, value);
+                    groupId, company, clazz, liferayOrg.getOrganizationId(), key, value);
         }
     }
 
@@ -228,7 +229,8 @@ public final class SetupOrganizations {
     }
 
     public static void addOrganizationUser(Organization organization, User user) {
-        LOG.info(String.format("Adding user with screenName: %1$sto organization with name: %2$s", user.getScreenName(), organization.getName()));
+        LOG.info(String.format("Adding user with screenName: %1$sto organization with name: %2$s", user.getScreenName(),
+                organization.getName()));
         OrganizationLocalServiceUtil.addUserOrganization(user.getUserId(), organization);
     }
 

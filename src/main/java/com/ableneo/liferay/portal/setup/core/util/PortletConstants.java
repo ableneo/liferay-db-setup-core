@@ -34,6 +34,8 @@ import com.liferay.exportimport.kernel.staging.StagingConstants;
  */
 public class PortletConstants {
 
+    private PortletConstants() {}
+
     public static final String STAGING_PARAM_TEMPLATE =
             StagingConstants.STAGED_PREFIX + StagingConstants.STAGED_PORTLET + "#" + "--";
     public static final String STAGING_PORTLET_ID_ADT =

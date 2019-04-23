@@ -29,6 +29,7 @@ package com.ableneo.liferay.portal.setup.core.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import com.liferay.portal.kernel.util.FileUtil;
 
@@ -36,6 +37,8 @@ import com.liferay.portal.kernel.util.FileUtil;
  * Created by ntrp on 5/15/17.
  */
 public class ResourcesUtil {
+
+    private ResourcesUtil() {}
 
     public static InputStream getFileStream(String path) {
 
@@ -50,7 +53,7 @@ public class ResourcesUtil {
     public static String getFileContent(String path) throws IOException {
 
         byte[] bytes = getFileBytes(path);
-        return new String(bytes, "UTF-8");
+        return new String(bytes, StandardCharsets.UTF_8);
     }
 
 }

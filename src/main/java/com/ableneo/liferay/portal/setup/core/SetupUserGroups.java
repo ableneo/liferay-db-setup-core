@@ -120,9 +120,8 @@ public class SetupUserGroups {
         for (CustomFieldSetting cfs : customFieldSettings) {
             String resolverHint = "Custom value for userGroup " + userGroup.getName() + ", " + " Key " + cfs.getKey()
                     + ", value " + cfs.getValue();
-            long runAsUser = SetupConfigurationThreadLocal.getRunAsUserId();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
-            CustomFieldSettingUtil.setExpandoValue(resolverHint, runAsUser, liferayUserGroup.getUserGroupId(), company,
+            CustomFieldSettingUtil.setExpandoValue(resolverHint, liferayUserGroup.getUserGroupId(), company,
                     clazz, liferayUserGroup.getUserGroupId(), cfs.getKey(), cfs.getValue());
         }
     }

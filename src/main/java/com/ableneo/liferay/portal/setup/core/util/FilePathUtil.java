@@ -38,8 +38,8 @@ public final class FilePathUtil {
     public static String getExtension(final String fname) {
         String ext = "";
         File f = new File(fname);
-        int pos = f.getName().indexOf(".");
-        if (f.getName().indexOf(".") > -1) {
+        int pos = f.getName().indexOf('.');
+        if (f.getName().indexOf('.') > -1) {
             ext = f.getName().substring(pos);
         }
         return ext;
@@ -47,7 +47,7 @@ public final class FilePathUtil {
 
     public static String getPath(final String fname) {
         String path = "";
-        int pos = fname.lastIndexOf("/");
+        int pos = fname.lastIndexOf('/');
         if (pos > -1) {
             path = fname.substring(0, pos);
         }

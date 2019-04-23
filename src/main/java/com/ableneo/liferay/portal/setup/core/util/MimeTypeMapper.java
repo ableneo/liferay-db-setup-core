@@ -44,8 +44,6 @@ public final class MimeTypeMapper {
      */
     private HashMap extensionToMimeType;
 
-    private HashMap extensionToImageName;
-
     /**
      * Reference to the singleton instance.
      */
@@ -70,7 +68,6 @@ public final class MimeTypeMapper {
     private MimeTypeMapper() {
         mimeToExtension = new HashMap();
         extensionToMimeType = new HashMap();
-        extensionToImageName = new HashMap();
         init();
     }
 
@@ -233,9 +230,7 @@ public final class MimeTypeMapper {
         addEntry(".dl", "video/dl");
         addEntry(".dl", "video/x-dl");
         addEntry(".doc", "application/msword");
-        // addEntry(".docx","application/msword");
         addEntry(".dot", "application/msword");
-        // addEntry(".dotx","application/msword");
         addEntry(".dp", "application/commonground");
         addEntry(".drw", "application/drafting");
         addEntry(".dump", "application/octet-stream");
@@ -515,7 +510,6 @@ public final class MimeTypeMapper {
         addEntry(".pps", "application/vnd.ms-powerpoint");
         addEntry(".ppt", "application/mspowerpoint");
         addEntry(".ppt", "application/powerpoint");
-        // addEntry(".pptx","application/powerpoint");
         addEntry(".ppt", "application/vnd.ms-powerpoint");
         addEntry(".ppt", "application/x-mspowerpoint");
         addEntry(".ppz", "application/mspowerpoint");
@@ -752,7 +746,6 @@ public final class MimeTypeMapper {
         addEntry(".xls", "application/x-excel");
         addEntry(".xls", "application/x-msexcel");
         addEntry(".xls", "application/excel");
-        // addEntry(".xlsx","application/excel");
         addEntry(".xlt", "application/excel");
         addEntry(".xlt", "application/x-excel");
         addEntry(".xlv", "application/excel");

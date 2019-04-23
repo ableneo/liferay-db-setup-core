@@ -171,7 +171,7 @@ public final class SetupPermissions {
 
     public static void updatePermission(final String locationHint, final long groupId, final long companyId,
             final long elementId, final Class clazz, final RolePermissions rolePermissions,
-            final HashMap<String, List<String>> defaultPermissions) {
+            final Map<String, List<String>> defaultPermissions) {
 
         updatePermission(locationHint, groupId, companyId, elementId, clazz.getName(), rolePermissions,
                 defaultPermissions);
@@ -179,7 +179,7 @@ public final class SetupPermissions {
 
     public static void updatePermission(final String locationHint, final long groupId, final long companyId,
             final long elementId, final String className, final RolePermissions rolePermissions,
-            final HashMap<String, List<String>> defaultPermissions) {
+            final Map<String, List<String>> defaultPermissions) {
         boolean useDefaultPermissions = false;
         if (rolePermissions != null) {
             if (rolePermissions.isClearPermissions()) {

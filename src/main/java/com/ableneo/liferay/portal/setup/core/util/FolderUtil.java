@@ -65,8 +65,7 @@ public final class FolderUtil {
 
                     if (foundFolder != null) {
                         final String locationHint = String.format("Folder %1$s, creating folder segment %2$s", name, folder);
-                        SetupPermissions.updatePermission(locationHint,
-                                groupId, company, foundFolder.getFolderId(), JournalFolder.class, null,
+                        SetupPermissions.updatePermission(locationHint, groupId, company, foundFolder.getFolderId(), JournalFolder.class, null,
                                 SetupWebFolders.getDefaultPermissions());
                     }
                 }
@@ -88,8 +87,6 @@ public final class FolderUtil {
         } catch (NoSuchFolderException nsfe) {
             LOG.info(String.format("Folder not found: %1$s", name));
         } catch (PortalException e) {
-            LOG.error(String.format("Error while trying to get folder: %1$s", name), e);
-        } catch (SystemException e) {
             LOG.error(String.format("Error while trying to get folder: %1$s", name), e);
         }
         return dir;

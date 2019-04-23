@@ -30,7 +30,6 @@ package com.ableneo.liferay.portal.setup.core.util;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -73,8 +72,6 @@ public final class DocumentUtil {
                 LOG.info(String.format("Document not found: %1$s", documentName));
             } catch (PortalException e) {
                 LOG.error(String.format("Error while trying to find document: %1$s", documentName));
-            } catch (SystemException e) {
-                LOG.error(String.format("Error while trying to find document: %1$s", documentName));
             }
         }
 
@@ -102,8 +99,6 @@ public final class DocumentUtil {
             try {
                 entry = DLAppLocalServiceUtil.getFileEntry(groupId, folder.getFolderId(), title);
             } catch (PortalException e) {
-                LOG.error(e);
-            } catch (SystemException e) {
                 LOG.error(e);
             }
         }
@@ -159,8 +154,8 @@ public final class DocumentUtil {
      * @return returns the file entry of the created file.
      */
     // CHECKSTYLE:OFF
-    public static FileEntry createDocument(final long companyId, final long groupId, final long folderId,
-            final String fileName, final String title, final long userId, final long repoId, final byte[] content) {
+    public static FileEntry createDocument(final long groupId, final long folderId, final String fileName,
+            final String title, final long userId, final long repoId, final byte[] content) {
         String fname = FilePathUtil.getFileName(fileName);
         String extension = FilePathUtil.getExtension(fname);
         String mtype = MimeTypeMapper.getInstance().getMimeType(extension);
@@ -171,16 +166,12 @@ public final class DocumentUtil {
             LOG.info(String.format("Document not found: %1$s", title));
         } catch (PortalException e) {
             LOG.error(String.format("Error while trying to get file: %1$s", title), e);
-        } catch (SystemException e) {
-            LOG.error(String.format("Error while trying to get file: %1$s", title), e);
         }
         if (fileEntry == null) {
             try {
                 fileEntry = DLAppLocalServiceUtil.addFileEntry(userId, repoId, folderId, fname, mtype, title, title,
                         "Ableneo import", content, new ServiceContext());
             } catch (PortalException e) {
-                LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
-            } catch (SystemException e) {
                 LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
             }
 

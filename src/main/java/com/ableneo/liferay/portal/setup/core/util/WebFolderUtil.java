@@ -97,8 +97,6 @@ public final class WebFolderUtil {
 
         } catch (PortalException e) {
             LOG.error(e);
-        } catch (SystemException e) {
-            LOG.error(e);
         }
         return folder;
     }

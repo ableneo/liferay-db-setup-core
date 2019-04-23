@@ -46,7 +46,6 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
 
 public final class SetupRoles {
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
@@ -94,7 +93,8 @@ public final class SetupRoles {
 
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             long defaultUserId = UserLocalServiceUtil.getDefaultUserId(companyId);
-            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,null);
+            RoleLocalServiceUtil.addRole(defaultUserId, null, 0, role.getName(), localeTitleMap, null, roleType, null,
+                    null);
 
             LOG.info(String.format("Setup: Role %1$s does not exist, adding...", role.getName()));
 
@@ -156,32 +156,32 @@ public final class SetupRoles {
         if (role.getDefinePermissions() != null) {
             String siteName = role.getSite();
             if (siteName != null && !siteName.equals("")) {
-                LOG.warn(String.format("Note, refering a site inside a role definition makes no sense and will be ignored! This %1$s When doing so, it is necessary to refer a site!", "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"));
+                LOG.warn(String.format(
+                        "Note, refering a site inside a role definition makes no sense and will be ignored! This %1$s When doing so, it is necessary to refer a site!",
+                        "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"));
             }
             DefinePermissions permissions = role.getDefinePermissions();
-            if (permissions.getDefinePermission() != null && permissions.getDefinePermission().size() > 0) {
+            if (permissions.getDefinePermission() != null && !permissions.getDefinePermission().isEmpty()) {
                 for (DefinePermission permission : permissions.getDefinePermission()) {
                     String permissionName = permission.getDefinePermissionName();
                     String resourcePrimKey = "0";
 
                     long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
                     if (permission.getElementPrimaryKey() != null) {
-                        long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
                         long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
-                        resourcePrimKey = ResolverUtil.lookupAll(runAsUserId, groupId, companyId,
-                                permission.getElementPrimaryKey(),
+                        resourcePrimKey = ResolverUtil.lookupAll(groupId, companyId, permission.getElementPrimaryKey(),
                                 String.format("Role %1$s permission name %2$s", role.getName(), permissionName));
                     }
                     String type = role.getType();
                     int scope = ResourceConstants.SCOPE_COMPANY;
-                    if (type != null && type.toLowerCase().equals(SCOPE_PORTAL)) {
+                    if (type != null && type.equalsIgnoreCase(SCOPE_PORTAL)) {
                         scope = ResourceConstants.SCOPE_COMPANY;
                     }
-                    if (type != null && type.toLowerCase().equals(SCOPE_SITE)) {
+                    if (type != null && type.equalsIgnoreCase(SCOPE_SITE)) {
                         scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
                     }
 
-                    if (type != null && type.toLowerCase().equals("organization")) {
+                    if (type != null && type.equalsIgnoreCase("organization")) {
                         scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
                     }
                     if (scope == ResourceConstants.SCOPE_COMPANY && !resourcePrimKey.equals("0")) {
@@ -196,19 +196,19 @@ public final class SetupRoles {
 
                     // if defined override the define permission scope
                     if (permission.getScope() != null && !permission.getScope().equals("")) {
-                        if (permission.getScope().toLowerCase().equals(SCOPE_PORTAL)) {
+                        if (permission.getScope().equalsIgnoreCase(SCOPE_PORTAL)) {
                             scope = ResourceConstants.SCOPE_COMPANY;
-                        } else if (permission.getScope().toLowerCase().equals(SCOPE_SITE_TEMPLATE)) {
+                        } else if (permission.getScope().equalsIgnoreCase(SCOPE_SITE_TEMPLATE)) {
                             scope = ResourceConstants.SCOPE_GROUP_TEMPLATE;
-                        } else if (permission.getScope().toLowerCase().equals(SCOPE_SITE)) {
+                        } else if (permission.getScope().equalsIgnoreCase(SCOPE_SITE)) {
                             scope = ResourceConstants.SCOPE_GROUP;
-                        } else if (permission.getScope().toLowerCase().equals(SCOPE_INDIVIDUAL)) {
+                        } else if (permission.getScope().equalsIgnoreCase(SCOPE_INDIVIDUAL)) {
                             scope = ResourceConstants.SCOPE_INDIVIDUAL;
                         }
                     }
 
-                    if (permission.getPermissionAction() != null && permission.getPermissionAction().size() > 0) {
-                        ArrayList<String> listOfActions = new ArrayList<String>();
+                    if (permission.getPermissionAction() != null && !permission.getPermissionAction().isEmpty()) {
+                        ArrayList<String> listOfActions = new ArrayList<>();
                         for (PermissionAction pa : permission.getPermissionAction()) {
                             String actionname = pa.getActionName();
                             listOfActions.add(actionname);
@@ -218,12 +218,9 @@ public final class SetupRoles {
                         try {
                             SetupPermissions.addPermission(role.getName(), permissionName, resourcePrimKey, scope, loa);
                         } catch (SystemException e) {
-                            LOG.error(
-                                    String.format("Error when defining permission %1$s for role %2$s", permissionName, role.getName()),
-                                    e);
+                            LOG.error(String.format("Error when defining permission %1$s for role %2$s", permissionName,
+                                    role.getName()), e);
                         }
-                    } else {
-
                     }
                 }
             }

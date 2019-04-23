@@ -51,6 +51,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.UserGroup;
@@ -65,6 +66,8 @@ public final class ResolverUtil {
     public static final int ID_TYPE_UUID = 1;
     public static final int ID_TYPE_RESOURCE = 2;
     public static final int ID_TYPE_FILE = 3;
+    public static final String IDTYPE = "%%IDTYPE%%";
+    public static final String LOOKUPTYPE = "%%LOOKUPTYPE%%";
     private static final Log LOG = LogFactoryUtil.getLog(ResolverUtil.class);
     private static final String CLOSING_TAG = "$}}";
     private static final String ARTICLE_BY_ART_ID = "{{$ARTICLE-%%IDTYPE%%-BY-ARTICLE-ID=";
@@ -77,10 +80,10 @@ public final class ResolverUtil {
     private static final String PAGE_ID_BY_FRIENDLY_URL = "{{$%%PTYPE%%-PAGE-%%LAYOUTID%%-BY-FRIENDLY_URL=";
     private static final String DDL_REC_SET_BY_KEY = "{{$DDL-REC-SET-ID-BY-KEY=";
     private static final String TEMPLATE_CATEGORY = "{{$CATEGORY-ID-BY-VOCABULARY-AND-PATH=";
-    private static final String DEFAULT_GROUP_NAME = "Guest";
     private static final String ID_OF_SITE_WITH_NAME_KEY = "{{$ID_OF_SITE_WITH_NAME=";
     private static final String VALUE_SPLIT = "::";
     private static final String ID_OF_ORG_USER_GROUP_WITH_NAME_KEY = "{{$%%IDTYPE%%_OF_%%LOOKUPTYPE%%_WITH_NAME=";
+    public static final String LAYOUTID = "%%LAYOUTID%%";
 
     // CHECKSTYLE:ON
 
@@ -148,12 +151,10 @@ public final class ResolverUtil {
      * @return Returns the string value with any resolver expression resolved to
      *         the corresponding elements.
      */
-    public static String lookupAll(final long runAsUserId, final long groupId, final long company, final String value,
+    public static String lookupAll(final long groupId, final long company, final String value,
             final String resolverHint) {
-        String retVal = value;
-
         // substitute references to groups/sites
-        retVal = ResolverUtil.lookupSiteIdWithName(resolverHint, value, company);
+        String retVal = ResolverUtil.lookupSiteIdWithName(resolverHint, value, company);
         // ID for article template
         retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(retVal, resolverHint, groupId, company, false, "ART",
                 true, JournalArticle.class);
@@ -174,7 +175,7 @@ public final class ResolverUtil {
                 true, AssetEntry.class);
 
         // Resolve categories
-        retVal = ResolverUtil.substituteCategoryNameWithCategoryId(retVal, resolverHint, groupId, company, runAsUserId);
+        retVal = ResolverUtil.substituteCategoryNameWithCategoryId(retVal, resolverHint, groupId, company);
 
         // Substitute the article key with the primary key (id)
         retVal = ResolverUtil.lookupArticleWithArticleId(retVal, resolverHint, groupId, company, ID_TYPE_ID);
@@ -183,14 +184,12 @@ public final class ResolverUtil {
         // Resource type id for articles
         retVal = ResolverUtil.lookupArticleWithArticleId(retVal, resolverHint, groupId, company, ID_TYPE_RESOURCE);
         // Substitute references to files by their URLs
-        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
-                runAsUserId, ID_TYPE_FILE);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_FILE);
         // Substitute references to files by their id
         retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
-                runAsUserId, ID_TYPE_ID);
+                 ID_TYPE_ID);
         // Substitute references to files by their UUID
-        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
-                runAsUserId, ID_TYPE_UUID);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_UUID);
         // Substitute class id references
         retVal = ResolverUtil.getClassIdByName(retVal, resolverHint);
         // Substitute private page friendly urls to layout ids
@@ -229,7 +228,7 @@ public final class ResolverUtil {
                 try {
                     name = valueCopy.substring(pos + CLASS_ID_BY_NAME.length(), pos2);
 
-                    long groupId = ResolverUtil.getClassId(name);
+                    long groupId = ClassNameLocalServiceUtil.getClassNameId(name);
                     retVal = valueCopy.substring(0, pos) + groupId
                             + valueCopy.substring(pos2 + CLOSING_TAG.length(), valueCopy.length());
                     valueCopy = retVal;
@@ -249,14 +248,11 @@ public final class ResolverUtil {
     public static long getSiteGroupIdByName(final String siteName, final long company, final String locationName) {
         long siteGroupId = 0;
 
-        if (siteName.toLowerCase().equals("global")) {
+        if (siteName.equalsIgnoreCase("global")) {
             try {
                 // look up global site
                 siteGroupId = GroupLocalServiceUtil.getCompanyGroup(company).getGroupId();
             } catch (PortalException e) {
-                LOG.error("Id of global site could not be retrieved!");
-                LOG.error((Throwable) e);
-            } catch (SystemException e) {
                 LOG.error("Id of global site could not be retrieved!");
                 LOG.error((Throwable) e);
             }
@@ -276,11 +272,9 @@ public final class ResolverUtil {
     }
 
     private static String getSiteName(final String siteName) {
-        if (siteName.toLowerCase().equals("default") || siteName.equals("")) {
-            return DEFAULT_GROUP_NAME;
+        if (siteName.equalsIgnoreCase("default") || siteName.equals("")) {
+            return GroupConstants.GUEST;
         }
-        // WAS needed till version 2.0.x when Organizations were used instead of Sites
-        // return siteName + " LFR_ORGANIZATION";
         return siteName;
     }
 
@@ -298,12 +292,11 @@ public final class ResolverUtil {
      * @param groupId The group id (site) in which scope the article is imported.
      * @param company The company id.
      * @param repoId The repository id.
-     * @param userId The id of the importing user.
      *
      * @return Returns the content with all substituted file references.
      */
     public static String substituteFileReferencesWithURL(final String content, final String locationHint,
-            final long groupId, final long company, final long repoId, final long userId, final int refType) {
+            final long groupId, final long company, final long repoId, final int refType) {
         String openingTag = FILE_REFERENCE_URL;
         if (refType == ID_TYPE_ID) {
             openingTag = FILE_REFERENCE_ID;
@@ -346,8 +339,6 @@ public final class ResolverUtil {
                         }
                     } catch (PortalException e) {
                         LOG.error(String.format("URL of referred file %1$s cannot be retrieved.", filePath));
-                    } catch (SystemException e) {
-                        LOG.error(String.format("URL of referred file %1$s cannot be retrieved.", filePath));
                     }
                     result = result.substring(0, pos) + fileEntryRef
                             + result.substring(pos2 + CLOSING_TAG.length(), result.length());
@@ -359,44 +350,23 @@ public final class ResolverUtil {
     }
 
     public static String substituteCategoryNameWithCategoryId(final String content, final String locationHint,
-            final long groupId, final long company, final long userId) {
+            final long groupId, final long company) {
         String openingTag = TEMPLATE_CATEGORY;
 
         String result = content;
 
         if (result.startsWith(openingTag)) {
 
-            String[] values = result.replace(CLOSING_TAG, "").split("::");
+            String[] values = result.replace(CLOSING_TAG, "").split(VALUE_SPLIT);
             if (values.length == 4) {
                 long groupIdResolved = groupId;
 
                 try {
                     groupIdResolved = ResolverUtil.getSiteGroupIdByName(values[1], company, locationHint);
 
-                    try {
-                        AssetVocabulary assetVocabulary =
-                                AssetVocabularyLocalServiceUtil.getGroupVocabulary(groupIdResolved, values[2]);
-
-                        String[] categoryIds = values[3].split("/");
-
-                        try {
-                            AssetCategory category = assetVocabulary.getCategories().stream()
-                                    .filter(vocabularyCategory -> vocabularyCategory.getName().equals(categoryIds[0]))
-                                    .findFirst().orElseThrow(PortalException::new);
-
-                            for (int i = 1; i < categoryIds.length; i++) {
-                                String categoryName = categoryIds[i];
-                                category = AssetCategoryLocalServiceUtil.getChildCategories(category.getCategoryId())
-                                        .stream()
-                                        .filter(childrenCategory -> childrenCategory.getName().equals(categoryName))
-                                        .findFirst().orElseThrow(PortalException::new);
-                            }
-                            return String.valueOf(category.getCategoryId());
-                        } catch (PortalException e) {
-                            LOG.error(String.format("Could not resolve category path for %1$s", locationHint), e);
-                        }
-                    } catch (PortalException e) {
-                        LOG.error(String.format("Could not resolve vocabulary name for %1$s", locationHint), e);
+                    String category = resolveVocabularyName(locationHint, values, groupIdResolved);
+                    if (category != null) {
+                        return category;
                     }
 
                 } catch (Exception e) {
@@ -410,6 +380,41 @@ public final class ResolverUtil {
         }
 
         return result;
+    }
+
+    private static String resolveVocabularyName(String locationHint, String[] values, long groupIdResolved) {
+        try {
+            AssetVocabulary assetVocabulary =
+                    AssetVocabularyLocalServiceUtil.getGroupVocabulary(groupIdResolved, values[2]);
+
+            String[] categoryIds = values[3].split("/");
+
+            String category = resolveCategoryId(locationHint, assetVocabulary, categoryIds);
+            if (category != null) return category;
+        } catch (PortalException e) {
+            LOG.error(String.format("Could not resolve vocabulary name for %1$s", locationHint), e);
+        }
+        return null;
+    }
+
+    private static String resolveCategoryId(String locationHint, AssetVocabulary assetVocabulary, String[] categoryIds) {
+        try {
+            AssetCategory category = assetVocabulary.getCategories().stream()
+                    .filter(vocabularyCategory -> vocabularyCategory.getName().equals(categoryIds[0]))
+                    .findFirst().orElseThrow(PortalException::new);
+
+            for (int i = 1; i < categoryIds.length; i++) {
+                String categoryName = categoryIds[i];
+                category = AssetCategoryLocalServiceUtil.getChildCategories(category.getCategoryId())
+                        .stream()
+                        .filter(childrenCategory -> childrenCategory.getName().equals(categoryName))
+                        .findFirst().orElseThrow(PortalException::new);
+            }
+            return String.valueOf(category.getCategoryId());
+        } catch (PortalException e) {
+            LOG.error(String.format("Could not resolve category path for %1$s", locationHint), e);
+        }
+        return null;
     }
 
     public static String lookupSiteIdWithName(final String locationHint, final String value, final long company) {
@@ -445,14 +450,14 @@ public final class ResolverUtil {
         String retVal = valueCopy;
         String searchString = ID_OF_ORG_USER_GROUP_WITH_NAME_KEY;
         if (uuid) {
-            searchString = searchString.replace("%%IDTYPE%%", "UUID");
+            searchString = searchString.replace(IDTYPE, "UUID");
         } else {
-            searchString = searchString.replace("%%IDTYPE%%", "ID");
+            searchString = searchString.replace(IDTYPE, "ID");
         }
         if (org) {
-            searchString = searchString.replace("%%LOOKUPTYPE%%", "ORG");
+            searchString = searchString.replace(LOOKUPTYPE, "ORG");
         } else {
-            searchString = searchString.replace("%%LOOKUPTYPE%%", "USER_GROUP");
+            searchString = searchString.replace(LOOKUPTYPE, "USER_GROUP");
         }
         while (valueCopy != null && valueCopy.trim().indexOf(searchString) > -1) {
             int pos = valueCopy.trim().indexOf(searchString);
@@ -514,11 +519,11 @@ public final class ResolverUtil {
         String lookup = ARTICLE_BY_ART_ID;
 
         if (typeOfId == 0) {
-            lookup = lookup.replace("%%IDTYPE%%", "ID");
+            lookup = lookup.replace(IDTYPE, "ID");
         } else if (typeOfId == 1) {
-            lookup = lookup.replace("%%IDTYPE%%", "UUID");
+            lookup = lookup.replace(IDTYPE, "UUID");
         } else if (typeOfId == 2) {
-            lookup = lookup.replace("%%IDTYPE%%", "RESID");
+            lookup = lookup.replace(IDTYPE, "RESID");
         }
 
         while (contentCopy != null && contentCopy.indexOf(lookup) > -1) {
@@ -535,7 +540,7 @@ public final class ResolverUtil {
                 }
                 String templateId = "";
                 try {
-                    JournalArticle ja = getArticleByArticleID(name, siteGroupId);
+                    JournalArticle ja = JournalArticleLocalServiceUtil.fetchLatestArticle(siteGroupId, name, WorkflowConstants.STATUS_APPROVED);
                     if (ja != null) {
                         if (typeOfId == 0) {
                             templateId = Long.toString(ja.getId());
@@ -576,13 +581,13 @@ public final class ResolverUtil {
         }
         switch (mode) {
             case ID:
-                lookUp = lookUp.replace("%%LAYOUTID%%", "PLID");
+                lookUp = lookUp.replace(LAYOUTID, "PLID");
                 break;
             case PLID:
-                lookUp = lookUp.replace("%%LAYOUTID%%", "ID");
+                lookUp = lookUp.replace(LAYOUTID, "ID");
                 break;
             case UUID:
-                lookUp = lookUp.replace("%%LAYOUTID%%", "UUID");
+                lookUp = lookUp.replace(LAYOUTID, "UUID");
                 break;
         }
         int pos = contentCopy.indexOf(lookUp);
@@ -661,14 +666,11 @@ public final class ResolverUtil {
                     recordsetId = refSegs[1];
                 }
 
-                String pageId = "NOT FOUND";
                 DDLRecordSet rs = null;
                 try {
                     rs = DDLRecordSetLocalServiceUtil.getRecordSet(siteGroupId, recordsetId);
 
                 } catch (PortalException e) {
-                    LOG.error(String.format("Error retrieving referred DDL structure %1$s.", recordsetId));
-                } catch (SystemException e) {
                     LOG.error(String.format("Error retrieving referred DDL structure %1$s.", recordsetId));
                 }
 
@@ -677,7 +679,7 @@ public final class ResolverUtil {
                     contentCopy = contentCopy.substring(0, pos) + " PAGE NOT FOUND!! "
                             + contentCopy.substring(pos2 + CLOSING_TAG.length(), contentCopy.length());
                 } else {
-                    pageId = Long.toString(rs.getRecordSetId());
+                    String pageId = Long.toString(rs.getRecordSetId());
                     contentCopy = contentCopy.substring(0, pos) + pageId
                             + contentCopy.substring(pos2 + CLOSING_TAG.length(), contentCopy.length());
                 }
@@ -702,9 +704,9 @@ public final class ResolverUtil {
             lookup = STRUCTURE_BY_KEY;
         }
         if (uuid) {
-            lookup = lookup.replace("%%IDTYPE%%", "UUID");
+            lookup = lookup.replace(IDTYPE, "UUID");
         } else {
-            lookup = lookup.replace("%%IDTYPE%%", "ID");
+            lookup = lookup.replace(IDTYPE, "ID");
         }
         lookup = lookup.replace("%%PREFIX%%", commandPrefix);
         while (contentCopy != null && contentCopy.indexOf(lookup) > -1) {
@@ -723,7 +725,7 @@ public final class ResolverUtil {
                 try {
                     if (uuid) {
                         if (isTemplate) {
-                            templateId = getTemplateUUID(name, siteGroupId);
+                            templateId = getTemplateUUID(name);
                         } else {
                             templateId = getStructureUUID(name, siteGroupId, referredClass);
                         }
@@ -735,7 +737,8 @@ public final class ResolverUtil {
                         }
                     }
                 } catch (PortalException | SystemException e) {
-                    LOG.error(String.format("Template with key contentCopy %1$s not found for %2$s", name, locationHint));
+                    LOG.error(
+                            String.format("Template with key contentCopy %1$s not found for %2$s", name, locationHint));
                     LOG.error((Throwable) e);
                 }
 
@@ -753,17 +756,8 @@ public final class ResolverUtil {
 
     // CHECKSTYLE:ON
 
-    public static JournalArticle getArticleByArticleID(final String articleId, final long groupId)
-            throws SystemException {
-        JournalArticle article = null;
-        article = JournalArticleLocalServiceUtil.fetchLatestArticle(groupId, articleId,
-                WorkflowConstants.STATUS_APPROVED);
-
-        return article;
-    }
-
     public static long getStructureId(final String structureKey, final long groupId, final Class clazz,
-            boolean includeAncestorStructures) throws SystemException, PortalException {
+            boolean includeAncestorStructures) throws PortalException {
 
         long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz);
         DDMStructure structure = DDMStructureLocalServiceUtil.getStructure(groupId, classNameId, structureKey,
@@ -772,7 +766,7 @@ public final class ResolverUtil {
     }
 
     public static String getStructureUUID(final String structureKey, final long groupId, final Class clazz)
-            throws SystemException, PortalException {
+            throws PortalException {
 
         long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz);
         DDMStructure structure = DDMStructureLocalServiceUtil.getStructure(groupId, classNameId, structureKey);
@@ -780,7 +774,7 @@ public final class ResolverUtil {
     }
 
     public static long getTemplateId(final String templateKey, final long groupId, final Class clazz)
-            throws SystemException, PortalException {
+            throws PortalException {
 
         long classNameId = ClassNameLocalServiceUtil.getClassNameId(clazz);
 
@@ -794,8 +788,6 @@ public final class ResolverUtil {
             o = OrganizationLocalServiceUtil.getOrganization(companyId, name);
         } catch (PortalException e) {
             LOG.error(String.format("Could not retrieve organization %1$s in context %2$s", name, locationHint));
-        } catch (SystemException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s", name, locationHint));
         }
         return o;
     }
@@ -806,23 +798,19 @@ public final class ResolverUtil {
             o = UserGroupLocalServiceUtil.getUserGroup(companyId, name);
         } catch (PortalException e) {
             LOG.error(String.format("Could not retrieve organization %1$s in context %2$s", name, locationHint));
-        } catch (SystemException e) {
-            LOG.error(String.format("Could not retrieve organization %1$s in context %2$s", name, locationHint));
         }
         return o;
     }
 
-    public static String getTemplateUUID(final String templateKey, final long groupId)
-            throws SystemException, PortalException {
+    public static String getTemplateUUID(final String templateKey) {
 
         DynamicQuery dq = DDMTemplateLocalServiceUtil.dynamicQuery()
                 .add(PropertyFactoryUtil.forName("templateKey").eq(templateKey));
-        List<DDMTemplate> templateList = new ArrayList<DDMTemplate>();
+        List<DDMTemplate> templateList = new ArrayList<>();
         String uuid = "NOT FOUND!!!!";
         try {
-            DDMTemplate template = null;
             templateList = DDMTemplateLocalServiceUtil.dynamicQuery(dq);
-            if (templateList != null && templateList.size() > 0 && templateList.get(0) != null) {
+            if (templateList != null && !templateList.isEmpty() && templateList.get(0) != null) {
                 uuid = templateList.get(0).getUuid();
             }
         } catch (SystemException e) {
@@ -838,8 +826,8 @@ public final class ResolverUtil {
         retVal[0] = "";
         retVal[1] = contentCopy;
 
-        if (contentCopy.startsWith("::")) {
-            int siteNameEndPos = contentCopy.indexOf("::", 2);
+        if (contentCopy.startsWith(VALUE_SPLIT)) {
+            int siteNameEndPos = contentCopy.indexOf(VALUE_SPLIT, 2);
             if (siteNameEndPos > -1) {
                 String siteName = contentCopy.substring(0 + 2, siteNameEndPos);
                 contentCopy = contentCopy.substring(siteNameEndPos + 2, contentCopy.length()).trim();
@@ -850,8 +838,4 @@ public final class ResolverUtil {
         return retVal;
     }
 
-    private static long getClassId(final String clazzName) {
-        long id = ClassNameLocalServiceUtil.getClassNameId(clazzName);
-        return id;
-    }
 }
