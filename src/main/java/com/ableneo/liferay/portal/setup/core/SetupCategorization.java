@@ -146,6 +146,9 @@ public final class SetupCategorization {
 
         for (AssociatedAssetType type : types) {
             ClassName className = ClassNameLocalServiceUtil.fetchClassName(type.getClassName());
+            if (className.getValue().isEmpty()) {
+                continue;
+            }
 
             long subtypePK = -1;
             if (Objects.nonNull(type.getSubtypeStructureKey()) && !type.getSubtypeStructureKey().isEmpty()) {

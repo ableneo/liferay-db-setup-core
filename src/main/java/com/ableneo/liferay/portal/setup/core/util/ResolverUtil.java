@@ -253,8 +253,7 @@ public final class ResolverUtil {
                 // look up global site
                 siteGroupId = GroupLocalServiceUtil.getCompanyGroup(company).getGroupId();
             } catch (PortalException e) {
-                LOG.error("Id of global site could not be retrieved!");
-                LOG.error((Throwable) e);
+                LOG.error("Id of global site could not be retrieved!", e);
             }
         } else {
             try {
