@@ -27,11 +27,9 @@ package com.ableneo.liferay.portal.setup.core;
  * #L%
  */
 
-import java.io.IOException;
 import java.util.*;
 
 import javax.portlet.ReadOnlyException;
-import javax.portlet.ValidatorException;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
@@ -61,6 +59,7 @@ public final class SetupPages {
     private static final Log LOG = LogFactoryUtil.getLog(SetupPages.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PUBLIC;
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PRIVATE;
+    private static final String LAYOUT_WAS_LOOKED_UP_IN_THEME = "Layout was looked up in theme %1$s";
 
     static {
         DEFAULT_PERMISSIONS_PUBLIC = new HashMap<>();
@@ -102,10 +101,9 @@ public final class SetupPages {
      * @param site
      * @param groupId
      *
-     * @throws SystemException
      * @throws PortalException
      */
-    public static void setupSitePages(final Site site, final long groupId) throws SystemException, PortalException {
+    public static void setupSitePages(final Site site, final long groupId) throws PortalException {
 
         Pages publicPages = site.getPublicPages();
         long company = SetupConfigurationThreadLocal.getRunInCompanyId();
@@ -160,7 +158,7 @@ public final class SetupPages {
                     long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
                     long userid = SetupConfigurationThreadLocal.getRunAsUserId();
                     long company = SetupConfigurationThreadLocal.getRunInCompanyId();
-                    if (listLayoutPrototype != null && listLayoutPrototype.size() > 0) {
+                    if (listLayoutPrototype != null && !listLayoutPrototype.isEmpty()) {
                         lp = listLayoutPrototype.get(0);
                     } else {
                         Map<Locale, String> titleMap =
@@ -202,7 +200,7 @@ public final class SetupPages {
      * @throws PortalException
      */
     private static void setupTheme(final long groupId, final Theme theme, final boolean isPrivate)
-            throws SystemException, PortalException {
+            throws PortalException {
 
         Group group = GroupLocalServiceUtil.getGroup(groupId);
         LayoutSet set;
@@ -228,7 +226,7 @@ public final class SetupPages {
      */
     private static void addPages(final List<Page> pages, String defaultLayout,
             String defaultLayoutContainedInThemeWithId, final long groupId, final boolean isPrivate,
-            final long parentLayoutId, final long company, final long userId) throws SystemException, PortalException {
+            final long parentLayoutId, final long company, final long userId) throws PortalException {
 
         for (Page page : pages) {
 
@@ -272,8 +270,7 @@ public final class SetupPages {
 
     private static void setupLiferayPage(final Layout layout, final Page page, final String defaultLayout,
             final String defaultLayoutContainedInThemeWithId, final long groupId, final boolean isPrivate,
-            final long company, final long userId, final String pageTemplateName)
-            throws SystemException, PortalException {
+            final long company, final long userId, final String pageTemplateName) throws PortalException {
         if (page.getTheme() != null) {
             setPageTheme(layout, page);
         }
@@ -286,12 +283,7 @@ public final class SetupPages {
         List<PagePortlet> portlets = page.getPagePortlet();
         if (portlets != null && !portlets.isEmpty()) {
             for (PagePortlet portlet : portlets) {
-                try {
-                    addPortletIntoPage(page, layout, portlet, company, groupId);
-
-                } catch (ValidatorException | IOException e) {
-                    LOG.error(e);
-                }
+                addPortletIntoPage(page, layout, portlet, company, groupId);
             }
         }
 
@@ -307,11 +299,11 @@ public final class SetupPages {
         }
 
         if (page.getCustomFieldSetting() != null && !page.getCustomFieldSetting().isEmpty()) {
-            setCustomFields(userId, groupId, company, page, layout);
+            setCustomFields(groupId, company, page, layout);
         }
 
-        SetupPermissions.updatePermission(String.format("Page %1$s", page.getFriendlyUrl()), groupId, company,
-                layout.getPlid(), Layout.class, page.getRolePermissions(), getDefaultPermissions(isPrivate));
+        SetupPermissions.updatePermission(String.format("Page %1$s", page.getFriendlyUrl()), company, layout.getPlid(),
+                Layout.class, page.getRolePermissions(), getDefaultPermissions(isPrivate));
     }
 
     private static HashMap<String, List<String>> getDefaultPermissions(final boolean isPrivate) {
@@ -373,7 +365,7 @@ public final class SetupPages {
     }
 
     private static Layout createPage(final long groupId, final Page currentPage, final long parentLayoutId,
-            final boolean isPrivate) throws SystemException, PortalException {
+            final boolean isPrivate) throws PortalException {
 
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(currentPage.getTitleTranslation(), groupId,
                 currentPage.getName(), String.format(" Page with title %1$s", currentPage.getFriendlyUrl()));
@@ -391,8 +383,7 @@ public final class SetupPages {
                 currentPage.isHidden(), friendlyURLMap, new ServiceContext());
     }
 
-    private static void setCustomFields(final long runAsUserId, final long groupId, final long company, final Page page,
-            final Layout layout) {
+    private static void setCustomFields(final long groupId, final long company, final Page page, final Layout layout) {
         Class clazz = Layout.class;
         String resolverHint = "Resolving customized value for page " + page.getFriendlyUrl() + " " + "failed for key "
                 + "%%key%% and value %%value%%";
@@ -417,7 +408,7 @@ public final class SetupPages {
         }
     }
 
-    private static void setPageTheme(final Layout layout, final Page page) throws SystemException {
+    private static void setPageTheme(final Layout layout, final Page page) {
 
         Theme theme = page.getTheme();
         if (theme != null) {
@@ -433,8 +424,7 @@ public final class SetupPages {
     }
 
     private static void addPortletIntoPage(final Page page, final Layout layout, final PagePortlet portlet,
-            final long companyId, final long groupId)
-            throws SystemException, ValidatorException, IOException, PortalException {
+            final long companyId, final long groupId) throws PortalException {
         if (page.getLinkToUrl() != null && !page.getLinkToUrl().equals("")) {
             LOG.error(
                     "This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
@@ -465,8 +455,8 @@ public final class SetupPages {
             List<PortletPreference> prefsList = portlet.getPortletPreference();
             for (PortletPreference p : prefsList) {
                 try {
-                    preferences.setValue(p.getKey(), resolvePortletPrefValue(p.getKey(), p.getValue(), portlet,
-                            companyId, groupId, runAsUserId));
+                    preferences.setValue(p.getKey(),
+                            resolvePortletPrefValue(p.getKey(), p.getValue(), portlet, companyId, groupId));
                 } catch (ReadOnlyException e) {
                     LOG.error("Portlet preferences (" + p.getKey() + ", " + p.getValue() + ") of " + "portlet "
                             + portlet.getPortletId() + " caused an excpetion! ");
@@ -507,12 +497,11 @@ public final class SetupPages {
      * @param portlet The pageportlet definition.
      * @param company Id of the company.
      * @param groupId The group id.
-     * @param runAsUserId The user id which import the data.
      *
      * @return
      */
     private static String resolvePortletPrefValue(final String key, final String value, final PagePortlet portlet,
-            final long company, final long groupId, final long runAsUserId) {
+            final long company, final long groupId) {
         String locationHint = String.format("Key: %1$s of portlet %2$s", key, portlet.getPortletId());
         return ResolverUtil.lookupAll(groupId, company, value, locationHint);
     }
@@ -522,7 +511,7 @@ public final class SetupPages {
             LayoutTypePortlet portletLayout = (LayoutTypePortlet) layout.getLayoutType();
 
             if (page.isClearPage()) {
-                if (page.getPagePortlet() != null && page.getPagePortlet().size() > 0 && page.getLinkToUrl() != null
+                if (page.getPagePortlet() != null && !page.getPagePortlet().isEmpty() && page.getLinkToUrl() != null
                         && !page.getLinkToUrl().equals("")) {
                     LOG.error(
                             "This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!");
@@ -542,7 +531,7 @@ public final class SetupPages {
                 if (layoutTemplate != null) {
                     LOG.info(String.format("Setting layout to %1$s for page %2$s", page.getLayout(), page.getName()));
                     if (themeId != null) {
-                        LOG.info(String.format("Layout was looked up in theme %1$s", themeId));
+                        LOG.info(String.format(LAYOUT_WAS_LOOKED_UP_IN_THEME, themeId));
                     }
                     portletLayout.setLayoutTemplateId(UserLocalServiceUtil.getDefaultUserId(layout.getCompanyId()),
                             layoutTemplate.getLayoutTemplateId());
@@ -551,13 +540,13 @@ public final class SetupPages {
                 } else {
                     LOG.error(String.format("Layout template %1$s not found !", page.getLayout()));
                     if (themeId != null) {
-                        LOG.error(String.format("Layout was looked up in theme %1$s", themeId));
+                        LOG.error(String.format(LAYOUT_WAS_LOOKED_UP_IN_THEME, themeId));
                     }
                 }
             } catch (Exception e) {
                 LOG.error(String.format("Error by setting layout template : %1$s", page.getLayout()), e);
                 if (themeId != null) {
-                    LOG.error(String.format("Layout was looked up in theme %1$s", themeId));
+                    LOG.error(String.format(LAYOUT_WAS_LOOKED_UP_IN_THEME, themeId));
                 }
             }
 

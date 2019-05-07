@@ -43,7 +43,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 
 public final class SetupDocuments {
@@ -66,11 +65,11 @@ public final class SetupDocuments {
 
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
 
-        List<String> actionsUser = new ArrayList<String>();
+        List<String> actionsUser = new ArrayList<>();
         actionsUser.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.USER, actionsUser);
 
-        List<String> actionsGuest = new ArrayList<String>();
+        List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
     }
@@ -84,16 +83,12 @@ public final class SetupDocuments {
             String folderPath = doc.getDocumentFolderName();
             String documentName = doc.getDocumentFilename();
             String documentTitle = doc.getDocumentTitle();
-            String extension = doc.getExtension();
             String filenameInFilesystem = doc.getFileSystemName();
             long repoId = groupId;
             long userId = SetupConfigurationThreadLocal.getRunAsUserId();
-            Long folderId = 0L;
-            Folder f = null;
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             if (folderPath != null && !folderPath.equals("")) {
-                f = FolderUtil.findFolder(groupId, repoId, folderPath, true);
-                folderId = f.getFolderId();
+                FolderUtil.findFolder(groupId, repoId, folderPath, true);
             }
             FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, groupId);
             byte[] fileBytes = null;
@@ -105,15 +100,15 @@ public final class SetupDocuments {
             }
             if (fileBytes != null) {
                 if (fe == null) {
-                    fe = DocumentUtil.createDocument(company, groupId, documentName, documentTitle, userId,
-                            repoId, fileBytes);
+                    fe = DocumentUtil.createDocument(company, groupId, documentName, documentTitle, userId, repoId,
+                            fileBytes);
                     LOG.info(documentName + " is not found! It will be created! ");
                 } else {
                     LOG.info(documentName + " is found! Content will be updated! ");
                     DocumentUtil.updateFile(fe, fileBytes, userId, documentName);
                 }
-                SetupPermissions.updatePermission(String.format("Document %1$s/%2$s", folderPath, documentName), groupId, company,
-                        fe.getFileEntryId(), DLFileEntry.class, doc.getRolePermissions(), DEFAULT_PERMISSIONS);
+                SetupPermissions.updatePermission(String.format("Document %1$s/%2$s", folderPath, documentName),
+                        company, fe.getFileEntryId(), DLFileEntry.class, doc.getRolePermissions(), DEFAULT_PERMISSIONS);
             }
         }
     }

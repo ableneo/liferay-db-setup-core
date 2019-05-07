@@ -42,7 +42,10 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.*;
+import com.liferay.portal.kernel.util.DateUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.UnicodeProperties;
 
 public final class SetupCustomFields {
 
@@ -117,7 +120,7 @@ public final class SetupCustomFields {
     }
 
     private static void setCustomFieldPermission(final List<RolePermission> rolePermissions, final ExpandoBridge bridge,
-            final String fieldName) throws SystemException {
+            final String fieldName) {
 
         LOG.info("Set read permissions on  field " + fieldName + " for " + rolePermissions.size() + " rolePermissions");
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
@@ -126,27 +129,23 @@ public final class SetupCustomFields {
         for (RolePermission rolePermission : rolePermissions) {
             String roleName = rolePermission.getRoleName();
             String permission = rolePermission.getPermission();
-            try {
-                switch (permission) {
-                    case "update":
-                        SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
-                                String.valueOf(column.getColumnId()));
-                        LOG.info(String.format("Added update permission on field %1$s for role %2$s", fieldName, roleName));
-                        break;
-                    case "view":
-                        SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
-                                String.valueOf(column.getColumnId()));
-                        LOG.info(String.format("Added read permission on field %1$s for role %2$s", fieldName, roleName));
-                        break;
-                    default:
-                        LOG.info("Unknown permission:" + permission + ". No permission added on " + "field " + fieldName
-                                + " for role " + roleName);
-                        break;
-                }
-
-            } catch (PortalException e) {
-                LOG.error(String.format("Could not set permission to %1$s on %2$s", roleName, fieldName), e);
+            switch (permission) {
+                case "update":
+                    SetupPermissions.addReadWrightRight(roleName, ExpandoColumn.class.getName(),
+                            String.valueOf(column.getColumnId()));
+                    LOG.info(String.format("Added update permission on field %1$s for role %2$s", fieldName, roleName));
+                    break;
+                case "view":
+                    SetupPermissions.addReadRight(roleName, ExpandoColumn.class.getName(),
+                            String.valueOf(column.getColumnId()));
+                    LOG.info(String.format("Added read permission on field %1$s for role %2$s", fieldName, roleName));
+                    break;
+                default:
+                    LOG.info("Unknown permission:" + permission + ". No permission added on " + "field " + fieldName
+                            + " for role " + roleName);
+                    break;
             }
+
         }
     }
 
@@ -255,16 +254,6 @@ public final class SetupCustomFields {
             LOG.error(String.format("cannot get unknown display type: %1$s", displayType));
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX;
         }
-    }
-
-    private static Map<String, CustomFields.Field> convertCustomFieldListToHashMap(
-            final List<CustomFields.Field> objects) {
-
-        HashMap<String, CustomFields.Field> map = new HashMap<>();
-        for (CustomFields.Field field : objects) {
-            map.put(field.getName(), field);
-        }
-        return map;
     }
 
     public static Serializable getAttributeFromString(final int type, final String attribute) {

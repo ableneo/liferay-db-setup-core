@@ -243,7 +243,7 @@ public final class SetupArticles {
                     ddmFormLayout, new ServiceContext());
             LOG.info(String.format("Template successfully updated: %1$s", structure.getName()));
 
-            SetupPermissions.updatePermission(String.format("Structure %1$s", structure.getKey()), groupId, companyId,
+            SetupPermissions.updatePermission(String.format("Structure %1$s", structure.getKey()), companyId,
                     ddmStructureSaved.getStructureId(),
                     DDMStructure.class.getName() + "-" + JournalArticle.class.getName(), structure.getRolePermissions(),
                     DEFAULT_DDM_PERMISSIONS);
@@ -255,7 +255,7 @@ public final class SetupArticles {
                 DDMStructureLocalServiceUtil.addStructure(runAsUserId, groupId, structure.getParent(), classNameId,
                         structure.getKey(), nameMap, descMap, ddmForm, ddmFormLayout, "json", 0, new ServiceContext());
 
-        SetupPermissions.updatePermission(String.format("Structure %1$s", structure.getKey()), groupId, companyId,
+        SetupPermissions.updatePermission(String.format("Structure %1$s", structure.getKey()), companyId,
                 newStructure.getStructureId(), DDMStructure.class.getName() + "-" + JournalArticle.class.getName(),
                 structure.getRolePermissions(), DEFAULT_DDM_PERMISSIONS);
         LOG.info(String.format("Added Article structure: %1$s", newStructure.getName()));
@@ -471,7 +471,7 @@ public final class SetupArticles {
             }
             TaggingUtil.associateTagsAndCategories(groupId, article, journalArticle);
             processRelatedAssets(article, journalArticle, runAsUserId, groupId, companyId);
-            SetupPermissions.updatePermission(String.format("Article %1$s", journalArticle.getArticleId()), groupId,
+            SetupPermissions.updatePermission(String.format("Article %1$s", journalArticle.getArticleId()),
                     companyId, journalArticle.getResourcePrimKey(), JournalArticle.class, article.getRolePermissions(),
                     DEFAULT_PERMISSIONS);
         } catch (PortalException e) {

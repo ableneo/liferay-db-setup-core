@@ -55,10 +55,7 @@ public final class DocumentUtil {
      * @param documentName The name of the document (i.e., title).
      * @param folderPath the folder path to look for (where the document is stored).
      * @param groupId the id of the group to which this document belongs to.
-     * @param company the company name.
      * @param repoId the id of the repository where the file is stored.
-     * @param userId the user is of the importing user (not used in this case, as
-     *        no folder is automatically created with this operation).
      * @return Returns the file entry of the specified document.
      */
     public static FileEntry findDocument(final String documentName, final String folderPath, final long groupId,
@@ -84,9 +81,7 @@ public final class DocumentUtil {
      *
      * @param documentName The name of the document (title)
      * @param groupId the group id.
-     * @param company the id of the company.
      * @param repoId the repository id.
-     * @param userId the id of the user executing this operation.
      * @return
      */
     public static FileEntry findDocument(final String documentName, final long groupId, final long repoId) {

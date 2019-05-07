@@ -79,8 +79,8 @@ public final class SetupDocumentFolders {
 
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             Folder folder = FolderUtil.findFolder(groupId, groupId, folderName, create);
-            SetupPermissions.updatePermission(String.format("Document folder %1$s", folderName), groupId, companyId, folder.getFolderId(),
-                    DLFolder.class, df.getRolePermissions(), DEFAULT_PERMISSIONS);
+            SetupPermissions.updatePermission(String.format("Document folder %1$s", folderName), companyId,
+                    folder.getFolderId(), DLFolder.class, df.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }
 }

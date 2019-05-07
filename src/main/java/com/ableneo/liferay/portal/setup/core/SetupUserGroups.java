@@ -78,7 +78,7 @@ public class SetupUserGroups {
                 setCustomFields(liferayUserGroup, userGroup.getCustomFieldSetting(), userGroup);
             }
 
-            if (!userGroup.getRole().isEmpty()) {
+            if (!userGroup.getRole().isEmpty() && liferayUserGroup != null) {
                 LOG.info("Setting Roles for UserGroup.");
                 addRolesToUserGroup(userGroup, liferayUserGroup);
             }

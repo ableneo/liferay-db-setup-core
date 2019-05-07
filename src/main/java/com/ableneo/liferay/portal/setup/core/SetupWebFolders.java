@@ -82,7 +82,7 @@ public final class SetupWebFolders {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId,
                     SetupConfigurationThreadLocal.getRunAsUserId(), webFolderPath, description, true);
-            SetupPermissions.updatePermission(String.format("Folder %1$s", af.getFolderPath()), groupId, companyId,
+            SetupPermissions.updatePermission(String.format("Folder %1$s", af.getFolderPath()), companyId,
                     jf.getFolderId(), JournalFolder.class, af.getRolePermissions(), DEFAULT_PERMISSIONS);
         }
     }

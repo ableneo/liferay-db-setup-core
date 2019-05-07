@@ -56,7 +56,6 @@ public final class SetupOrganizations {
     public static void setupOrganizations(
             final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
             final Organization parentOrg, final Group parentGroup) {
-        final long userId = SetupConfigurationThreadLocal.getRunAsUserId();
 
         for (com.ableneo.liferay.portal.setup.domain.Organization organization : organizations) {
             try {
@@ -84,7 +83,7 @@ public final class SetupOrganizations {
                             OrganizationLocalServiceUtil.addOrganization(SetupConfigurationThreadLocal.getRunAsUserId(),
                                     OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, organization.getName(),
                                     "organization", 0, 0, ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
-                                    "Created by setup module.", false, new ServiceContext());;
+                                    "Created by setup module.", false, new ServiceContext());
                     addOrganizationUser(newOrganization,
                             UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId()));
                     liferayOrg = newOrganization;
@@ -102,7 +101,7 @@ public final class SetupOrganizations {
                     OrganizationLocalServiceUtil.updateOrganization(liferayOrg);
                 }
 
-                setCustomFields(userId, groupId, organization, liferayOrg);
+                setCustomFields(groupId, organization, liferayOrg);
                 LOG.info("Organization custom fields set up.");
 
                 Site orgSite = organization.getSite();
@@ -169,7 +168,7 @@ public final class SetupOrganizations {
 
     }
 
-    private static void setCustomFields(final long runAsUserId, final long groupId,
+    private static void setCustomFields(final long groupId,
             final com.ableneo.liferay.portal.setup.domain.Organization org, final Organization liferayOrg) {
 
         Class clazz = Organization.class;
@@ -196,7 +195,7 @@ public final class SetupOrganizations {
                         if (!toBeDeletedOrganisations.containsKey(organisation.getName())) {
                             try {
                                 OrganizationLocalServiceUtil.deleteOrganization(organisation.getOrganizationId());
-                                LOG.info(String.format("Deleting Organisation%1$s", organisation.getName()));
+                                LOG.info(String.format("Deleting Organisation %1$s", organisation.getName()));
                             } catch (Exception e) {
                                 LOG.error("Error by deleting Organisation !", e);
                             }
