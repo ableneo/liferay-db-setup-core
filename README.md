@@ -7,9 +7,8 @@ We didn't publish binary yet so you'll need to build the jar yourself. Here are 
 
 1. Download sources.
 1. Install Maven 3.x.
-1. cd <code>db-setup-core</code>
 1. run <code>mvn clean install</code>
-1. grab jar from <code>db-setup-core/target</code> or use as a dependency in your maven project
+1. grab jar from <code>./target</code> or use as a dependency in your maven project
 ```xml
 <dependency>
     <groupId>com.ableneo.liferay</groupId>
