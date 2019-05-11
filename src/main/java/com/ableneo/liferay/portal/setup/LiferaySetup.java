@@ -74,39 +74,32 @@ public final class LiferaySetup {
      */
     public static boolean setup(final Setup setup) {
 
-        Configuration configuration = setup.getConfiguration();
-        String runAsUserEmail = configuration.getRunAsUserEmail();
+        String runAsUserEmail = setup.getConfiguration().getRunAsUserEmail();
         final String principalName = PrincipalThreadLocal.getName();
         final PermissionChecker permissionChecker = PermissionThreadLocal.getPermissionChecker();
 
         try {
             // iterate over companies or choose default
-            if (!configuration.getCompany().isEmpty()) {
-                for (Company company : configuration.getCompany()) {
+            final List<Company> companies = setup.getConfiguration().getCompany();
+            if (!companies.isEmpty()) {
+                for (Company company : companies) {
                     Long companyId = company.getCompanyid() != null
                             ? company.getCompanyid() : getCompanyIdFromCompanyWebId(company);
                     if (companyId == -1) {
                         continue; // company not found
                     }
-                    configureThreadLocalContet(runAsUserEmail, companyId);
-                    executeSetupConfiguration(setup);
-
-                    // iterate over group names or choose default group for the company
-                    if (company.getGroupName().isEmpty()) {
-                        company.getGroupName().add(GroupConstants.GUEST);
-                    }
-                    for (String groupName : company.getGroupName()) {
-                        long groupId = GroupLocalServiceUtil.getGroup(companyId, groupName).getGroupId();
-                        SetupConfigurationThreadLocal.setRunInGroupId(groupId);
-                        setupPortalGroup(setup);
+                    if (company.getRunAsUserEmail() != null) {
+                        setupDataForCompany(setup, company.getRunAsUserEmail(), company, companyId);
+                    } else {
+                        setupDataForCompany(setup, runAsUserEmail, company, companyId);
                     }
                 }
             } else {
-                configureThreadLocalContet(runAsUserEmail, SetupConfigurationThreadLocal.getRunInCompanyId());
-                executeSetupConfiguration(setup);
-                setupPortalGroup(setup);
+                configureThreadLocalContent(runAsUserEmail, SetupConfigurationThreadLocal.getRunInCompanyId());
+                setupGlobalData(setup);
+                setupGroupData(setup);
             }
-        } catch (Exception e) {
+        } catch (LiferaySetupException | PortalException e) {
             LOG.error("An error occured while executing the portal setup ", e);
             return false;
         } finally {
@@ -115,6 +108,20 @@ public final class LiferaySetup {
             SetupConfigurationThreadLocal.clear(); // in case it'll be run multiple times in the same thread
         }
         return true;
+    }
+
+    private static void setupDataForCompany(Setup setup, String runAsUserEmail, Company company, Long companyId) throws PortalException, LiferaySetupException {
+        configureThreadLocalContent(runAsUserEmail, companyId);
+        setupGlobalData(setup);
+
+        if (company.getGroupName().isEmpty()) {
+            company.getGroupName().add(GroupConstants.GUEST);
+        }
+        for (String groupName : company.getGroupName()) {
+            long groupId = GroupLocalServiceUtil.getGroup(companyId, groupName).getGroupId();
+            SetupConfigurationThreadLocal.setRunInGroupId(groupId);
+            setupGroupData(setup);
+        }
     }
 
     private static long getCompanyIdFromCompanyWebId(Company company) {
@@ -128,7 +135,7 @@ public final class LiferaySetup {
         return -1;
     }
 
-    private static void configureThreadLocalContet(String runAsUserEmail, long companyId) throws Exception {
+    private static void configureThreadLocalContent(String runAsUserEmail, long companyId) throws PortalException, LiferaySetupException {
         if (runAsUserEmail == null || runAsUserEmail.isEmpty()) {
             SetupConfigurationThreadLocal.setRunAsUserId(UserLocalServiceUtil.getDefaultUserId(companyId));
             SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
@@ -152,7 +159,7 @@ public final class LiferaySetup {
         }
     }
 
-    private static void executeSetupConfiguration(final Setup setup) throws LiferaySetupException {
+    private static void setupGlobalData(final Setup setup) throws LiferaySetupException {
         if (setup.getDeleteLiferayObjects() != null) {
             LOG.info(String.format("Deleting : %1$s objects", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
@@ -199,7 +206,7 @@ public final class LiferaySetup {
         LOG.info("Setup finished");
     }
 
-    private static void setupPortalGroup(Setup setup) {
+    private static void setupGroupData(Setup setup) {
         if (setup.getPageTemplates() != null) {
             SetupPages.setupPageTemplates(setup.getPageTemplates());
         }
@@ -213,12 +220,16 @@ public final class LiferaySetup {
      *
      * @throws Exception if cannot set permission checker
      */
-    private static void setAdminPermissionCheckerForThread() throws Exception {
+    private static void setAdminPermissionCheckerForThread() throws LiferaySetupException {
         User adminUser = getAdminUser();
         SetupConfigurationThreadLocal.setRunAsUserId(Objects.requireNonNull(adminUser).getUserId());
         PrincipalThreadLocal.setName(adminUser.getUserId());
         PermissionChecker permissionChecker;
-        permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
+        try {
+            permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
+        } catch (Exception e) {
+            throw new LiferaySetupException(String.format("Failed to create permission checker for user: %1$s", adminUser), e);
+        }
         PermissionThreadLocal.setPermissionChecker(permissionChecker);
     }
 
