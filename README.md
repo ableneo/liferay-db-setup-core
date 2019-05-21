@@ -8,7 +8,10 @@ In the approach pages, portlets, content and permissions server as a building bl
 
 The library helps to fix what need to be fixed across environments while allowing to use as much of a portal flexibility as needed.
 # Usage
-## Setup
+## Liferay Portal requirements
+The code is compatible with **Liferay Portal DXP/7.x**. We maintain a [separate branch][1] for **Liferay Portal EE/CE 6.2.x**.
+
+## Maven project setup
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 1. Download sources.
@@ -49,8 +52,10 @@ Include-Resource: @db-setup-core-2.2.0-SNAPSHOT.jar
 ```
 the name of the file is the same that you will find inside the maven/gradle repository.
 
-# Compatibility
-The code is compatible with **Liferay Portal DXP/7.x**. We maintain a [separate branch][1] for **Liferay Portal EE/CE 6.2.x**.
+## Contributing
+Want/need to hack on db-setup-core? See our [super short contributing guide](CONTRIBUTING.md) for information on building, testing and contributing changes.
+
+They are probably not perfect, please let me know if anything feels wrong or incomplete.
 
 # Roadmap
 * OSGi descriptors exporting [LiferaySetup][2]
@@ -58,10 +63,6 @@ The code is compatible with **Liferay Portal DXP/7.x**. We maintain a [separate 
 * more tests
 * how-to guides
 
-# Contributing
-Want/need to hack on db-setup-core? See our [super short contributing guide](CONTRIBUTING.md) for information on building, testing and contributing changes.
-
-They are probably not perfect, please let me know if anything feels wrong or incomplete.
 # Changelog
 ## 2.2.0-SNAPSHOT
 ### Features & bug fixes
