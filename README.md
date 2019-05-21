@@ -1,12 +1,13 @@
 # Liferay Portal DB Setup core [![Build Status](https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master)](https://travis-ci.org/ableneo/liferay-db-setup-core) [![Gitter chat](https://badges.gitter.im/ableneo/liferay-db-setup-core.png)](https://gitter.im/ableneo/liferay-db-setup-core) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status)](https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x)
-Library that allows to setup a number of Liferay artifacts in the DB. It uses xml and Liferay APIs to add all configured artifacts.
+Library that allows to setup a number of [Liferay][3] artifacts in the DB. It uses xml and [Liferay APIs][4] to add all configured artifacts.
 
 # Motivation
-We use Liferay as an application building platform.
+We use [Liferay][3] as an application building platform.
 
-In the approach pages, portlets, content and permissions server as a building block of an application with consistent portal UX. It's all easy and fun unless you need to move through environments or track changes. Which you always need to track. Suddenly it becomes a problem that a very important part of your application resides in database.
+In the approach pages, portlets, content and permissions serve as a building block of an application with consistent portal UX. It's all easy and fun unless you need to move through environments or track changes. Which you always need to track. Suddenly it becomes a problem that a very important part of your application resides in database.
 
 The library helps to fix what need to be fixed across environments while allowing to use as much of a portal flexibility as needed.
+
 # Usage
 ## Liferay Portal requirements
 The code is compatible with **Liferay Portal DXP/7.x**. We maintain a [separate branch][1] for **Liferay Portal EE/CE 6.2.x**.
@@ -64,13 +65,16 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 * how-to guides
 
 # Changelog
+
 ## 2.2.0-SNAPSHOT
+
 ### Features & bug fixes
 * it's possible to use more than one company id per configuration file, the configuration will be applied to all listed companies
 * tag names in configuration follow unified naming convention: word-word
 * run-as-user renamed to run-as-user-email to be explicit about expected value
 * added missing documentation to few xml elements
 * setup xsd provides a version attribute
+
 ### Refactorings & project changes
 * configured sonar analysis on each commit
 * configured maven test / coverage runner
@@ -82,6 +86,7 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 * improved logging
 
 ## 2.1.4
+
 ### Features & bug fixes
 * Added resource class name when creating ADT 
 * Fix user expando assignement
@@ -89,3 +94,5 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 [1]: https://github.com/ableneo/liferay-db-setup-core/tree/1.x
 [2]: src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java
+[3]: https://github.com/liferay
+[4]: https://docs.liferay.com/portal/7.0/javadocs/portal-kernel
