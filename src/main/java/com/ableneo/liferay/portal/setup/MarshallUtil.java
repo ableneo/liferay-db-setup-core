@@ -79,11 +79,7 @@ public final class MarshallUtil {
      * @throws FileNotFoundException when provided file cannot be found
      */
     public static Setup unmarshall(final File xmlConfigurationFile) throws FileNotFoundException {
-        if (validateAgainstXSD(xmlConfigurationFile)) {
-            return unmarshall(new FileInputStream(xmlConfigurationFile));
-        } else {
-            return null;
-        }
+        return unmarshall(new FileInputStream(xmlConfigurationFile));
     }
 
     public static Setup unmarshall(final InputStream stream) {
