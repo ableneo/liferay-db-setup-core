@@ -59,6 +59,10 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.*;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
+/**
+ * The util allows to specify special placeholders within configured data. The placeholders will be resolved to values
+ * in the class.
+ */
 public final class ResolverUtil {
 
     // CHECKSTYLE:OFF
@@ -68,29 +72,31 @@ public final class ResolverUtil {
     public static final int ID_TYPE_FILE = 3;
     public static final String IDTYPE = "%%IDTYPE%%";
     public static final String LOOKUPTYPE = "%%LOOKUPTYPE%%";
-    private static final Log LOG = LogFactoryUtil.getLog(ResolverUtil.class);
-    private static final String CLOSING_TAG = "$}}";
-    private static final String ARTICLE_BY_ART_ID = "{{$ARTICLE-%%IDTYPE%%-BY-ARTICLE-ID=";
-    private static final String TEMPLATE_BY_KEY = "{{$%%PREFIX%%-TEMPLATE-%%IDTYPE%%-BY-KEY=";
-    private static final String STRUCTURE_BY_KEY = "{{$%%PREFIX%%-STRUCTURE-%%IDTYPE%%-BY-KEY=";
-    private static final String FILE_REFERENCE_URL = "{{$FILE-URL=";
-    private static final String FILE_REFERENCE_ID = "{{$FILE-ID=";
-    private static final String FILE_REFERENCE_UUID = "{{$FILE-UUID=";
-    private static final String CLASS_ID_BY_NAME = "{{$CLASS-ID-BY-NAME=";
-    private static final String PAGE_ID_BY_FRIENDLY_URL = "{{$%%PTYPE%%-PAGE-%%LAYOUTID%%-BY-FRIENDLY_URL=";
-    private static final String DDL_REC_SET_BY_KEY = "{{$DDL-REC-SET-ID-BY-KEY=";
-    private static final String TEMPLATE_CATEGORY = "{{$CATEGORY-ID-BY-VOCABULARY-AND-PATH=";
-    private static final String ID_OF_SITE_WITH_NAME_KEY = "{{$ID_OF_SITE_WITH_NAME=";
-    private static final String VALUE_SPLIT = "::";
-    private static final String ID_OF_ORG_USER_GROUP_WITH_NAME_KEY = "{{$%%IDTYPE%%_OF_%%LOOKUPTYPE%%_WITH_NAME=";
+    public static final String CLOSING_TAG = "$}}";
+    public static final String ARTICLE_BY_ART_ID = "{{$ARTICLE-%%IDTYPE%%-BY-ARTICLE-ID=";
+    public static final String TEMPLATE_BY_KEY = "{{$%%PREFIX%%-TEMPLATE-%%IDTYPE%%-BY-KEY=";
+    public static final String STRUCTURE_BY_KEY = "{{$%%PREFIX%%-STRUCTURE-%%IDTYPE%%-BY-KEY=";
+    public static final String FILE_REFERENCE_URL = "{{$FILE-URL=";
+    public static final String FILE_REFERENCE_ID = "{{$FILE-ID=";
+    public static final String FILE_REFERENCE_UUID = "{{$FILE-UUID=";
+    public static final String CLASS_ID_BY_NAME = "{{$CLASS-ID-BY-NAME=";
+    public static final String PAGE_ID_BY_FRIENDLY_URL = "{{$%%PTYPE%%-PAGE-%%LAYOUTID%%-BY-FRIENDLY_URL=";
+    public static final String DDL_REC_SET_BY_KEY = "{{$DDL-REC-SET-ID-BY-KEY=";
+    public static final String TEMPLATE_CATEGORY = "{{$CATEGORY-ID-BY-VOCABULARY-AND-PATH=";
+    public static final String ID_OF_SITE_WITH_NAME_KEY = "{{$ID_OF_SITE_WITH_NAME=";
+    public static final String VALUE_SPLIT = "::";
+    public static final String ID_OF_ORG_USER_GROUP_WITH_NAME_KEY = "{{$%%IDTYPE%%_OF_%%LOOKUPTYPE%%_WITH_NAME=";
     public static final String LAYOUTID = "%%LAYOUTID%%";
+    private static final Log LOG = LogFactoryUtil.getLog(ResolverUtil.class);
+    private static final String COULD_NOT_RESOLVE_SITE_NAME =
+            "Could not resolve site name, as the syntax is offended, closing tag (%2$s) is missing for %1$s";
 
     // CHECKSTYLE:ON
 
     private ResolverUtil() {}
 
     /**
-     * Resolves a value with a given key inside a given content. Every occurance
+     * Resolves a value with a given key inside a given content. Every occurrence
      * of one of the following expressions is substituted by the resolved value:
      * <ul>
      * <li>{{$ARTICLE-ID-BY-ARTICLE-ID=[:: name of the site ::]&lt; article id
@@ -140,12 +146,11 @@ public final class ResolverUtil {
      * </li>
      * </ul>
      *
-     * @param runAsUserId The user id under which the look up is done.
      * @param groupId the group id which is used by default for the look up.
      * @param company the company id that is used for the default look up.
      * @param value the value string in which the occurance of any above resolve
      *        expression is resolved.
-     * @param resolverHint the resovler hint textually specifies where the value is from
+     * @param resolverHint the resolver hint textually specifies where the value is from
      *        and is used for logging problems or infos on the resolution.
      *
      * @return Returns the string value with any resolver expression resolved to
@@ -184,12 +189,14 @@ public final class ResolverUtil {
         // Resource type id for articles
         retVal = ResolverUtil.lookupArticleWithArticleId(retVal, resolverHint, groupId, company, ID_TYPE_RESOURCE);
         // Substitute references to files by their URLs
-        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_FILE);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
+                ID_TYPE_FILE);
         // Substitute references to files by their id
         retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
-                 ID_TYPE_ID);
+                ID_TYPE_ID);
         // Substitute references to files by their UUID
-        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_UUID);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId,
+                ID_TYPE_UUID);
         // Substitute class id references
         retVal = ResolverUtil.getClassIdByName(retVal, resolverHint);
         // Substitute private page friendly urls to layout ids
@@ -236,8 +243,7 @@ public final class ResolverUtil {
                     LOG.error(String.format("Could not resolve class %1$s for %2$s", name, locationHint), ex);
                 }
             } else {
-                LOG.warn("Could not resolve site name, as the syntax is offendended, closing $}} " + "is missing for "
-                        + locationHint);
+                LOG.warn(String.format(COULD_NOT_RESOLVE_SITE_NAME, locationHint, CLOSING_TAG));
                 break;
             }
         }
@@ -260,11 +266,7 @@ public final class ResolverUtil {
                 // look up default site
                 siteGroupId = GroupLocalServiceUtil.getGroup(company, getSiteName(siteName)).getGroupId();
             } catch (PortalException e) {
-                LOG.error(String.format("Id of site %1$s could not be retrieved for %2$s", siteName, locationName));
-                LOG.error((Throwable) e);
-            } catch (SystemException e) {
-                LOG.error(String.format("Id of site %1$s could not be retrieved for%2$s", siteName, locationName));
-                LOG.error((Throwable) e);
+                LOG.error(String.format("Id of site %1$s could not be retrieved for %2$s", siteName, locationName), e);
             }
         }
         return siteGroupId;
@@ -389,25 +391,26 @@ public final class ResolverUtil {
             String[] categoryIds = values[3].split("/");
 
             String category = resolveCategoryId(locationHint, assetVocabulary, categoryIds);
-            if (category != null) return category;
+            if (category != null)
+                return category;
         } catch (PortalException e) {
             LOG.error(String.format("Could not resolve vocabulary name for %1$s", locationHint), e);
         }
         return null;
     }
 
-    private static String resolveCategoryId(String locationHint, AssetVocabulary assetVocabulary, String[] categoryIds) {
+    private static String resolveCategoryId(String locationHint, AssetVocabulary assetVocabulary,
+            String[] categoryIds) {
         try {
             AssetCategory category = assetVocabulary.getCategories().stream()
-                    .filter(vocabularyCategory -> vocabularyCategory.getName().equals(categoryIds[0]))
-                    .findFirst().orElseThrow(PortalException::new);
+                    .filter(vocabularyCategory -> vocabularyCategory.getName().equals(categoryIds[0])).findFirst()
+                    .orElseThrow(PortalException::new);
 
             for (int i = 1; i < categoryIds.length; i++) {
                 String categoryName = categoryIds[i];
-                category = AssetCategoryLocalServiceUtil.getChildCategories(category.getCategoryId())
-                        .stream()
-                        .filter(childrenCategory -> childrenCategory.getName().equals(categoryName))
-                        .findFirst().orElseThrow(PortalException::new);
+                category = AssetCategoryLocalServiceUtil.getChildCategories(category.getCategoryId()).stream()
+                        .filter(childrenCategory -> childrenCategory.getName().equals(categoryName)).findFirst()
+                        .orElseThrow(PortalException::new);
             }
             return String.valueOf(category.getCategoryId());
         } catch (PortalException e) {
@@ -434,8 +437,7 @@ public final class ResolverUtil {
                     LOG.error(String.format("Could not resolve site name for %1$s", locationHint), ex);
                 }
             } else {
-                LOG.warn("Could not resolve site name, as the syntax is offendended, closing $}} " + "is missing for "
-                        + locationHint);
+                LOG.warn(String.format(COULD_NOT_RESOLVE_SITE_NAME, locationHint, CLOSING_TAG));
                 break;
             }
         }
@@ -500,8 +502,9 @@ public final class ResolverUtil {
                 if (org) {
                     type = "organization";
                 }
-                LOG.warn("Could not resolve " + type + " name, as the syntax is offendended, "
-                        + "closing $}} is missing " + "for " + locationHint);
+                LOG.warn(String.format(
+                        "Could not resolve %1$s name, as the syntax is offendended, closing (%3$s) is missing for %2$s",
+                        type, locationHint, CLOSING_TAG));
                 break;
             }
         }
@@ -539,7 +542,8 @@ public final class ResolverUtil {
                 }
                 String templateId = "";
                 try {
-                    JournalArticle ja = JournalArticleLocalServiceUtil.fetchLatestArticle(siteGroupId, name, WorkflowConstants.STATUS_APPROVED);
+                    JournalArticle ja = JournalArticleLocalServiceUtil.fetchLatestArticle(siteGroupId, name,
+                            WorkflowConstants.STATUS_APPROVED);
                     if (ja != null) {
                         if (typeOfId == 0) {
                             templateId = Long.toString(ja.getId());
@@ -553,16 +557,16 @@ public final class ResolverUtil {
                         templateId = "!!NOTFOUND!!";
                     }
                 } catch (SystemException e) {
-                    LOG.error(String.format("Article with article id %1$s not found for %2$s", name, locationHint));
-                    LOG.error((Throwable) e);
+                    LOG.error(String.format("Article with article id %1$s not found for %2$s", name, locationHint), e);
                 }
 
                 retVal = contentCopy.substring(0, pos) + templateId
                         + contentCopy.substring(pos2 + CLOSING_TAG.length(), contentCopy.length());
                 contentCopy = retVal;
             } else {
-                LOG.warn("Could not resolve template, as the syntax is offended, closing $}} is " + "missing for "
-                        + locationHint + " abort parsing, as this is possibly an error!");
+                LOG.warn(String.format(
+                        "Could not resolve template, as the syntax is offended, closing (%1$s) is missing for %2$s abort parsing, as this is possibly an error!",
+                        CLOSING_TAG, locationHint));
                 break;
             }
         }
