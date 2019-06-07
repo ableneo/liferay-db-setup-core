@@ -97,13 +97,14 @@ public final class MarshallUtil {
         JAXBContext jc;
         try {
             jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName(), cl);
-            return jc.createUnmarshaller();
+            final Unmarshaller unmarshaller = jc.createUnmarshaller();
+            unmarshaller.setSchema(schema);
+            return unmarshaller;
         } catch (JAXBException e) {
             LOG.error("db-setup-core library is broken in unexpected way. Please fix the library.", e);
         }
         return null;
     }
-
 
     /**
      * @throws IllegalStateException
@@ -137,7 +138,7 @@ public final class MarshallUtil {
      */
     public static boolean validateAgainstXSD(final File xmlConfigurationFile) {
         try {
-           return validateAgainstXSD(new FileInputStream(xmlConfigurationFile));
+            return validateAgainstXSD(new FileInputStream(xmlConfigurationFile));
         } catch (IOException e) {
             throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);
         }

@@ -24,7 +24,6 @@
   THE SOFTWARE.
   #L%
   -->
-
 <setup xmlns="http://www.ableneo.com/liferay/setup">
     <configuration>
         <!-- run as automatically selected admin -->
