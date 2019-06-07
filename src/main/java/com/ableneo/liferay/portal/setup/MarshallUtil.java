@@ -79,14 +79,10 @@ public final class MarshallUtil {
      * @throws FileNotFoundException when provided file cannot be found
      */
     public static Setup unmarshall(final File xmlConfigurationFile) throws FileNotFoundException {
-        if (validateAgainstXSD(xmlConfigurationFile)) {
-            return MarshallUtil.unmarshall(new FileInputStream(xmlConfigurationFile));
-        } else {
-            return null;
-        }
+        return unmarshall(new FileInputStream(xmlConfigurationFile));
     }
 
-    private static Setup unmarshall(final FileInputStream stream) {
+    public static Setup unmarshall(final InputStream stream) {
         try {
             SAXSource src = new SAXSource(xr, new InputSource(stream));
             return (Setup) unmarshaller.unmarshal(src);
@@ -108,6 +104,29 @@ public final class MarshallUtil {
         return null;
     }
 
+
+    /**
+     * @throws IllegalStateException
+     *         Code of db-setup-core is broken. Please fix the library.
+     * @throws NullPointerException If <code>source</code> is
+     *         <code>null</code>.
+     * @return if provided configuration is valid
+     *
+     */
+    public static boolean validateAgainstXSD(final InputStream inputStream) {
+        Validator validator = schema.newValidator();
+        try {
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringPool.BLANK);
+            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringPool.BLANK);
+            validator.validate(new StreamSource(inputStream));
+        } catch (IOException e) {
+            throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);
+        } catch (SAXException e) {
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @throws IllegalStateException
      *         Code of db-setup-core is broken. Please fix the library.
@@ -117,17 +136,11 @@ public final class MarshallUtil {
      *
      */
     public static boolean validateAgainstXSD(final File xmlConfigurationFile) {
-        Validator validator = schema.newValidator();
         try {
-            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, StringPool.BLANK);
-            validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, StringPool.BLANK);
-            validator.validate(new StreamSource(new FileInputStream(xmlConfigurationFile)));
+           return validateAgainstXSD(new FileInputStream(xmlConfigurationFile));
         } catch (IOException e) {
             throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);
-        } catch (SAXException e) {
-            return false;
         }
-        return true;
     }
 
     private static Schema getSchema() {

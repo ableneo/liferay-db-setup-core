@@ -29,6 +29,7 @@ package com.ableneo.liferay.portal.setup;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -56,16 +57,6 @@ public final class LiferaySetup {
     private static final Log LOG = LogFactoryUtil.getLog(LiferaySetup.class);
 
     private LiferaySetup() {}
-
-    /**
-     * @param file configuration file
-     * @return true if all was set up fine
-     * @throws FileNotFoundException if provided configuration file could not be found
-     */
-    public static boolean setup(final File file) throws FileNotFoundException {
-        Setup setup = MarshallUtil.unmarshall(file);
-        return setup(setup);
-    }
 
     /**
      *
