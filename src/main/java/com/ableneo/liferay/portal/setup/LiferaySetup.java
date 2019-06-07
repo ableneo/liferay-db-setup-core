@@ -74,7 +74,7 @@ public final class LiferaySetup {
             // iterate over companies or choose default
             if (!configuration.getCompany().isEmpty()) {
                 for (Company company : configuration.getCompany()) {
-                    long companyId = company.getCompanyid() != null
+                    Long companyId = company.getCompanyid() != null
                             ? company.getCompanyid() : getCompanyIdFromCompanyWebId(company);
                     if (companyId == -1) {
                         continue; // company not found
