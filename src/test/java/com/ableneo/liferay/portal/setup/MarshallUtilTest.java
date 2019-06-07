@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,9 +44,8 @@ class MarshallUtilTest {
     @BeforeEach
     void setup() {
         try {
-            validConfiguration = new File(MarshallUtilTest.class.getResource(("/valid-configuration.xml")).toURI());
-
-            invalidConfiguration = new File(MarshallUtilTest.class.getResource(("/invalid-configuration.xml")).toURI());
+            invalidConfiguration = new File(MarshallUtilTest.class.getResource("/invalid-configuration.xml").toURI());
+            validConfiguration = new File(MarshallUtilTest.class.getResource("/valid-configuration.xml").toURI());
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
