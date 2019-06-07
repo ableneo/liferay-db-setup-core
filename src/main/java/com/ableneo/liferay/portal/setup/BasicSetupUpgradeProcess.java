@@ -58,7 +58,7 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
             try {
                 File configurationFile =
                         new File(BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI());
-                LiferaySetup.setup(configurationFile);
+                LiferaySetup.setup(MarshallUtil.unmarshall(configurationFile));
             } catch (FileNotFoundException | URISyntaxException e) {
                 throw new UpgradeException(
                         String.format("Failed to process liferay setup configuration (%1$s)", fileName), e);
