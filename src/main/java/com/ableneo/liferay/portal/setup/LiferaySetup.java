@@ -27,9 +27,6 @@ package com.ableneo.liferay.portal.setup;
  * #L%
  */
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Objects;
 
@@ -101,7 +98,8 @@ public final class LiferaySetup {
         return true;
     }
 
-    private static void setupDataForCompany(Setup setup, String runAsUserEmail, Company company, Long companyId) throws PortalException, LiferaySetupException {
+    private static void setupDataForCompany(Setup setup, String runAsUserEmail, Company company, Long companyId)
+            throws PortalException, LiferaySetupException {
         configureThreadLocalContent(runAsUserEmail, companyId);
         setupGlobalData(setup);
 
@@ -126,7 +124,8 @@ public final class LiferaySetup {
         return -1;
     }
 
-    private static void configureThreadLocalContent(String runAsUserEmail, long companyId) throws PortalException, LiferaySetupException {
+    private static void configureThreadLocalContent(String runAsUserEmail, long companyId)
+            throws PortalException, LiferaySetupException {
         if (runAsUserEmail == null || runAsUserEmail.isEmpty()) {
             SetupConfigurationThreadLocal.setRunAsUserId(UserLocalServiceUtil.getDefaultUserId(companyId));
             SetupConfigurationThreadLocal.setRunInCompanyId(companyId);
@@ -141,8 +140,8 @@ public final class LiferaySetup {
             try {
                 permissionChecker = PermissionCheckerFactoryUtil.create(user);
             } catch (Exception e) {
-                throw new LiferaySetupException(
-                        String.format("An error occured while trying to create permissionchecker for user: %1$s", runAsUserEmail), e);
+                throw new LiferaySetupException(String.format(
+                        "An error occured while trying to create permissionchecker for user: %1$s", runAsUserEmail), e);
             }
             PermissionThreadLocal.setPermissionChecker(permissionChecker);
 
@@ -152,7 +151,8 @@ public final class LiferaySetup {
 
     private static void setupGlobalData(final Setup setup) throws LiferaySetupException {
         if (setup.getDeleteLiferayObjects() != null) {
-            LOG.info(String.format("Deleting : %1$s objects", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
+            LOG.info(String.format("Deleting : %1$s objects",
+                    setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
 
@@ -181,7 +181,8 @@ public final class LiferaySetup {
         }
 
         if (setup.getResourcePermissions() != null) {
-            LOG.info(String.format("Setting up %1$s resource permissions", setup.getResourcePermissions().getResource().size()));
+            LOG.info(String.format("Setting up %1$s resource permissions",
+                    setup.getResourcePermissions().getResource().size()));
             SetupPermissions.setupPortletPermissions(setup.getResourcePermissions());
         }
 
@@ -219,7 +220,8 @@ public final class LiferaySetup {
         try {
             permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
         } catch (Exception e) {
-            throw new LiferaySetupException(String.format("Failed to create permission checker for user: %1$s", adminUser), e);
+            throw new LiferaySetupException(
+                    String.format("Failed to create permission checker for user: %1$s", adminUser), e);
         }
         PermissionThreadLocal.setPermissionChecker(permissionChecker);
     }
@@ -266,7 +268,8 @@ public final class LiferaySetup {
             return adminUsers.get(0);
 
         } catch (PortalException | SystemException e) {
-            throw new LiferaySetupException(String.format("Cannot obtain Liferay role for role name: %1$s", RoleConstants.ADMINISTRATOR), e);
+            throw new LiferaySetupException(
+                    String.format("Cannot obtain Liferay role for role name: %1$s", RoleConstants.ADMINISTRATOR), e);
         }
     }
 
