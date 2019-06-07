@@ -4,6 +4,7 @@ jdk:
 addons:
   sonarcloud:
     organization: "ableneo"
+    projectKey: "liferay-db-setup-core-2x"
 script:
   - sonar-scanner
 cache:
