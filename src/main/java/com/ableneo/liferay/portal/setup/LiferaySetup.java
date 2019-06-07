@@ -59,25 +59,6 @@ public final class LiferaySetup {
     private LiferaySetup() {}
 
     /**
-     * @param file configuration file
-     * @return true if all was set up fine
-     * @throws FileNotFoundException if provided configuration file could not be found
-     */
-    public static boolean setup(final File file) throws FileNotFoundException {
-        Setup setup = MarshallUtil.unmarshall(file);
-        return setup(setup);
-    }
-    /**
-     * @param inputStream configuration file
-     * @return true if all was set up fine
-     * @throws FileNotFoundException if provided configuration file could not be found
-     */
-    public static boolean setup(final InputStream inputStream) throws FileNotFoundException {
-        Setup setup = MarshallUtil.unmarshall(inputStream);
-        return setup(setup);
-    }
-
-    /**
      *
      * @param setup configuration of db setup runner
      * @return true if all was set up fine
