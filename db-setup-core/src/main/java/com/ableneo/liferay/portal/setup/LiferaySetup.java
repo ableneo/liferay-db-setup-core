@@ -37,6 +37,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.ableneo.liferay.portal.setup.core.SetupContext;
+import com.ableneo.liferay.portal.setup.domain.*;
 import org.xml.sax.SAXException;
 
 import com.ableneo.liferay.portal.setup.core.SetupCustomFields;
@@ -47,12 +48,6 @@ import com.ableneo.liferay.portal.setup.core.SetupRoles;
 import com.ableneo.liferay.portal.setup.core.SetupSites;
 import com.ableneo.liferay.portal.setup.core.SetupUserGroups;
 import com.ableneo.liferay.portal.setup.core.SetupUsers;
-import com.ableneo.liferay.portal.setup.domain.Company;
-import com.ableneo.liferay.portal.setup.domain.Configuration;
-import com.ableneo.liferay.portal.setup.domain.CustomFields;
-import com.ableneo.liferay.portal.setup.domain.ObjectsToBeDeleted;
-import com.ableneo.liferay.portal.setup.domain.Organization;
-import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
@@ -170,7 +165,7 @@ public final class LiferaySetup {
 
     private void executeSetupConfiguration(final Setup setup) throws SystemException {
         if (setup.getDeleteLiferayObjects() != null) {
-            LOG.info("Deleting : " + setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size() + " objects");
+            LOG.info("Deleting " + setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size() + " object categories");
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
 
@@ -261,6 +256,11 @@ public final class LiferaySetup {
             if (otbd.getCustomFields() != null) {
                 List<CustomFields.Field> customFields = otbd.getCustomFields().getField();
                 (new SetupCustomFields(setupContext.clone())).deleteCustomFields(customFields, otbd.getDeleteMethod());
+            }
+
+            if (otbd.getSites() != null) {
+                final List<Site> siteList = otbd.getSites().getSite();
+                (new SetupSites(setupContext.clone())).deleteSite(siteList, otbd.getDeleteMethod());
             }
         }
     }

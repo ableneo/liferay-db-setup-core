@@ -321,11 +321,10 @@ public class SetupSites {
                     try {
                         com.liferay.portal.model.Group o =
                                 GroupLocalServiceUtil.getGroup(getRunInCompanyId(), name);
-                        GroupLocalServiceUtil.deleteGroup(o);
+                        deleteLiferayGroup(o);
                     } catch (Exception e) {
                         LOG.error("Error by deleting Site !", e);
                     }
-                    LOG.info("Deleting Site " + name);
                 }
 
                 break;

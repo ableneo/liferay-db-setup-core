@@ -1,3 +1,4 @@
+.attach_pid*
 target/
 .idea
 pom.xml.tag
