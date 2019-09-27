@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>com.ableneo.liferay</groupId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
     <artifactId>db-setup-core</artifactId>
 
     <name>Liferay Portal DB Setup core</name>
@@ -38,7 +38,7 @@
                 <configuration>
                     <outputDirectory>${project.build.directory}/generated-sources/sources</outputDirectory>
                     <sources>
-                        <source>${basedir}/src/main/resources/setup_definition-1.2.xsd</source>
+                        <source>${basedir}/src/main/resources/setup_definition.xsd</source>
                     </sources>
                     <packageName>com.ableneo.liferay.portal.setup.domain</packageName>
                     <clearOutputDir>false</clearOutputDir>
