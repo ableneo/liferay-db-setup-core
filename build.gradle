@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = 'http://repo.maven.apache.org/maven2'
+    }
+}
+
+dependencies {
+    compile 'com.liferay.portal:com.liferay.portal.impl:3.3.7'
+    testCompile 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    testCompile 'org.mockito:mockito-core:2.21.0'
+    testCompile 'org.mockito:mockito-junit-jupiter:2.23.0'
+    testCompile 'org.jmockit:jmockit:1.46'
+    compileOnly 'com.liferay:com.liferay.petra.string:2.0.0'
+    compileOnly 'com.liferay:com.liferay.petra.lang:2.0.1'
+    compileOnly 'com.liferay.portal:com.liferay.portal.kernel:3.6.2'
+    compileOnly 'com.liferay:com.liferay.journal.api:3.0.2'
+    compileOnly 'com.liferay:com.liferay.dynamic.data.lists.api:3.0.4'
+    compileOnly 'com.liferay:com.liferay.dynamic.data.mapping.api:4.2.1'
+    compileOnly 'javax.portlet:portlet-api:3.0.1'
+}
+
+group = 'com.ableneo.liferay'
+version = '2.2.1-SNAPSHOT'
+description = 'Liferay Portal DB Setup core'
+sourceCompatibility = '1.8'
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

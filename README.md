@@ -16,16 +16,9 @@ The code is compatible with **Liferay Portal DXP/7.x**. We maintain a [separate 
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 1. Download sources.
-1. Install Maven 3.x.
-1. run <code>mvn clean install</code>
-1. grab jar from <code>./target</code> or use as a dependency in your maven project
-```xml
-<dependency>
-    <groupId>com.ableneo.liferay</groupId>
-    <artifactId>db-setup-core</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
-</dependency>
-```
+1. Install Gradle
+1. run <code>gradle build</code>
+1. install generated jar in Your Liferay deploy folder
 
 ## Integration
 Run <code>com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)</code> with following xml configuration:
@@ -59,12 +52,18 @@ Want/need to hack on db-setup-core? See our [super short contributing guide](CON
 They are probably not perfect, please let me know if anything feels wrong or incomplete.
 
 # Roadmap
-* OSGi descriptors exporting [LiferaySetup][2]
 * reference documentation
 * more tests
 * how-to guides
 
 # Changelog
+
+## 2.3.0-SNAPSHOT
+
+### Features & bug fixes
+
+* OSGI export files generated
+* instance import feature added
 
 ## 2.2.0-SNAPSHOT
 
