@@ -45,6 +45,7 @@ jaxb2 {
         'request-classes' {
             basePackage = 'com.ableneo.liferay.portal.setup.domain'
             schema = "src/main/resources/setup_definition.xsd"
+            generatedSourcesDir="build/generated/sources/xjc/java"
             encoding = 'UTF-8'
             extension = true
         }
@@ -54,7 +55,7 @@ jaxb2 {
 sourceSets {
     main {
         java {
-            srcDir "${buildDir.absolutePath}/generated/java"
+            srcDir "${buildDir.absolutePath}/build/generated/sources/xjc/java"
         }
     }
 }
