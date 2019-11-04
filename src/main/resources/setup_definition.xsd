@@ -13,6 +13,7 @@
             <xs:sequence>
                 <!-- specify the email address of user, which will be used for performing
                     all operations within setup hook -->
+                <xs:element ref="instance" minOccurs="0" maxOccurs="unbounded"></xs:element>
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="user-groups" minOccurs="0"/>
@@ -24,6 +25,48 @@
                 <xs:element ref="delete-liferay-objects" minOccurs="0" maxOccurs="1"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="page-templates"/>
             </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="instance">
+        <xs:annotation>
+            <xs:documentation>
+                Used to define create mew instance (company)
+            </xs:documentation>
+        </xs:annotation>
+
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="xs:string" maxOccurs="1" minOccurs="1" />
+                <xs:element name="virtual-host" type="xs:string" maxOccurs="1" minOccurs="1" />
+                <xs:element name="mx" type="xs:string" maxOccurs="1" minOccurs="1" />
+                <xs:element name="mail-domain" type="xs:string" maxOccurs="1" minOccurs="1" />
+                <xs:element name="max-user-count" type="xs:string" maxOccurs="1" minOccurs="0" default="0"/>
+                <xs:element name="home-url" type="xs:string" maxOccurs="1" minOccurs="0" default="" />
+                <xs:element name="default-logout-page" type="xs:string" maxOccurs="1" minOccurs="0" default="force_login?logout=true"/>
+                <xs:element name="default-landing-page" type="xs:string" maxOccurs="1" minOccurs="0" default="" />
+                <xs:element name="auth-type" type="xs:string" maxOccurs="1" minOccurs="0" default="screenName" />
+                <xs:element name="allow-autologin" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="allow-request-password" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="allow-reset-link" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="allow-strangers-create-account" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="allow-strangers-create-account-company-email" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="strangers-require-email-verification" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false" />
+                <xs:element name="autogenerate-user-screen-names" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false" />
+                <xs:element name="terms-of-use-required" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false" />
+                <xs:element name="enable-birthday" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="enable-gender" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="default-roles" type="xs:string" maxOccurs="1" minOccurs="0" default="User"/>
+                <xs:element name="email-notifications-name" type="xs:string" maxOccurs="1" minOccurs="0" default=""/>
+                <xs:element name="email-notifications-address" type="xs:string" maxOccurs="1" minOccurs="0" default=""/>
+                <xs:element name="allow-site-administrators-display-content-from-other-sites" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="allow-subsites-display-content-from-parent-sites" type="xs:string" maxOccurs="1" minOccurs="0" default="2" />
+                <xs:element name="allow-use-own-logo" type="xs:boolean" maxOccurs="1" minOccurs="0" default="true" />
+                <xs:element name="defaultThemeId" type="xs:string" maxOccurs="1" minOccurs="0" default="classic_WAR_classictheme" />
+                <xs:element name="defaultControlPanelThemeId" type="xs:string" maxOccurs="1" minOccurs="0" default="classic_WAR_classictheme" />
+            </xs:sequence>
+
+            <xs:attribute name="companywebid" type="xs:string"/>
         </xs:complexType>
     </xs:element>
 

@@ -150,6 +150,12 @@ public final class LiferaySetup {
     }
 
     private static void setupGlobalData(final Setup setup) throws LiferaySetupException {
+        if (setup.getInstance() != null) {
+            LOG.info(String.format("Setting up %1$s instances", setup.getInstance().size()));
+            SetupInstances.setupInstances(setup.getInstance());
+        }
+
+
         if (setup.getDeleteLiferayObjects() != null) {
             LOG.info(String.format("Deleting : %1$s objects",
                     setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size()));
