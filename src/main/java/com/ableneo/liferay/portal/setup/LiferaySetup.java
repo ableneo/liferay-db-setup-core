@@ -38,7 +38,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -156,6 +156,11 @@ public final class LiferaySetup {
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
 
+        if (setup.getPortal() != null) {
+            LOG.info("Setting up Portal");
+            SetupPortal.setupPortal(setup.getPortal());
+        }
+
         if (setup.getCustomFields() != null) {
             LOG.info(String.format("Setting up %1$s custom fields", setup.getCustomFields().getField().size()));
             SetupCustomFields.setupExpandoFields(setup.getCustomFields().getField());
@@ -165,11 +170,6 @@ public final class LiferaySetup {
             LOG.info(String.format("Setting up %1$s roles", setup.getRoles().getRole().size()));
             SetupRoles.setupRoles(setup.getRoles().getRole());
         }
-        if (setup.getUsers() != null) {
-            LOG.info(String.format("Setting up %1$s users", setup.getUsers().getUser().size()));
-            SetupUsers.setupUsers(setup.getUsers().getUser());
-        }
-
         if (setup.getOrganizations() != null) {
             LOG.info(String.format("Setting up %1$s organizations", setup.getOrganizations().getOrganization().size()));
             SetupOrganizations.setupOrganizations(setup.getOrganizations().getOrganization(), null, null);
@@ -195,6 +195,11 @@ public final class LiferaySetup {
             }
         }
 
+        if (setup.getUsers() != null) {
+        	LOG.info(String.format("Setting up %1$s users", setup.getUsers().getUser().size()));
+        	SetupUsers.setupUsers(setup.getUsers().getUser());
+        }
+        
         LOG.info("Setup finished");
     }
 

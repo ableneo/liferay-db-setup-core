@@ -112,6 +112,9 @@ public final class SetupCustomFields {
                     Integer.toString(getIndexedType(field.getIndexed())));
             properties.setProperty(ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE,
                     getDisplayType(field.getDisplayType()));
+            properties.setProperty(ExpandoColumnConstants.PROPERTY_LOCALIZE_FIELD_NAME, Boolean.FALSE.toString()); // todo localize-field-name on need
+            properties.setProperty("localize-field", String.valueOf(field.isLocalizedValue())); // const missing
+            
             bridge.setAttributeProperties(name, properties);
             setCustomFieldPermission(field.getRolePermission(), bridge, name);
         } catch (PortalException | SystemException e) {
@@ -250,6 +253,8 @@ public final class SetupCustomFields {
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_SELECTION_LIST;
         } else if ("text-box".equals(displayType)) {
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX;
+        } else if ("input-field".equals(displayType)) {
+            return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_INPUT_FIELD;
         } else {
             LOG.error(String.format("cannot get unknown display type: %1$s", displayType));
             return ExpandoColumnConstants.PROPERTY_DISPLAY_TYPE_TEXT_BOX;

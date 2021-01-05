@@ -1,5 +1,7 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
+import com.liferay.portal.kernel.util.FileUtil;
+
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -31,8 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import com.liferay.portal.kernel.util.FileUtil;
-
 /**
  * Created by ntrp on 5/15/17.
  */
@@ -43,6 +43,10 @@ public class ResourcesUtil {
     public static InputStream getFileStream(String path) {
 
         ClassLoader cl = ResourcesUtil.class.getClassLoader();
+        InputStream is = cl.getResourceAsStream(path);
+        if (is == null) {
+        	throw new RuntimeException("Can not load file, does it exist? path:["+path+"]");
+        }
         return cl.getResourceAsStream(path);
     }
 

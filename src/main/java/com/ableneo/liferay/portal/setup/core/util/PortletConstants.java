@@ -52,4 +52,7 @@ public class PortletConstants {
     public static final String STAGING_PORTLET_ID_POLLS = "com_liferay_polls_web_portlet_PollsPortlet";
     public static final String STAGING_PORTLET_ID_WEB_CONTENT = "com_liferay_journal_web_portlet_JournalPortlet";
     public static final String STAGING_PORTLET_ID_WIKI = "com_liferay_wiki_web_portlet_WikiPortlet";
+    
+    public static final String STAGING_PORTLET_ID_ASSET_PUBLISHER = "com_liferay_asset_publisher_web_portlet_AssetPublisherPortlet";
+    public static final String STAGING_PORTLET_ID_JOURNAL_CONTENT = "com_liferay_journal_content_web_portlet_JournalContentPortlet";
 }

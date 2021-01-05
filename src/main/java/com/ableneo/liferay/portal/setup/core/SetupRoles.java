@@ -43,17 +43,17 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 
 public final class SetupRoles {
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
 
-    private static final String SCOPE_INDIVIDUAL = "individual";
-    private static final String SCOPE_SITE = "site";
-    private static final String SCOPE_SITE_TEMPLATE = "site template";
-    private static final String SCOPE_PORTAL = "portal";
+    public static final String SCOPE_INDIVIDUAL = "individual";
+    public static final String SCOPE_SITE = "site";
+    public static final String SCOPE_SITE_TEMPLATE = "site template";
+    public static final String SCOPE_PORTAL = "portal";
 
     private SetupRoles() {
 
@@ -157,8 +157,8 @@ public final class SetupRoles {
             String siteName = role.getSite();
             if (siteName != null && !siteName.equals("")) {
                 LOG.warn(String.format(
-                        "Note, refering a site inside a role definition makes no sense and will be ignored! This %1$s When doing so, it is necessary to refer a site!",
-                        "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!"));
+                        "Note, refering a site inside a role definition makes no sense and will be ignored! This is:%1$s; When doing so, it is necessary to refer a site!",
+                        "attribute is intended to be used for refering assigning a site role to an Liferay object, such as a user!", siteName));
             }
             DefinePermissions permissions = role.getDefinePermissions();
             if (permissions.getDefinePermission() != null && !permissions.getDefinePermission().isEmpty()) {
