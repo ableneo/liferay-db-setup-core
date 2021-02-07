@@ -14,6 +14,7 @@
                 <!-- specify the email address of user, which will be used for performing
                     all operations within setup hook -->
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
+                <xs:element ref="portal" minOccurs="0"/>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="user-groups" minOccurs="0"/>
                 <xs:element ref="users" minOccurs="0"/>
@@ -126,6 +127,19 @@
             </xs:documentation>
         </xs:annotation>
     </xs:element>
+    
+    <xs:element name="portal">
+        <xs:annotation>
+            <xs:documentation>
+                Used to define portal properties
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="portalProperties" type="propertyKeyValue" minOccurs="0" maxOccurs="unbounded"></xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
 
     <xs:element name="company">
         <xs:annotation>
@@ -182,26 +196,43 @@
                 <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="membership" minOccurs="0" />
                 <xs:element ref="site" minOccurs="0" maxOccurs="unbounded"/>
-
+                <xs:element ref="menu" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="name" type="xs:string" />
+	            <xs:element name="name-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
+	            <xs:element name="site-preferences" type="site-preferences" minOccurs="0" />
             </xs:sequence>
-            <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="default" type="xs:boolean" default="false"/>
             <xs:attribute name="strict-web-folder-definition" type="xs:boolean" default="false"/>
             <xs:attribute name="strict-document-folder-definition" type="xs:boolean" default="false"/>
             <xs:attribute name="maintain-site-hierarchy" type="xs:boolean" default="false"/>
             <xs:attribute name="site-friendly-url" type="xs:string"/>
+            <xs:attribute name="membership-type" type="xs:int" default="2">
+	            <xs:annotation>
+	            	<xs:documentation>Uses GroupConstants.TYPE_SITE_* values, default is 'restricted'==2</xs:documentation>
+	            </xs:annotation>
+            </xs:attribute>
         </xs:complexType>
     </xs:element>
+
+    <xs:complexType name="site-preferences">
+        <xs:sequence>
+            <xs:element name="inheritLocales" minOccurs="0" maxOccurs="1" type="xs:boolean" default="true"/>
+            <xs:element name="languageId" minOccurs="0" maxOccurs="1" type="xs:string" default="en_US"/>
+            <xs:element name="locales" minOccurs="0" maxOccurs="unbounded" type="xs:string"/>
+            <xs:element name="mentionsEnabled" minOccurs="0" maxOccurs="1" type="xs:boolean" default="false"/>
+            <xs:element name="sharingEnabled" minOccurs="0" maxOccurs="1" type="xs:boolean" default="false"/>
+        </xs:sequence>
+    </xs:complexType>
 
     <xs:element name="membership">
         <xs:complexType>
             <xs:sequence>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="user-group-as-member"/>
                 <xs:element minOccurs="0" maxOccurs="unbounded" ref="user-as-member" />
+                <xs:element minOccurs="0" maxOccurs="unbounded" ref="role"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-
 
     <xs:element name="page-templates">
         <xs:complexType>
@@ -247,26 +278,77 @@
 
     </xs:complexType>
 
-    <xs:element name="page-portlet">
+    <xs:element name="page-portlet" type="page-portlet"></xs:element>
+	<xs:complexType name="page-portlet">
+		<xs:annotation>
+    	<xs:documentation>
+		        Use pageportlet element to add a portlet into the page.<br/>
+		        portletId - ID of the portlet instance<br/>
+		        column - id of the column in the layout where the portlet should be placed in<br/>
+		        column-position - order of the portlet in the column (positive number)
+		    </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+		    <xs:element minOccurs="0" maxOccurs="unbounded" ref="portlet-preference"/>
+            <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
+		</xs:sequence>
+		<xs:attribute name="portlet-id" type="xs:string" use="required"/>
+		<xs:attribute name="column" type="xs:string" use="required"/>
+		<xs:attribute name="column-position" type="xs:int" default="-1"/>
+    </xs:complexType>
+    
+    <xs:element name="menu-view-portlet" type="menu-view-portlet"></xs:element>
+    <xs:complexType name="menu-view-portlet">
         <xs:annotation>
             <xs:documentation>
-                Use pageportlet element to add a portlet into the page.<br/>
-                portletId - ID of the portlet instance<br/>
-                column - id of the column in the layout where the portlet should be placed in<br/>
-                column-position - order of the portlet in the column (positive number)
+                (fixme-javadoc)
             </xs:documentation>
         </xs:annotation>
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element minOccurs="0" maxOccurs="unbounded" ref="portlet-preference"/>
-            </xs:sequence>
-            <xs:attribute name="portlet-id" type="xs:string" use="required"/>
-            <xs:attribute name="column" type="xs:string" use="required"/>
-            <xs:attribute name="column-position" type="xs:int" default="-1">
-            </xs:attribute>
+        <xs:complexContent>
+        	<xs:extension base="page-portlet">
+	            <xs:sequence>
+	                <xs:element name="menu-name" type="xs:string" />
+	                <xs:element name="adt-template" type="xs:string" />
+	                <xs:element name="adt-template-site-url" type="xs:string" />
+	            </xs:sequence>
+        	</xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
 
-        </xs:complexType>
-    </xs:element>
+    <xs:element name="article-display-portlet" type="article-display-portlet"></xs:element>
+    <xs:complexType name="article-display-portlet">
+        <xs:annotation>
+            <xs:documentation>
+                (fixme-javadoc)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+        	<xs:extension base="page-portlet">
+	            <xs:sequence>
+	                <xs:element name="article-id" type="xs:string" />
+	                <xs:element ref="article-folder" />
+	            </xs:sequence>
+        	</xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:element name="asset-publisher-portlet" type="asset-publisher-portlet"></xs:element>
+    <xs:complexType name="asset-publisher-portlet">
+        <xs:annotation>
+            <xs:documentation>
+                (fixme-javadoc)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexContent>
+        	<xs:extension base="page-portlet">
+	            <xs:sequence>
+	                <xs:element name="adt-template-site-url" type="xs:string"/>
+	                <xs:element name="shown-article-classes" type="xs:string"/>
+	                <xs:element name="asset-renderer-base-class" type="xs:string"/>
+	            </xs:sequence>
+        	</xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
 
     <xs:element name="portlet-preference">
         <xs:annotation>
@@ -324,6 +406,7 @@
             <xs:attribute name="type" use="optional" default="portal">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
+                        <xs:enumeration value="regular"/>
                         <xs:enumeration value="portal"/>
                         <xs:enumeration value="site"/>
                         <xs:enumeration value="organization"/>
@@ -338,29 +421,34 @@
     <xs:element name="role-permissions">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="role-permission" minOccurs="0"/>
+                <xs:element maxOccurs="unbounded" name="role-permission" type="role-permission" minOccurs="0"/>
+                <xs:element maxOccurs="unbounded" name="remove-role-permission" type="role-permission" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="clear-permissions" type="xs:boolean" default="false"/>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="role-permission">
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="permission-action" minOccurs="0"/>
-            </xs:sequence>
-            <xs:attribute name="role-name" use="required" type="xs:string"/>
-            <xs:attribute name="permission" use="optional" default="view">
-                <xs:simpleType>
-                    <xs:restriction base="xs:string">
-                        <xs:enumeration value="view"/>
-                        <xs:enumeration value="update"/>
-                    </xs:restriction>
-                </xs:simpleType>
-            </xs:attribute>
-            <xs:attribute name="clear-permissions" type="xs:boolean" default="false"/>
-        </xs:complexType>
-    </xs:element>
+    <xs:element name="role-permission" type="role-permission" />
+    <xs:complexType name="role-permission">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" ref="permission-action" minOccurs="0"/>
+        </xs:sequence>
+        <xs:attribute name="role-name" use="required" type="xs:string"/>
+        <xs:attribute name="permission" use="optional" default="view">
+	        <xs:annotation>
+	        	<xs:documentation>
+	        		Used in CustomFieldSetting; no need to fill in other cases.
+	        	</xs:documentation>
+	        </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="view"/>
+                    <xs:enumeration value="update"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="clear-permissions" type="xs:boolean" default="false"/>
+    </xs:complexType>
 
     <xs:element name="permission-action">
         <xs:complexType>
@@ -368,11 +456,34 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="menu">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="menuItem" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+
+            <xs:attribute name="name" use="required" type="xs:string"/>
+            <xs:attribute name="clear-beforehand" use="optional" type="xs:boolean" default="true"/>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="menuItem">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="menuItem" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+            <xs:attribute name="name" use="required" type="xs:string"/>
+            <xs:attribute name="type" use="required" type="xs:string"/>
+            <xs:attribute name="type-settings" use="required" type="xs:string"/>
+        </xs:complexType>
+    </xs:element>
+
     <xs:element name="user">
         <xs:complexType>
             <xs:sequence>
-                <xs:element maxOccurs="unbounded" ref="organization" minOccurs="0"/>
-                <xs:element maxOccurs="unbounded" ref="role"/>
+                <xs:element ref="organization" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element ref="role" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element ref="user-group" maxOccurs="unbounded" minOccurs="0"/>
                 <xs:element ref="custom-field-setting" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
 
@@ -383,7 +494,6 @@
             <xs:attribute name="last-name" use="required" type="xs:string"/>
         </xs:complexType>
     </xs:element>
-
 
     <xs:element name="user-group">
         <xs:complexType>
@@ -529,7 +639,7 @@
                 <xs:element maxOccurs="unbounded" name="field">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element maxOccurs="unbounded" ref="role-permission"/>
+                            <xs:element ref="role-permission" maxOccurs="unbounded" minOccurs="0"/>
                         </xs:sequence>
                         <xs:attribute name="name" use="required"/>
                         <xs:attribute name="type" use="required">
@@ -563,9 +673,11 @@
                                     <xs:enumeration value="radio"/>
                                     <xs:enumeration value="selection-list"/>
                                     <xs:enumeration value="text-box"/>
+                                    <xs:enumeration value="input-field"/>
                                 </xs:restriction>
                             </xs:simpleType>
                         </xs:attribute>
+                        <xs:attribute name="localized-value" use="optional" default="false" type="xs:boolean"/>
                         <xs:attribute name="default-data" use="optional"/>
                     </xs:complexType>
                 </xs:element>
@@ -596,9 +708,19 @@
 
     <xs:element name="theme">
         <xs:complexType>
+        	<xs:sequence>
+                <xs:element name="layoutSetSettings" minOccurs="0" maxOccurs="unbounded" type="propertyKeyValue" >
+	           		<xs:annotation><xs:documentation>Any properties for the 'SETTINGS_' field of the row</xs:documentation></xs:annotation>
+                </xs:element>
+        	</xs:sequence>
             <xs:attribute name="name" use="required" type="xs:string"/>
         </xs:complexType>
     </xs:element>
+
+    <xs:complexType name="propertyKeyValue">
+        <xs:attribute name="key" type="xs:string" use="required"/>
+        <xs:attribute name="value" type="xs:string" use="required"/>
+    </xs:complexType>
 
     <xs:complexType name="structure">
             <xs:sequence>
@@ -675,11 +797,10 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="title-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
-		<xs:element name="description-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="description-translation" type="translation" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element maxOccurs="1" minOccurs="0" ref="related-assets"/>
                 <xs:element maxOccurs="unbounded" minOccurs="0" ref="tag"/>
                 <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
-
                 <xs:element ref="category"  minOccurs="0" maxOccurs="unbounded" />
             </xs:sequence>
             <xs:attribute name="article-structure-key" type="xs:string"/>
@@ -725,6 +846,12 @@
         </xs:complexType>
     </xs:element>
 
+	<xs:simpleType name="document-file-upload-type">
+	    <xs:restriction base="xs:string">
+	        <xs:enumeration value="GENERAL"/>
+	        <xs:enumeration value="LOGO_IMAGE"/>
+	    </xs:restriction>
+	</xs:simpleType>
     <xs:element name="document">
         <xs:complexType>
             <xs:sequence>
@@ -735,6 +862,7 @@
             <xs:attribute name="extension" type="xs:string" default=""/>
             <xs:attribute name="document-folder-name" type="xs:string" default=""/>
             <xs:attribute name="file-system-name" use="required" type="xs:string"/>
+            <xs:attribute name="file-upload-type" use="optional" type="document-file-upload-type" default="GENERAL"/>
         </xs:complexType>
     </xs:element>
 

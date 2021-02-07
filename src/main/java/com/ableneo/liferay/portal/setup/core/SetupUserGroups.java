@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.*;
 
 public class SetupUserGroups {
@@ -135,6 +136,7 @@ public class SetupUserGroups {
                         RoleLocalServiceUtil.getRole(companyId, role.getName());
                 String roleType = role.getType();
                 switch (roleType) {
+                	case RoleConstants.TYPE_REGULAR_LABEL:
                     case "portal":
                         GroupLocalServiceUtil.addRoleGroup(liferayRole.getRoleId(), liferayUserGroup.getGroupId());
                         LOG.info(String.format("Adding role %1$s to userGroup %2$s", liferayRole.getDescriptiveName(), liferayUserGroup.getName()));

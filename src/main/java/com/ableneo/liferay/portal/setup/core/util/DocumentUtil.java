@@ -28,6 +28,7 @@ package com.ableneo.liferay.portal.setup.core.util;
  */
 
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
+import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -109,11 +110,16 @@ public final class DocumentUtil {
      * @param userId The user id of the updating user.
      * @param sourceFileName The filename of the file.
      */
+    // FIXME jdk11
     public static void updateFile(final FileEntry fe, final byte[] content, final long userId,
             final String sourceFileName) {
         try {
+//        	LR-7.2.*
+//          DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
+//                  fe.getTitle(), fe.getDescription(), "update content", true, content, new ServiceContext());
+        	DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
             DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
-                    fe.getTitle(), fe.getDescription(), "update content", true, content, new ServiceContext());
+                    fe.getTitle(), fe.getDescription(), "update content", inc, content, new ServiceContext());
         } catch (Exception e) {
             LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
@@ -160,7 +166,7 @@ public final class DocumentUtil {
         } catch (NoSuchFileEntryException nsfee) {
             LOG.info(String.format("Document not found: %1$s", title));
         } catch (PortalException e) {
-            LOG.error(String.format("Error while trying to get file: %1$s", title), e);
+            LOG.error(String.format("Error while trying to get file: %1$s", title));
         }
         if (fileEntry == null) {
             try {

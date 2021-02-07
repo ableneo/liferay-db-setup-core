@@ -1,5 +1,28 @@
 package com.ableneo.liferay.portal.setup.core;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
+import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.NoSuchUserException;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -26,24 +49,11 @@ package com.ableneo.liferay.portal.setup.core;
  * THE SOFTWARE.
  * #L%
  */
-
-import java.util.*;
-
-import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
-import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
-import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.NoSuchUserException;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.Organization;
-import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.*;
-import com.liferay.portal.kernel.util.PortalUtil;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public final class SetupUsers {
 
@@ -71,6 +81,7 @@ public final class SetupUsers {
             if (null != liferayUser) {
                 addUserToOrganizations(user, liferayUser);
                 addRolesToUser(user, liferayUser);
+                addGroupsToUser(user, liferayUser);
                 if (user.getCustomFieldSetting() != null && !user.getCustomFieldSetting().isEmpty()) {
                     setCustomFields(SetupConfigurationThreadLocal.getRunInGroupId(), runInCompanyId, liferayUser, user);
                 }
@@ -80,7 +91,8 @@ public final class SetupUsers {
         }
     }
 
-    private static void setCustomFields(final long groupId, final long company,
+
+	private static void setCustomFields(final long groupId, final long company,
             final User liferayUser, final com.ableneo.liferay.portal.setup.domain.User user) {
         Class clazz = liferayUser.getClass();
         for (CustomFieldSetting cfs : user.getCustomFieldSetting()) {
@@ -153,6 +165,22 @@ public final class SetupUsers {
 
     }
 
+
+    private static void addGroupsToUser(com.ableneo.liferay.portal.setup.domain.User setupUser, User liferayUser) {
+
+            for (com.ableneo.liferay.portal.setup.domain.UserGroup setupGroup : setupUser.getUserGroup()) {
+            	try {
+	                long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+	//                Group group = GroupLocalServiceUtil.getGroup(runInCompanyId, setupGroup.getName());
+	                UserGroup userGroup = UserGroupLocalServiceUtil.getUserGroup(runInCompanyId, setupGroup.getName());
+	                UserGroupLocalServiceUtil.addUserUserGroup(liferayUser.getUserId(), userGroup);
+            		LOG.info(String.format("Added user(%1$s) to group(%2$s)", setupUser.getEmailAddress(), setupGroup.getName()));
+            	} catch (PortalException | SystemException e) {
+            		LOG.error(String.format("Error in adding user(%1$s) to group(%2$s)", setupUser.getEmailAddress(), setupGroup.getName()), e);
+            	}
+            }
+	}
+    
     private static void addRolesToUser(final com.ableneo.liferay.portal.setup.domain.User setupUser,
             final User liferayUser) {
 

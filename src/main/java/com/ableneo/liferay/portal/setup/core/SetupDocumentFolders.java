@@ -36,7 +36,7 @@ import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
 import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.document.library.kernel.model.DLFolder;
-import com.liferay.portal.kernel.model.RoleConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 
@@ -66,6 +66,10 @@ public final class SetupDocumentFolders {
         List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
+
+        List<String> actionsViewer = new ArrayList<>();
+        actionsViewer.add(ActionKeys.VIEW);
+        DEFAULT_PERMISSIONS.put(RoleConstants.SITE_MEMBER, actionsViewer);
     }
 
     private SetupDocumentFolders() {

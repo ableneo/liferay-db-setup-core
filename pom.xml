@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>2.2.0-SNAPSHOT</version>
+    <version>2.3.0-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>db-setup-core</artifactId>
     <name>Liferay Portal DB Setup core</name>
@@ -13,7 +13,11 @@
     <packaging>jar</packaging>
 
     <properties>
-        <liferay.release.bom.version>7.1.2</liferay.release.bom.version>
+        <!--  7.2:  -->
+        <!-- <liferay.release.bom.version>7.2.1-1</liferay.release.bom.version> -->
+        <!--  7.3:  -->
+        <liferay.release.bom.version>7.3.5</liferay.release.bom.version>
+
         <jmockit.version>1.46</jmockit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -23,7 +27,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.2</version>
+                <version>2.5.0</version>
                 <executions>
                     <execution>
                         <id>xjc</id>
@@ -219,6 +223,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- 7.3 dep tree changes -->
+            <groupId>com.liferay</groupId>
+            <artifactId>com.liferay.petra.sql.dsl.api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.liferay</groupId>
             <artifactId>com.liferay.petra.lang</artifactId>
             <scope>provided</scope>
@@ -243,6 +253,36 @@
             <artifactId>com.liferay.dynamic.data.mapping.api</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+		    <groupId>com.liferay</groupId>
+		    <artifactId>com.liferay.site.navigation.api</artifactId>
+            <scope>provided</scope>
+		</dependency>
+		<!-- debug deps -->
+		<!-- 
+        <dependency>
+		    <groupId>com.liferay</groupId>
+		    <artifactId>com.liferay.site.navigation.service</artifactId>
+            <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.liferay.portal</groupId>
+		    <artifactId>com.liferay.portal.kernel</artifactId>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.liferay.portal</groupId>
+		    <artifactId>com.liferay.portal.impl</artifactId>
+		    <scope>provided</scope>
+		</dependency>
+		<dependency>
+		    <groupId>com.liferay</groupId>
+		    <artifactId>com.liferay.dynamic.data.mapping.service</artifactId>
+		    <scope>provided</scope>
+		</dependency>
+		 -->
+		<!-- debug deps END -->
+
         <dependency>
             <groupId>javax.portlet</groupId>
             <artifactId>portlet-api</artifactId>
@@ -275,6 +315,38 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+    
+    <profiles>
+        <profile>
+            <id>java11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <dependencies>
+                <dependency>
+                  <groupId>javax.xml.bind</groupId>
+                  <artifactId>jaxb-api</artifactId>
+                  <version>2.3.0</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.sun.xml.bind</groupId>
+                  <artifactId>jaxb-core</artifactId>
+                  <version>2.3.0</version>
+                </dependency>
+                <dependency>
+                  <groupId>com.sun.xml.bind</groupId>
+                  <artifactId>jaxb-impl</artifactId>
+                  <version>2.3.0</version>
+                </dependency>
+                <dependency>
+				    <groupId>javax.activation</groupId>
+				    <artifactId>activation</artifactId>
+				    <version>1.1.1</version>
+				</dependency>
+            </dependencies>
+        </profile>    
+    </profiles>
+    
     <scm>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
     </scm>

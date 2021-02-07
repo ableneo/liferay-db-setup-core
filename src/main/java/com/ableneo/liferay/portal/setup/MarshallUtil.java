@@ -1,5 +1,11 @@
 package com.ableneo.liferay.portal.setup;
 
+import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
+import com.ableneo.liferay.portal.setup.domain.Setup;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -26,13 +32,20 @@ package com.ableneo.liferay.portal.setup;
  * THE SOFTWARE.
  * #L%
  */
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
+import javax.xml.bind.ValidationEventHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
@@ -45,12 +58,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
-import com.ableneo.liferay.portal.setup.domain.Setup;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-
 public final class MarshallUtil {
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
@@ -58,6 +65,8 @@ public final class MarshallUtil {
     private static final Schema schema = getSchema();
     private static XMLReader xr = null;
     private static Unmarshaller unmarshaller = getUnmarshaller();
+
+	private static boolean skipValidate = false;
 
     static {
         spf.setNamespaceAware(true);
@@ -100,6 +109,45 @@ public final class MarshallUtil {
             final Unmarshaller unmarshaller = jc.createUnmarshaller();
             unmarshaller.setSchema(schema);
             return unmarshaller;
+        } catch (JAXBException e) {
+            LOG.error("db-setup-core library is broken in unexpected way. Please fix the library.", e);
+        }
+        return null;
+    }
+    
+    public static void toXmlStdOut(Setup setup) {
+    	toXmlStream(setup, System.out);
+    }
+    public static void toXmlStream(Setup setup, OutputStream os) {
+    	Marshaller m = getMarshaller();
+    	try {
+    		if (MarshallUtil.skipValidate) {
+	    		m.setEventHandler(new ValidationEventHandler() {
+					@Override
+					public boolean handleEvent(ValidationEvent event) {
+						return true;//all-valid
+					}
+				});
+    		}
+			m.marshal(setup, os);
+		} catch (JAXBException e) {
+			LOG.error("Could not convert from xml: ", e);
+		}
+    }
+    
+    public static void skipValidate(boolean skipValidate) {
+    	MarshallUtil.skipValidate = skipValidate;
+    }
+
+    private static Marshaller getMarshaller() {
+        ClassLoader cl = ObjectFactory.class.getClassLoader();
+        JAXBContext jc;
+        try {
+            jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName(), cl);
+            final Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setSchema(schema);
+            return marshaller;
         } catch (JAXBException e) {
             LOG.error("db-setup-core library is broken in unexpected way. Please fix the library.", e);
         }

@@ -1,5 +1,23 @@
 package com.ableneo.liferay.portal.setup.core;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.DocumentUtil;
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
+import com.ableneo.liferay.portal.setup.domain.Document;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -32,19 +50,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
-import com.ableneo.liferay.portal.setup.core.util.DocumentUtil;
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
-import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
-import com.ableneo.liferay.portal.setup.domain.Document;
-import com.ableneo.liferay.portal.setup.domain.Site;
-import com.liferay.document.library.kernel.model.DLFileEntry;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.RoleConstants;
-import com.liferay.portal.kernel.repository.model.FileEntry;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
-
 public final class SetupDocuments {
 
     private static final Log LOG = LogFactoryUtil.getLog(SetupDocuments.class);
@@ -72,23 +77,48 @@ public final class SetupDocuments {
         List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.GUEST, actionsGuest);
+
+        List<String> actionsViewer = new ArrayList<>();
+        actionsViewer.add(ActionKeys.VIEW);
+        DEFAULT_PERMISSIONS.put(RoleConstants.SITE_MEMBER, actionsViewer);
     }
 
     private SetupDocuments() {
 
     }
 
-    public static void setupSiteDocuments(final Site site, final long groupId) {
+    public static void setupSiteDocuments(final Site site, long groupId) {
         for (Document doc : site.getDocument()) {
             String folderPath = doc.getDocumentFolderName();
             String documentName = doc.getDocumentFilename();
             String documentTitle = doc.getDocumentTitle();
             String filenameInFilesystem = doc.getFileSystemName();
-            long repoId = groupId;
             long userId = SetupConfigurationThreadLocal.getRunAsUserId();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
+            
+            switch (doc.getFileUploadType()) {
+            	case GENERAL:
+            		// groupid == site group (as-is)
+            		break;
+            	case LOGO_IMAGE:
+            		// groupid = 'Control Panel' groups id..
+            		try {
+						Group controlPanelGroup = GroupLocalServiceUtil.loadGetGroup(company, GroupConstants.CONTROL_PANEL);
+						groupId = controlPanelGroup.getGroupId();
+					} catch (PortalException e) {
+						LOG.error("Can not get group for "+GroupConstants.CONTROL_PANEL+" and company "+company+":", e);
+						return;
+					}
+            		break;
+        		default:
+        			LOG.error("Can not understand enum value '"+doc.getFileUploadType()+"' as upload-type.. check dependencies, implement on need!");
+        			return;
+            }
+            
+            long repoId = groupId;
+            Folder folder = null;
             if (folderPath != null && !folderPath.equals("")) {
-                FolderUtil.findFolder(groupId, repoId, folderPath, true);
+                folder = FolderUtil.findFolder(groupId, repoId, folderPath, true);
             }
             FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, groupId);
             byte[] fileBytes = null;
@@ -100,11 +130,11 @@ public final class SetupDocuments {
             }
             if (fileBytes != null) {
                 if (fe == null) {
-                    fe = DocumentUtil.createDocument(company, groupId, documentName, documentTitle, userId, repoId,
+                    fe = DocumentUtil.createDocument(groupId, folder.getFolderId(), documentName, documentTitle, userId, repoId,
                             fileBytes);
-                    LOG.info(documentName + " is not found! It will be created! ");
+                    LOG.info(documentName + " is not found! It will be created! (c:"+company+",grp:"+groupId+" ");
                 } else {
-                    LOG.info(documentName + " is found! Content will be updated! ");
+                    LOG.info(documentName + " is found! Content will be updated! (c:"+company+",grp:"+groupId+" ");
                     DocumentUtil.updateFile(fe, fileBytes, userId, documentName);
                 }
                 SetupPermissions.updatePermission(String.format("Document %1$s/%2$s", folderPath, documentName),
