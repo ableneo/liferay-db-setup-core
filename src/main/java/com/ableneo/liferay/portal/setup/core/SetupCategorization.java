@@ -26,7 +26,12 @@
  */
 package com.ableneo.liferay.portal.setup.core;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
@@ -129,7 +134,7 @@ public final class SetupCategorization {
     }
 
     private static String composeVocabularySettings(Vocabulary vocabulary, final long groupId) {
-        AssetVocabularySettingsHelper assetVocabularySettingsHelper = new AssetVocabularySettingsHelper();
+        AssetVocabularySettingsHelper assetVocabularySettingsHelper = new AssetVocabularySettingsHelper(); // class copied into the bundle from com.liferay.portal.impl bundle with maven shade plugin
         assetVocabularySettingsHelper.setMultiValued(vocabulary.isMultiValued());
         List<AssociatedAssetType> types = vocabulary.getAssociatedAssetType();
 

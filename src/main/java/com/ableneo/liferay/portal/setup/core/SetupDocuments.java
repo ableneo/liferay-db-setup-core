@@ -95,7 +95,7 @@ public final class SetupDocuments {
             String filenameInFilesystem = doc.getFileSystemName();
             long userId = SetupConfigurationThreadLocal.getRunAsUserId();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
-            
+
             switch (doc.getFileUploadType()) {
             	case GENERAL:
             		// groupid == site group (as-is)
@@ -114,12 +114,8 @@ public final class SetupDocuments {
         			LOG.error("Can not understand enum value '"+doc.getFileUploadType()+"' as upload-type.. check dependencies, implement on need!");
         			return;
             }
-            
+
             long repoId = groupId;
-            Folder folder = null;
-            if (folderPath != null && !folderPath.equals("")) {
-                folder = FolderUtil.findFolder(groupId, repoId, folderPath, true);
-            }
             FileEntry fe = DocumentUtil.findDocument(documentName, folderPath, groupId, groupId);
             byte[] fileBytes = null;
             try {
@@ -130,6 +126,10 @@ public final class SetupDocuments {
             }
             if (fileBytes != null) {
                 if (fe == null) {
+                    Folder folder = null;
+                    if (folderPath != null && !folderPath.equals("")) {
+                        folder = FolderUtil.findFolder(groupId, repoId, folderPath, true);
+                    }
                     fe = DocumentUtil.createDocument(groupId, folder.getFolderId(), documentName, documentTitle, userId, repoId,
                             fileBytes);
                     LOG.info(documentName + " is not found! It will be created! (c:"+company+",grp:"+groupId+" ");

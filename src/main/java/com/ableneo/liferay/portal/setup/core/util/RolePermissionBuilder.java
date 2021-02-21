@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,10 +26,6 @@ package com.ableneo.liferay.portal.setup.core.util;
  * #L%
  */
 
-import com.ableneo.liferay.portal.setup.domain.PermissionAction;
-import com.ableneo.liferay.portal.setup.domain.RolePermission;
-import com.ableneo.liferay.portal.setup.domain.RolePermissions;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,11 +35,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.ableneo.liferay.portal.setup.domain.PermissionAction;
+import com.ableneo.liferay.portal.setup.domain.RolePermission;
+import com.ableneo.liferay.portal.setup.domain.RolePermissions;
+
 public class RolePermissionBuilder {
 
 	private static final Map<String, Map<String, Set<String>>> PRESETS = new HashMap<String, Map<String, Set<String>>>();
 
-	private Map<String, Set<String>> base = new HashMap<String, Set<String>>();
+	private Map<String, Set<String>> currentlyBuiltPermissions = new HashMap<String, Set<String>>();
 
 	protected RolePermissionBuilder() {
 
@@ -62,63 +62,55 @@ public class RolePermissionBuilder {
 		} else {
 			preset = clone(preset);
 		}
-		builder.base = preset;
+		builder.currentlyBuiltPermissions = preset;
 		return builder;
 	}
-	
+
 	public boolean isEmpty() {
-		return base.isEmpty();
+		return currentlyBuiltPermissions.isEmpty();
 	}
 
 	public RolePermissionBuilder add(String role, Collection<String> activity) {
-		Set<String> values = base.get(role);
+		Set<String> values = currentlyBuiltPermissions.get(role);
 		if (values == null) {
 			values = new HashSet<String>(activity);
-			base.put(role, values);
+			currentlyBuiltPermissions.put(role, values);
 		} else {
 			values.addAll(activity);
 		}
 		return this;
 	}
-	
+
 	public RolePermissionBuilder addToAll(Collection<String> activity) {
-    	for (Entry<String, Set<String>> e : base.entrySet()) {
+    	for (Entry<String, Set<String>> e : currentlyBuiltPermissions.entrySet()) {
     		e.getValue().addAll(activity);
     	}
     	return this;
 	}
-	
-	private Map<String, Set<String>> getPreset(String key) {
-		Map<String, Set<String>> preset = PRESETS.get(key);
-		if (preset == null) {
-			PRESETS.put(key, new HashMap<String, Set<String>>());
-			preset = PRESETS.get(key);
-		}
-		return preset;
-	}
-	public RolePermissionBuilder storePreset(String key) {
-		PRESETS.put(key, base);
+
+	public RolePermissionBuilder storeAsPreset(String key) {
+		PRESETS.put(key, currentlyBuiltPermissions);
 		return this;
 	}
-	
+
 	public Map<String, List<String>> buildMapList() {
     	HashMap<String, List<String>> res = new HashMap<String, List<String>>();
-    	for (Entry<String, Set<String>> e : base.entrySet()) {
+    	for (Entry<String, Set<String>> e : currentlyBuiltPermissions.entrySet()) {
     		res.put(e.getKey(), new ArrayList<String>(e.getValue()));
     	}
     	return res;
 	}
-	
+
 	public RolePermissions buildRolePermissions() {
 		RolePermissions res = new RolePermissions();
-		
-		for (Entry<String, Set<String>> e : base.entrySet()) {
+
+		for (Entry<String, Set<String>> e : currentlyBuiltPermissions.entrySet()) {
 			res.getRolePermission().add(rolePermissionFrom(e.getKey(), e.getValue()));
 		}
-		
+
 		return res;
 	}
-	
+
 	private RolePermission rolePermissionFrom(String key, Set<String> value) {
 		RolePermission rp = new RolePermission();
 		rp.setRoleName(key);
@@ -133,7 +125,7 @@ public class RolePermissionBuilder {
 		pa.setActionName(action);
 		return pa;
 	}
-	
+
 	protected static Map<String, Set<String>> clone(Map<String, Set<String>> base) {
     	HashMap<String, Set<String>> res = new HashMap<String, Set<String>>();
     	for (Entry<String, Set<String>> e : base.entrySet()) {

@@ -3,23 +3,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>2.3.0-SNAPSHOT</version>
+    <version>7.3.5.0-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
-    <artifactId>db-setup-core</artifactId>
-    <name>Liferay Portal DB Setup core</name>
+    <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
     <inceptionYear>2016</inceptionYear>
 
     <packaging>jar</packaging>
 
     <properties>
-        <!--  7.2:  -->
-        <!-- <liferay.release.bom.version>7.2.1-1</liferay.release.bom.version> -->
         <!--  7.3:  -->
         <liferay.release.bom.version>7.3.5</liferay.release.bom.version>
 
         <jmockit.version>1.46</jmockit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <bnd.version>5.2.0</bnd.version>
     </properties>
 
     <build>
@@ -56,6 +55,19 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -166,6 +178,39 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>biz.aQute.bnd</groupId>
+                <artifactId>bnd-maven-plugin</artifactId>
+                <version>${bnd.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>bnd-process</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>biz.aQute.bnd</groupId>
+                        <artifactId>biz.aQute.bndlib</artifactId>
+                        <version>${bnd.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>com.liferay</groupId>
+                        <artifactId>com.liferay.ant.bnd</artifactId>
+                        <version>3.2.6</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -258,8 +303,13 @@
 		    <artifactId>com.liferay.site.navigation.api</artifactId>
             <scope>provided</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 		<!-- debug deps -->
-		<!-- 
+		<!--
         <dependency>
 		    <groupId>com.liferay</groupId>
 		    <artifactId>com.liferay.site.navigation.service</artifactId>
@@ -315,7 +365,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>java11</id>
@@ -344,9 +394,9 @@
 				    <version>1.1.1</version>
 				</dependency>
             </dependencies>
-        </profile>    
+        </profile>
     </profiles>
-    
+
     <scm>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
     </scm>

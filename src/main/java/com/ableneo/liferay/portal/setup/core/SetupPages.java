@@ -1,5 +1,42 @@
 package com.ableneo.liferay.portal.setup.core;
 
+/*-
+ * #%L
+ * com.ableneo.liferay.db.setup.core
+ * %%
+ * Copyright (C) 2016 - 2021 ableneo s. r. o.
+ * %%
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ * #L%
+ */
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.portlet.ReadOnlyException;
+
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
 import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
@@ -21,7 +58,6 @@ import com.ableneo.liferay.portal.setup.domain.Theme;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateLocalServiceUtil;
 import com.liferay.journal.model.JournalArticle;
-import com.liferay.journal.model.JournalFolder;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
@@ -61,46 +97,8 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.service.impl.ResourcePermissionLocalServiceImpl;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
-
-/*
- * #%L
- * Liferay Portal DB Setup core
- * %%
- * Original work Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import javax.portlet.ReadOnlyException;
 
 public final class SetupPages {
     private static final Log LOG = LogFactoryUtil.getLog(SetupPages.class);
@@ -113,7 +111,7 @@ public final class SetupPages {
     static {
         DEFAULT_PERMISSIONS_PUBLIC = new HashMap<>();
         DEFAULT_PERMISSIONS_PRIVATE = new HashMap<>();
-        
+
         List<String> actionsOwner = new ArrayList<>();
         actionsOwner.add(ActionKeys.ADD_DISCUSSION);
         actionsOwner.add(ActionKeys.ADD_LAYOUT);
@@ -135,7 +133,7 @@ public final class SetupPages {
         DEFAULT_PERMISSIONS_PUBLIC.put(RoleConstants.SITE_MEMBER, actionsUser);
 
         DEFAULT_PERMISSIONS_PRIVATE.putAll(DEFAULT_PERMISSIONS_PUBLIC);
-        
+
         List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS_PUBLIC.put(RoleConstants.GUEST, actionsGuest);
@@ -144,7 +142,7 @@ public final class SetupPages {
     static {
         DEFAULT_PERMISSIONS_PORTLET_PUBLIC = new HashMap<>();
         DEFAULT_PERMISSIONS_PORTLET_PRIVATE = new HashMap<>();
-        
+
         List<String> actionsOwner = new ArrayList<>();
         actionsOwner.add(ActionKeys.CONFIGURE_PORTLETS);
         actionsOwner.add(ActionKeys.CUSTOMIZE);
@@ -159,7 +157,7 @@ public final class SetupPages {
         DEFAULT_PERMISSIONS_PORTLET_PUBLIC.put(RoleConstants.SITE_MEMBER, actionsUser);
 
         DEFAULT_PERMISSIONS_PORTLET_PRIVATE.putAll(DEFAULT_PERMISSIONS_PORTLET_PUBLIC);
-        
+
         List<String> actionsGuest = new ArrayList<>();
         actionsGuest.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS_PORTLET_PUBLIC.put(RoleConstants.GUEST, actionsGuest);
@@ -520,7 +518,7 @@ public final class SetupPages {
             LOG.info(String.format("setting theme on page: %1$s : %2$s", page.getName(), theme.getName()));
         }
     }
-    
+
     private static boolean isLinkPage(Page page) {
         if (page.getLinkToUrl() != null && !page.getLinkToUrl().equals("")) {
             LOG.error(
@@ -536,7 +534,7 @@ public final class SetupPages {
     	}
     	LOG.info("Adding AssetPublisherPortlet: "+portlet.getColumn()+"@"+portlet.getColumnPosition()+"-"+portlet.getPortletId()+"; ADTgroupIdFrom:"+portlet.getAdtTemplateSiteUrl());
     	PagePortlet toInsert = null;
-    	
+
 		toInsert = new PagePortlet();
 		toInsert.setColumn(portlet.getColumn());
 		toInsert.setColumnPosition(portlet.getColumnPosition());
@@ -547,8 +545,8 @@ public final class SetupPages {
 //		// ADT STYLE is in this groupId: // 35345 == myra portal, now..
 //		prefMap.put("displayStyleGroupId", "35345");
         Group group = GroupLocalServiceUtil.getFriendlyURLGroup(company, portlet.getAdtTemplateSiteUrl());
-        toInsert.getPortletPreference().add(newPortletPreference("displayStyleGroupId", String.valueOf(group.getPrimaryKey())));		
-        
+        toInsert.getPortletPreference().add(newPortletPreference("displayStyleGroupId", String.valueOf(group.getPrimaryKey())));
+
 //		//-TODO: decode runtime..
 //		// [ WIKI-FTl, ...
 ////		prefMap.put("classNameIds", new String[] {"32502", "28501", "20008", "28506", "33222", "34325", "33246", "20009", "34316", "33208"});
@@ -559,7 +557,7 @@ public final class SetupPages {
         	shownClassIds.add(String.valueOf(shownClass.getPrimaryKey()));
         }
         toInsert.getPortletPreference().add(newPortletPreference("classNameIds",StringUtil.merge(shownClassIds, StringPool.COMMA)));
-        
+
 ////		//TODO: runtime query of all structure templates, where class-type == com.liferay.journal.model.JournalArticle
 ////		//BASIC-WEB-CONTENT, TEXT-ARRAY-STRUCT, BUTTON-BOTTOM-STRUCT
 //////		28501: INSERT INTO CLASSNAME_ VALUES(0,28501,'com.liferay.journal.model.JournalArticle')
@@ -589,7 +587,7 @@ public final class SetupPages {
 		JournalArticle journalArticle = SetupArticles.getJournalArticle(portlet.getArticleId(), folderId, groupId, portlet.getArticleFolder().getFolderPath());
 		if (journalArticle != null) {
 			Long assetEntryId = SetupArticles.getJournalAssetEntryId(journalArticle);
-			
+
 			toInsert = new PagePortlet();
 			toInsert.setColumn(portlet.getColumn());
 			toInsert.setColumnPosition(portlet.getColumnPosition());
@@ -597,15 +595,15 @@ public final class SetupPages {
 			toInsert.getPortletPreference().addAll(portlet.getPortletPreference());
 			toInsert.setRolePermissions(portlet.getRolePermissions());
 
-			toInsert.getPortletPreference().add(newPortletPreference("groupId", String.valueOf(groupId)));		
-			toInsert.getPortletPreference().add(newPortletPreference("articleId", journalArticle.getArticleId()));//String.valueOf(journalArticle.getPrimaryKey())));	
+			toInsert.getPortletPreference().add(newPortletPreference("groupId", String.valueOf(groupId)));
+			toInsert.getPortletPreference().add(newPortletPreference("articleId", journalArticle.getArticleId()));//String.valueOf(journalArticle.getPrimaryKey())));
 			if (assetEntryId != null) {
 				toInsert.getPortletPreference().add(newPortletPreference("assetEntryId", String.valueOf(assetEntryId)));
 			}
 		} else {
 			LOG.error("No journal entry found = skip adding it to the wrappedPortlet. Manual task!");
 			toInsert = portlet;
-		}		
+		}
 		insertPortletIntoPage(page, layout, toInsert, companyId, groupId);
     }
 
@@ -618,8 +616,8 @@ public final class SetupPages {
     	}
     	LOG.info("Adding MenuViewPortlet: "+portlet.getColumn()+"@"+portlet.getColumnPosition()+"-"+portlet.getPortletId()+"; "+portlet.getAdtTemplate()+":"+portlet.getMenuName());
     	PagePortlet toInsert = null;
-    	
-    	
+
+
     	Long menuId = getMenuIdByName(groupId, portlet.getMenuName());
     	if (menuId == null || menuId == 0L) {
         	LOG.info(" ! SKIP-no such menu to add");
@@ -645,7 +643,7 @@ public final class SetupPages {
     		toInsert.getPortletPreference().add(newPortletPreference(e.getKey(), e.getValue()));
     	}
     	toInsert.getPortletPreference().addAll(portlet.getPortletPreference());
-		
+
     	insertPortletIntoPage(page, layout, toInsert, companyId, groupId);
 	}
 
@@ -653,7 +651,7 @@ public final class SetupPages {
 			String adtClass) {
 
     	long classNameId = 0L;// 0 == no struct!
-    	
+
         DDMTemplate ddmTemplate = null;
         try {
             //ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, adtTemplate, true);
@@ -742,7 +740,7 @@ public final class SetupPages {
         }
         LayoutLocalServiceUtil.updateLayout(layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
                 layout.getTypeSettings());
-        
+
         if (portlet.getRolePermissions() != null) {
             LOG.info(" i portlet rights");
             updatePortletDisplayPermissions(portlet, portletIdInc, layout, page, companyId, groupId, portlet.getRolePermissions(), getDefaultPortletPermissions(layout.isPrivateLayout()));
@@ -750,7 +748,7 @@ public final class SetupPages {
 
         LOG.info(" i portlet added.");
     }
-    
+
 
 	public static void updatePortletDisplayPermissions(PagePortlet portlet, String portletIdInc, Layout layout, Page page, long companyId, long groupId,
 				RolePermissions rolePermissions, Map<String, List<String>> defaultPermissions
@@ -923,9 +921,9 @@ public final class SetupPages {
 			}
 		}
 	}
-	
-	
-	
+
+
+
 	private static void addDeferredPortlet(PortletWithRuntimeData wrap) {
 		try {
 			if(wrap.wrappedPortlet instanceof ArticleDisplayPortlet) {
@@ -953,15 +951,15 @@ public final class SetupPages {
 		deferredAdd.add(p);
 	}
     // TODO: better implement it.. maybe later.
-	private static class PortletWithRuntimeData extends PagePortlet { 
+	private static class PortletWithRuntimeData extends PagePortlet {
 		public long groupId;
 		public long company;
 		public Layout layout;
 		public Page page;
 		private PagePortlet wrappedPortlet;
-		
+
 	}
-	
+
 	public static final Map<String, String> CONFIG_MENU_VIEW_PREFERENCES = new HashMap<String, String>();
 	private static void configure_CONFIG_MENU_VIEW_PREFERENCES() {
 		CONFIG_MENU_VIEW_PREFERENCES.put("displayDepth", "0");

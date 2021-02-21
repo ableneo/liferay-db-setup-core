@@ -12,10 +12,10 @@ package com.ableneo.liferay.portal.setup.core;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,6 +25,9 @@ package com.ableneo.liferay.portal.setup.core;
  * THE SOFTWARE.
  * #L%
  */
+
+import java.util.List;
+import java.util.UUID;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
@@ -38,9 +41,6 @@ import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
 import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalServiceUtil;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Created by gustavnovotny on 28.08.17.
@@ -67,7 +67,7 @@ public class SetupMenus {
 //				userId, groupId, savedMenu.getPrimaryKey(), 0, type, /*order,*/ typeSettings, serviceContext);
 //		savedItem.getExpandoBridge().setAttribute(fieldName,  fieldValue, false);
 	}
-	
+
 
 	private static void setMenu(long groupId, Menu newMenu) {
 		if (newMenu == null) {
@@ -80,7 +80,7 @@ public class SetupMenus {
 		// TODO: check name..
 		String name = newMenu.getName();
 		LOG.info("Adding menu '"+name+"'");
-		
+
 		List<SiteNavigationMenu> existingMenus = SiteNavigationMenuLocalServiceUtil.getSiteNavigationMenus(groupId);
 		SiteNavigationMenu menu = null;
 		for (SiteNavigationMenu existingMenu : existingMenus) {
@@ -90,7 +90,7 @@ public class SetupMenus {
 				break;
 			}
 		}
-		
+
 		if (menu != null) {
 			if (newMenu.isClearBeforehand()) {
 				try {
@@ -108,7 +108,7 @@ public class SetupMenus {
 //					return;
 //				}
 			}
-		} 
+		}
 		if (menu == null) {
 			LOG.info(" i '"+name+"' create..");
 			try {
@@ -119,9 +119,9 @@ public class SetupMenus {
 				return;
 			}
 		}
-		
+
 		createMenuItems(groupId, newMenu, userId, serviceContext, menu);
-		
+
 	}
 
 	private static void createMenuItems(long groupId, Menu newMenu, long userId, ServiceContext serviceContext,
@@ -166,7 +166,7 @@ public class SetupMenus {
 
 	private static SiteNavigationMenuItem createMenuItem(long groupId, long userId, ServiceContext serviceContext, long parentMenuId,
 			long parentMenuItem, MenuItem newMenuItem) {
-		
+
 		// SiteNavigationMenuItemTypeConstants: layout(==page..), node, url
 		String type = newMenuItem.getType();
 		if (false == newMenuItem.getMenuItem().isEmpty()) {
@@ -178,16 +178,16 @@ public class SetupMenus {
 		}
 
 		LOG.info(" i setting item '"+newMenuItem.getName()+"' as '"+type+"': ["+newMenuItem.getTypeSettings()+"]");
-		
+
 		// 'layout','groupId=20121 ; layoutUuid=accf0b5c-800f-d049-01bc-0a706e3fad15 ; privateLayout=false ; title=Search ; '
-		//defaultLanguageId=en_US ; name_en_US=tarsoldalak ; 
+		//defaultLanguageId=en_US ; name_en_US=tarsoldalak ;
 		String typeSettings = newMenuItem.getTypeSettings();
 		// LayoutSiteNavigationMenuItemType => page
 		// NodeSiteNavigationMenuItemType => submenu
 		// URLSiteNavigationMenuItemType => url link
-		
-		
-		
+
+
+
 		SiteNavigationMenuItem savedItem = null;
 		try {
 			List<SiteNavigationMenuItem> items = SiteNavigationMenuItemLocalServiceUtil.getSiteNavigationMenuItems(parentMenuId, parentMenuItem);
@@ -225,7 +225,7 @@ public class SetupMenus {
 		for (CustomFieldSetting cfs : newMenuItem.getCustomFieldSetting()) {
 			savedItem.getExpandoBridge().setAttribute(cfs.getKey(),  cfs.getValue(), false);
 		}
-		
+
 		return savedItem;
 	}
 

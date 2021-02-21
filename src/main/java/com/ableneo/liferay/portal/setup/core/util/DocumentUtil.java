@@ -114,9 +114,6 @@ public final class DocumentUtil {
     public static void updateFile(final FileEntry fe, final byte[] content, final long userId,
             final String sourceFileName) {
         try {
-//        	LR-7.2.*
-//          DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
-//                  fe.getTitle(), fe.getDescription(), "update content", true, content, new ServiceContext());
         	DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
             DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
                     fe.getTitle(), fe.getDescription(), "update content", inc, content, new ServiceContext());
