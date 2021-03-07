@@ -4,7 +4,9 @@ import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
 import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;import java.io.File;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,8 +17,6 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.sax.SAXSource;
@@ -29,6 +29,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 public final class MarshallUtil {
+
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
     private static final SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -94,18 +95,14 @@ public final class MarshallUtil {
         try {
             if (MarshallUtil.skipValidate) {
                 m.setEventHandler(
-                    new ValidationEventHandler() {
-
-                        @Override
-                        public boolean handleEvent(ValidationEvent event) {
-                            return true; //all-valid
-                        }
+                    event -> {
+                        return true; //all-valid
                     }
                 );
             }
             m.marshal(setup, os);
         } catch (JAXBException e) {
-            LOG.error("Could not convert from xml: ", e);
+            LOG.error("Could not convert from xml", e);
         }
     }
 
@@ -123,18 +120,18 @@ public final class MarshallUtil {
             marshaller.setSchema(schema);
             return marshaller;
         } catch (JAXBException e) {
-            LOG.error("db-setup-core library is broken in unexpected way. Please fix the library.", e);
+            throw new IllegalStateException(
+                "db-setup-core library is broken in unexpected way. Please fix the library.",
+                e
+            );
         }
-        return null;
     }
 
     /**
-     * @throws IllegalStateException
-     *         Code of db-setup-core is broken. Please fix the library.
-     * @throws NullPointerException If <code>source</code> is
-     *         <code>null</code>.
      * @return if provided configuration is valid
-     *
+     * @throws IllegalStateException Code of db-setup-core is broken. Please fix the library.
+     * @throws NullPointerException  If <code>source</code> is
+     *                               <code>null</code>.
      */
     public static boolean validateAgainstXSD(final InputStream inputStream) {
         Validator validator = schema.newValidator();
@@ -145,18 +142,17 @@ public final class MarshallUtil {
         } catch (IOException e) {
             throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);
         } catch (SAXException e) {
+            LOG.error("Parsing error", e);
             return false;
         }
         return true;
     }
 
     /**
-     * @throws IllegalStateException
-     *         Code of db-setup-core is broken. Please fix the library.
-     * @throws NullPointerException If <code>source</code> is
-     *         <code>null</code>.
      * @return if provided configuration is valid
-     *
+     * @throws IllegalStateException Code of db-setup-core is broken. Please fix the library.
+     * @throws NullPointerException  If <code>source</code> is
+     *                               <code>null</code>.
      */
     public static boolean validateAgainstXSD(final File xmlConfigurationFile) {
         try {
@@ -178,7 +174,7 @@ public final class MarshallUtil {
         try {
             schema = factory.newSchema(new StreamSource(schemaInputStream));
         } catch (SAXException e) {
-            throw new IllegalStateException("XSD schema that is used for configuration validation cannot be parsed");
+            throw new IllegalStateException("XSD schema that is used for configuration validation cannot be parsed", e);
         }
         return schema;
     }
