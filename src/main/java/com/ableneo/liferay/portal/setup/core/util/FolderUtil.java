@@ -41,15 +41,16 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 public final class FolderUtil {
-
     private static final Log LOG = LogFactoryUtil.getLog(FolderUtil.class);
 
-    private FolderUtil() {
+    private FolderUtil() {}
 
-    }
-
-    public static Folder findFolder(final long groupId, final long repoId, final String name,
-            final boolean createIfNotExists) {
+    public static Folder findFolder(
+        final long groupId,
+        final long repoId,
+        final String name,
+        final boolean createIfNotExists
+    ) {
         String[] folderPath = name.split("/");
         Folder foundFolder = null;
         int count = 0;
@@ -64,9 +65,19 @@ public final class FolderUtil {
                     long company = SetupConfigurationThreadLocal.getRunInCompanyId();
 
                     if (foundFolder != null) {
-                        final String locationHint = String.format("Folder %1$s, creating folder segment %2$s", name, folder);
-                        SetupPermissions.updatePermission(locationHint, company, foundFolder.getFolderId(), JournalFolder.class, null,
-                                SetupWebFolders.getDefaultPermissions());
+                        final String locationHint = String.format(
+                            "Folder %1$s, creating folder segment %2$s",
+                            name,
+                            folder
+                        );
+                        SetupPermissions.updatePermission(
+                            locationHint,
+                            company,
+                            foundFolder.getFolderId(),
+                            JournalFolder.class,
+                            null,
+                            SetupWebFolders.getDefaultPermissions()
+                        );
                     }
                 }
 
@@ -92,16 +103,26 @@ public final class FolderUtil {
         return dir;
     }
 
-    public static Folder createDocumentFolder(final long groupId, final long repoId, final Long pFolderId,
-            final String folderName) {
+    public static Folder createDocumentFolder(
+        final long groupId,
+        final long repoId,
+        final Long pFolderId,
+        final String folderName
+    ) {
         Folder folder = null;
 
         try {
             folder = findFolder(groupId, pFolderId, folderName);
             if (folder == null) {
-                folder = DLAppLocalServiceUtil.addFolder(SetupConfigurationThreadLocal.getRunAsUserId(), repoId,
-                        pFolderId, folderName, folderName, new ServiceContext());
-
+                folder =
+                    DLAppLocalServiceUtil.addFolder(
+                        SetupConfigurationThreadLocal.getRunAsUserId(),
+                        repoId,
+                        pFolderId,
+                        folderName,
+                        folderName,
+                        new ServiceContext()
+                    );
             }
         } catch (SystemException | PortalException e) {
             LOG.error(e);
@@ -109,5 +130,4 @@ public final class FolderUtil {
 
         return folder;
     }
-
 }

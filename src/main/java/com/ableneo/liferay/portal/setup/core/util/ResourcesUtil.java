@@ -1,5 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
+import com.liferay.portal.kernel.util.FileUtil;
 /*-
  * #%L
  * com.ableneo.liferay.db.setup.core
@@ -12,10 +13,10 @@ package com.ableneo.liferay.portal.setup.core.util;
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,8 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import com.liferay.portal.kernel.util.FileUtil;
-
 /**
  * Created by ntrp on 5/15/17.
  */
@@ -40,11 +39,10 @@ public class ResourcesUtil {
     private ResourcesUtil() {}
 
     public static InputStream getFileStream(String path) {
-
         ClassLoader cl = ResourcesUtil.class.getClassLoader();
         InputStream is = cl.getResourceAsStream(path);
         if (is == null) {
-        	throw new RuntimeException("Can not load file, does it exist? path:["+path+"]");
+            throw new RuntimeException("Can not load file, does it exist? path:[" + path + "]");
         }
         return cl.getResourceAsStream(path);
     }
@@ -54,9 +52,7 @@ public class ResourcesUtil {
     }
 
     public static String getFileContent(String path) throws IOException {
-
         byte[] bytes = getFileBytes(path);
         return new String(bytes, StandardCharsets.UTF_8);
     }
-
 }

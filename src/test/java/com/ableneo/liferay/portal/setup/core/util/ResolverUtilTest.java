@@ -42,17 +42,30 @@ class ResolverUtilTest {
     @Test
     void missingClosingTagInLookupArticleWithArticleId() {
         String valueWithWrongClosingTag = String.format("test %s123$} test", ResolverUtil.ARTICLE_BY_ART_ID);
-        assertEquals(valueWithWrongClosingTag, ResolverUtil.lookupArticleWithArticleId(valueWithWrongClosingTag,
-                String.format("testing: %s", valueWithWrongClosingTag), 1l, 1l, 1));
+        assertEquals(
+            valueWithWrongClosingTag,
+            ResolverUtil.lookupArticleWithArticleId(
+                valueWithWrongClosingTag,
+                String.format("testing: %s", valueWithWrongClosingTag),
+                1l,
+                1l,
+                1
+            )
+        );
     }
 
     @Test
     void missingClosingTagInGetClassIdByName() {
-        String valueWithWrongClosingTag =
-                String.format("test %scom.liferay.portal.kernel.model.Layout$} test", CLASS_ID_BY_NAME);
-        assertEquals(valueWithWrongClosingTag, ResolverUtil.getClassIdByName(valueWithWrongClosingTag,
-                String.format("testing: %s", valueWithWrongClosingTag)));
-
+        String valueWithWrongClosingTag = String.format(
+            "test %scom.liferay.portal.kernel.model.Layout$} test",
+            CLASS_ID_BY_NAME
+        );
+        assertEquals(
+            valueWithWrongClosingTag,
+            ResolverUtil.getClassIdByName(
+                valueWithWrongClosingTag,
+                String.format("testing: %s", valueWithWrongClosingTag)
+            )
+        );
     }
-
 }

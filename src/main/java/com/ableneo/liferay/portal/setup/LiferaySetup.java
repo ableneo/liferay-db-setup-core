@@ -1,5 +1,32 @@
 package com.ableneo.liferay.portal.setup;
 
+import com.ableneo.liferay.portal.setup.core.SetupCustomFields;
+import com.ableneo.liferay.portal.setup.core.SetupOrganizations;
+import com.ableneo.liferay.portal.setup.core.SetupPages;
+import com.ableneo.liferay.portal.setup.core.SetupPermissions;
+import com.ableneo.liferay.portal.setup.core.SetupPortal;
+import com.ableneo.liferay.portal.setup.core.SetupRoles;
+import com.ableneo.liferay.portal.setup.core.SetupSites;
+import com.ableneo.liferay.portal.setup.core.SetupUserGroups;
+import com.ableneo.liferay.portal.setup.core.SetupUsers;
+import com.ableneo.liferay.portal.setup.domain.Company;
+import com.ableneo.liferay.portal.setup.domain.Configuration;
+import com.ableneo.liferay.portal.setup.domain.CustomFields;
+import com.ableneo.liferay.portal.setup.domain.ObjectsToBeDeleted;
+import com.ableneo.liferay.portal.setup.domain.Organization;
+import com.ableneo.liferay.portal.setup.domain.Setup;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
+import com.liferay.portal.kernel.util.PortalUtil;
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -32,44 +59,13 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.ableneo.liferay.portal.setup.core.SetupCustomFields;
-import com.ableneo.liferay.portal.setup.core.SetupOrganizations;
-import com.ableneo.liferay.portal.setup.core.SetupPages;
-import com.ableneo.liferay.portal.setup.core.SetupPermissions;
-import com.ableneo.liferay.portal.setup.core.SetupPortal;
-import com.ableneo.liferay.portal.setup.core.SetupRoles;
-import com.ableneo.liferay.portal.setup.core.SetupSites;
-import com.ableneo.liferay.portal.setup.core.SetupUserGroups;
-import com.ableneo.liferay.portal.setup.core.SetupUsers;
-import com.ableneo.liferay.portal.setup.domain.Company;
-import com.ableneo.liferay.portal.setup.domain.Configuration;
-import com.ableneo.liferay.portal.setup.domain.CustomFields;
-import com.ableneo.liferay.portal.setup.domain.ObjectsToBeDeleted;
-import com.ableneo.liferay.portal.setup.domain.Organization;
-import com.ableneo.liferay.portal.setup.domain.Setup;
-import com.ableneo.liferay.portal.setup.domain.Site;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.model.GroupConstants;
-import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
-import com.liferay.portal.kernel.security.permission.PermissionChecker;
-import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
-import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.util.PortalUtil;
-
 public final class LiferaySetup {
-
     private static final Logger LOG = LoggerFactory.getLogger(LiferaySetup.class);
 
-    private LiferaySetup() {
-    }
+    private LiferaySetup() {}
 
     /**
      * Helper method that unmarshalls xml configuration from file.
@@ -101,10 +97,10 @@ public final class LiferaySetup {
      * @return true if all was set up fine
      */
     public static boolean setup(final Setup setup) {
-
         if (setup == null) {
             throw new IllegalArgumentException(
-                "Setup object cannot be null, without Setup object I cannot set up any data.");
+                "Setup object cannot be null, without Setup object I cannot set up any data."
+            );
         }
 
         Configuration configuration = setup.getConfiguration();
@@ -117,8 +113,9 @@ public final class LiferaySetup {
             // iterate over companies or choose default
             if (!configuration.getCompany().isEmpty()) {
                 for (Company company : configuration.getCompany()) {
-                    long companyId =
-                        company.getCompanyid() != null ? company.getCompanyid() : getCompanyIdFromCompanyWebId(company);
+                    long companyId = company.getCompanyid() != null
+                        ? company.getCompanyid()
+                        : getCompanyIdFromCompanyWebId(company);
                     if (companyId == -1) {
                         LOG.error("Could not find company: {}", company);
                         continue;
@@ -134,20 +131,23 @@ public final class LiferaySetup {
                         setupGroup(setup, runAsUserEmail, companyId, groupName);
                     }
                 }
-
             } else {
                 setupGroup(
                     setup,
                     runAsUserEmail,
                     SetupConfigurationThreadLocal.getRunInCompanyId(),
-                    GroupConstants.GUEST);
+                    GroupConstants.GUEST
+                );
             }
         } catch (PortalException | RuntimeException e) {
             LOG.error("An error occured while executing the portal setup", e);
             return false;
         } finally {
-            SetupConfigurationThreadLocal
-                .cleanUp(originalPrincipalName, originalPermissionChecker, originalScopeGroupLocale);
+            SetupConfigurationThreadLocal.cleanUp(
+                originalPrincipalName,
+                originalPermissionChecker,
+                originalScopeGroupLocale
+            );
         }
         return true;
     }
@@ -155,8 +155,11 @@ public final class LiferaySetup {
     private static void setupGroup(Setup setup, String runAsUserEmail, long companyId, String groupName)
         throws PortalException {
         Group group = GroupLocalServiceUtil.getGroup(companyId, groupName);
-        SetupConfigurationThreadLocal
-            .configureThreadLocalContent(runAsUserEmail, PortalUtil.getDefaultCompanyId(), group);
+        SetupConfigurationThreadLocal.configureThreadLocalContent(
+            runAsUserEmail,
+            PortalUtil.getDefaultCompanyId(),
+            group
+        );
         setupPortalGroup(setup);
     }
 
@@ -202,7 +205,7 @@ public final class LiferaySetup {
      */
     private static void executeSetupConfiguration(final Setup setup) throws PortalException {
         if (setup.getDeleteLiferayObjects() != null) {
-            LOG.info("Deleting {} object categories",  setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size());
+            LOG.info("Deleting {} object categories", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size());
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
         if (setup.getPortal() != null) {
@@ -233,7 +236,6 @@ public final class LiferaySetup {
     }
 
     private static void deleteObjects(final List<ObjectsToBeDeleted> objectsToBeDeleted) {
-
         for (ObjectsToBeDeleted otbd : objectsToBeDeleted) {
             if (otbd.getRoles() != null) {
                 List<com.ableneo.liferay.portal.setup.domain.Role> roles = otbd.getRoles().getRole();
@@ -257,5 +259,4 @@ public final class LiferaySetup {
             }
         }
     }
-
 }

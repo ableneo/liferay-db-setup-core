@@ -5,7 +5,6 @@ import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -38,7 +37,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -53,7 +51,6 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
@@ -66,7 +63,7 @@ public final class MarshallUtil {
     private static XMLReader xr = null;
     private static Unmarshaller unmarshaller = getUnmarshaller();
 
-	private static boolean skipValidate = false;
+    private static boolean skipValidate = false;
 
     static {
         spf.setNamespaceAware(true);
@@ -114,29 +111,33 @@ public final class MarshallUtil {
         }
         return null;
     }
-    
+
     public static void toXmlStdOut(Setup setup) {
-    	toXmlStream(setup, System.out);
+        toXmlStream(setup, System.out);
     }
+
     public static void toXmlStream(Setup setup, OutputStream os) {
-    	Marshaller m = getMarshaller();
-    	try {
-    		if (MarshallUtil.skipValidate) {
-	    		m.setEventHandler(new ValidationEventHandler() {
-					@Override
-					public boolean handleEvent(ValidationEvent event) {
-						return true;//all-valid
-					}
-				});
-    		}
-			m.marshal(setup, os);
-		} catch (JAXBException e) {
-			LOG.error("Could not convert from xml: ", e);
-		}
+        Marshaller m = getMarshaller();
+        try {
+            if (MarshallUtil.skipValidate) {
+                m.setEventHandler(
+                    new ValidationEventHandler() {
+
+                        @Override
+                        public boolean handleEvent(ValidationEvent event) {
+                            return true; //all-valid
+                        }
+                    }
+                );
+            }
+            m.marshal(setup, os);
+        } catch (JAXBException e) {
+            LOG.error("Could not convert from xml: ", e);
+        }
     }
-    
+
     public static void skipValidate(boolean skipValidate) {
-    	MarshallUtil.skipValidate = skipValidate;
+        MarshallUtil.skipValidate = skipValidate;
     }
 
     private static Marshaller getMarshaller() {

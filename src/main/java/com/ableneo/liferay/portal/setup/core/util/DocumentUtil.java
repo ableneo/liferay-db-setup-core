@@ -43,12 +43,9 @@ import com.liferay.portal.kernel.service.ServiceContext;
  * @author msi
  */
 public final class DocumentUtil {
-
     private static final Log LOG = LogFactoryUtil.getLog(DocumentUtil.class);
 
-    private DocumentUtil() {
-
-    }
+    private DocumentUtil() {}
 
     /**
      * Tries to retrieve the file entry of a document.
@@ -59,8 +56,12 @@ public final class DocumentUtil {
      * @param repoId the id of the repository where the file is stored.
      * @return Returns the file entry of the specified document.
      */
-    public static FileEntry findDocument(final String documentName, final String folderPath, final long groupId,
-            final long repoId) {
+    public static FileEntry findDocument(
+        final String documentName,
+        final String folderPath,
+        final long groupId,
+        final long repoId
+    ) {
         Folder folder = FolderUtil.findFolder(groupId, repoId, folderPath, false);
         FileEntry entry = null;
         if (folder != null) {
@@ -111,12 +112,26 @@ public final class DocumentUtil {
      * @param sourceFileName The filename of the file.
      */
     // FIXME jdk11
-    public static void updateFile(final FileEntry fe, final byte[] content, final long userId,
-            final String sourceFileName) {
+    public static void updateFile(
+        final FileEntry fe,
+        final byte[] content,
+        final long userId,
+        final String sourceFileName
+    ) {
         try {
-        	DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
-            DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
-                    fe.getTitle(), fe.getDescription(), "update content", inc, content, new ServiceContext());
+            DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
+            DLAppLocalServiceUtil.updateFileEntry(
+                userId,
+                fe.getFileEntryId(),
+                sourceFileName,
+                fe.getMimeType(),
+                fe.getTitle(),
+                fe.getDescription(),
+                "update content",
+                inc,
+                content,
+                new ServiceContext()
+            );
         } catch (Exception e) {
             LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
@@ -152,8 +167,15 @@ public final class DocumentUtil {
      * @return returns the file entry of the created file.
      */
     // CHECKSTYLE:OFF
-    public static FileEntry createDocument(final long groupId, final long folderId, final String fileName,
-            final String title, final long userId, final long repoId, final byte[] content) {
+    public static FileEntry createDocument(
+        final long groupId,
+        final long folderId,
+        final String fileName,
+        final String title,
+        final long userId,
+        final long repoId,
+        final byte[] content
+    ) {
         String fname = FilePathUtil.getFileName(fileName);
         String extension = FilePathUtil.getExtension(fname);
         String mtype = MimeTypeMapper.getInstance().getMimeType(extension);
@@ -167,12 +189,22 @@ public final class DocumentUtil {
         }
         if (fileEntry == null) {
             try {
-                fileEntry = DLAppLocalServiceUtil.addFileEntry(userId, repoId, folderId, fname, mtype, title, title,
-                        "Ableneo import", content, new ServiceContext());
+                fileEntry =
+                    DLAppLocalServiceUtil.addFileEntry(
+                        userId,
+                        repoId,
+                        folderId,
+                        fname,
+                        mtype,
+                        title,
+                        title,
+                        "Ableneo import",
+                        content,
+                        new ServiceContext()
+                    );
             } catch (PortalException e) {
                 LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
             }
-
         }
         return fileEntry;
     }

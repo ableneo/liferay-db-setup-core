@@ -44,40 +44,45 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupConfigurationThreadLocal {
-
     private static final Logger LOG = LoggerFactory.getLogger(SetupConfigurationThreadLocal.class);
 
-    private static final ThreadLocal<Long> _runAsUserId =
-            new CentralizedThreadLocal<>(SetupConfigurationThreadLocal.class + "._runAsUserId", () -> {
-                try {
-                    return UserLocalServiceUtil.getDefaultUserId(PortalUtil.getDefaultCompanyId());
-                } catch (PortalException e) {
-                    LOG.error("Failed to get default user id", e);
-                }
-                return null;
-            });
+    private static final ThreadLocal<Long> _runAsUserId = new CentralizedThreadLocal<>(
+        SetupConfigurationThreadLocal.class + "._runAsUserId",
+        () -> {
+            try {
+                return UserLocalServiceUtil.getDefaultUserId(PortalUtil.getDefaultCompanyId());
+            } catch (PortalException e) {
+                LOG.error("Failed to get default user id", e);
+            }
+            return null;
+        }
+    );
 
     private static final ThreadLocal<Long> _runInCompanyId = new CentralizedThreadLocal<>(
-            SetupConfigurationThreadLocal.class + "._runInCompanyId", PortalUtil::getDefaultCompanyId);
+        SetupConfigurationThreadLocal.class + "._runInCompanyId",
+        PortalUtil::getDefaultCompanyId
+    );
 
-    private static final ThreadLocal<Long> _runInGroupId =
-            new CentralizedThreadLocal<>(SetupConfigurationThreadLocal.class + "._runInGroupId", () -> {
-                try {
-                    return GroupLocalServiceUtil.getGroup(PortalUtil.getDefaultCompanyId(), GroupConstants.GUEST)
-                            .getGroupId();
-                } catch (PortalException e) {
-                    LOG.error("Failed to get Guest group id for default company", e);
-                }
-                return null;
-            });
+    private static final ThreadLocal<Long> _runInGroupId = new CentralizedThreadLocal<>(
+        SetupConfigurationThreadLocal.class + "._runInGroupId",
+        () -> {
+            try {
+                return GroupLocalServiceUtil
+                    .getGroup(PortalUtil.getDefaultCompanyId(), GroupConstants.GUEST)
+                    .getGroupId();
+            } catch (PortalException e) {
+                LOG.error("Failed to get Guest group id for default company", e);
+            }
+            return null;
+        }
+    );
 
     private SetupConfigurationThreadLocal() {}
 
@@ -106,7 +111,10 @@ public final class SetupConfigurationThreadLocal {
     }
 
     public static void cleanUp(
-        String originalPrincipalName, PermissionChecker originalPermissionChecker, Locale originalScopeGroupLocale) {
+        String originalPrincipalName,
+        PermissionChecker originalPermissionChecker,
+        Locale originalScopeGroupLocale
+    ) {
         _runInCompanyId.remove();
         _runAsUserId.remove();
         _runInGroupId.remove();
@@ -127,8 +135,7 @@ public final class SetupConfigurationThreadLocal {
      * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
      *                         provided it is important to set up data as the user e.g. for easier cleanup
      */
-    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Group group)
-        throws PortalException {
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Group group) throws PortalException {
         Objects.requireNonNull(group);
         configureGroupExecutionContext(group);
         configureThreadLocalContent(runAsUserEmail, companyId);
@@ -150,8 +157,7 @@ public final class SetupConfigurationThreadLocal {
      * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
      *                         provided it is important to set up data as the user e.g. for easier cleanup
      */
-    static void configureThreadLocalContent(String runAsUserEmail, long companyId)
-        throws PortalException {
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId) throws PortalException {
         if (Validator.isBlank(runAsUserEmail)) {
             setRunInCompanyId(companyId);
             SetupConfigurationThreadLocal.setRandomAdminPermissionCheckerForThread();
@@ -187,7 +193,6 @@ public final class SetupConfigurationThreadLocal {
      * @throws IllegalStateException if no user is found
      */
     private static User getRandomAdminUser() {
-
         final String administratorRoleName = RoleConstants.ADMINISTRATOR;
         try {
             final Long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
@@ -196,14 +201,12 @@ public final class SetupConfigurationThreadLocal {
 
             if (adminUsers == null || adminUsers.isEmpty()) {
                 throw new IllegalStateException(
-                    "No user with " + administratorRoleName + " role found for company: " + runInCompanyId);
+                    "No user with " + administratorRoleName + " role found for company: " + runInCompanyId
+                );
             }
             return adminUsers.get(0);
-
         } catch (PortalException | SystemException e) {
-            throw new IllegalStateException(
-                "Cannot obtain Liferay role for role name: " + administratorRoleName, e);
+            throw new IllegalStateException("Cannot obtain Liferay role for role name: " + administratorRoleName, e);
         }
     }
-
 }

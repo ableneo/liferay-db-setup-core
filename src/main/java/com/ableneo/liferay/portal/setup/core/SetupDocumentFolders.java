@@ -1,5 +1,13 @@
 package com.ableneo.liferay.portal.setup.core;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
+import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -30,15 +38,6 @@ package com.ableneo.liferay.portal.setup.core;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
-import com.ableneo.liferay.portal.setup.core.util.FolderUtil;
-import com.ableneo.liferay.portal.setup.domain.DocumentFolder;
-import com.ableneo.liferay.portal.setup.domain.Site;
-import com.liferay.document.library.kernel.model.DLFolder;
-import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.repository.model.Folder;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
 
 public final class SetupDocumentFolders {
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
@@ -72,9 +71,7 @@ public final class SetupDocumentFolders {
         DEFAULT_PERMISSIONS.put(RoleConstants.SITE_MEMBER, actionsViewer);
     }
 
-    private SetupDocumentFolders() {
-
-    }
+    private SetupDocumentFolders() {}
 
     public static void setupDocumentFolders(final Site group, final long groupId) {
         for (DocumentFolder df : group.getDocumentFolder()) {
@@ -83,8 +80,14 @@ public final class SetupDocumentFolders {
 
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             Folder folder = FolderUtil.findFolder(groupId, groupId, folderName, create);
-            SetupPermissions.updatePermission(String.format("Document folder %1$s", folderName), companyId,
-                    folder.getFolderId(), DLFolder.class, df.getRolePermissions(), DEFAULT_PERMISSIONS);
+            SetupPermissions.updatePermission(
+                String.format("Document folder %1$s", folderName),
+                companyId,
+                folder.getFolderId(),
+                DLFolder.class,
+                df.getRolePermissions(),
+                DEFAULT_PERMISSIONS
+            );
         }
     }
 }

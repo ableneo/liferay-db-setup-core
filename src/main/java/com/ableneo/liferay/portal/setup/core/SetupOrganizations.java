@@ -1,5 +1,23 @@
 package com.ableneo.liferay.portal.setup.core;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
+import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
+import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
+import com.ableneo.liferay.portal.setup.domain.Site;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.ListTypeConstants;
+import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.OrganizationConstants;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -32,37 +50,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
-import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
-import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
-import com.ableneo.liferay.portal.setup.domain.Site;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.ListTypeConstants;
-import com.liferay.portal.kernel.model.Organization;
-import com.liferay.portal.kernel.model.OrganizationConstants;
-import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.UserLocalServiceUtil;
-import com.liferay.portal.kernel.util.LocaleThreadLocal;
-
 public final class SetupOrganizations {
-
     private static final Log LOG = LogFactoryUtil.getLog(SetupOrganizations.class);
 
-    private SetupOrganizations() {
-
-    }
+    private SetupOrganizations() {}
 
     public static void setupOrganizations(
-            final Iterable<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
-            final Organization parentOrg, final Group parentGroup) {
-
+        final Iterable<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
+        final Organization parentOrg,
+        final Group parentGroup
+    ) {
         for (com.ableneo.liferay.portal.setup.domain.Organization organization : organizations) {
             try {
                 Organization liferayOrg = null;
@@ -75,28 +72,43 @@ public final class SetupOrganizations {
                     groupId = org.getGroupId();
                     liferayOrg = org;
 
-                    LOG.info(String.format("Setup: Organization %1$s already exist in system, not creating...",
-                            organization.getName()));
-
+                    LOG.info(
+                        String.format(
+                            "Setup: Organization %1$s already exist in system, not creating...",
+                            organization.getName()
+                        )
+                    );
                 } catch (PortalException | SystemException e) {
                     LOG.debug("Organization does not exist.", e);
                 }
 
                 if (groupId == -1) {
-                    LOG.info(String.format("Setup: Organization %1$s does not exist in system, creating...",
-                            organization.getName()));
+                    LOG.info(
+                        String.format(
+                            "Setup: Organization %1$s does not exist in system, creating...",
+                            organization.getName()
+                        )
+                    );
 
-                    Organization newOrganization =
-                            OrganizationLocalServiceUtil.addOrganization(SetupConfigurationThreadLocal.getRunAsUserId(),
-                                    OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID, organization.getName(),
-                                    "organization", 0, 0, ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
-                                    "Created by setup module.", false, new ServiceContext());
-                    addOrganizationUser(newOrganization,
-                            UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId()));
+                    Organization newOrganization = OrganizationLocalServiceUtil.addOrganization(
+                        SetupConfigurationThreadLocal.getRunAsUserId(),
+                        OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
+                        organization.getName(),
+                        "organization",
+                        0,
+                        0,
+                        ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+                        "Created by setup module.",
+                        false,
+                        new ServiceContext()
+                    );
+                    addOrganizationUser(
+                        newOrganization,
+                        UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId())
+                    );
                     liferayOrg = newOrganization;
                     liferayGroup = liferayOrg.getGroup();
                     groupId = newOrganization.getGroupId();
-
 
                     LOG.info(String.format("New Organization created. Group ID: %1$s", groupId));
                 }
@@ -125,8 +137,11 @@ public final class SetupOrganizations {
                     GroupLocalServiceUtil.updateGroup(liferayGroup);
                     liferayGroup = liferayOrg.getGroup();
 
-                    if (liferayGroup != null && orgSite.getSiteFriendlyUrl() != null
-                            && !orgSite.getSiteFriendlyUrl().isEmpty()) {
+                    if (
+                        liferayGroup != null &&
+                        orgSite.getSiteFriendlyUrl() != null &&
+                        !orgSite.getSiteFriendlyUrl().isEmpty()
+                    ) {
                         liferayGroup.setFriendlyURL(orgSite.getSiteFriendlyUrl());
                         GroupLocalServiceUtil.updateGroup(liferayGroup);
                         liferayGroup = liferayOrg.getGroup();
@@ -159,47 +174,63 @@ public final class SetupOrganizations {
                     SetupCategorization.setupVocabularies(orgSite.getVocabulary(), groupId);
                     LOG.info("Organization Categories setting finished.");
 
-                    SetupArticles.setupSiteArticles(orgSite.getArticle(), orgSite.getAdt(), orgSite.getDdlRecordset(),
-                            groupId);
+                    SetupArticles.setupSiteArticles(
+                        orgSite.getArticle(),
+                        orgSite.getAdt(),
+                        orgSite.getDdlRecordset(),
+                        groupId
+                    );
                     LOG.info("Organization Articles setting finished.");
 
                     SetupSites.setCustomFields(groupId, orgSite.getCustomFieldSetting());
                     LOG.info("Organization site custom fields set up.");
-
                 }
 
                 List<com.ableneo.liferay.portal.setup.domain.Organization> orgs = organization.getOrganization();
                 setupOrganizations(orgs, liferayOrg, liferayGroup);
-
             } catch (Exception e) {
                 LOG.error(String.format("Error by setting up organization %1$s", organization.getName()), e);
             }
         }
-
     }
 
-    private static void setCustomFields(final long groupId,
-            final com.ableneo.liferay.portal.setup.domain.Organization org, final Organization liferayOrg) {
-
+    private static void setCustomFields(
+        final long groupId,
+        final com.ableneo.liferay.portal.setup.domain.Organization org,
+        final Organization liferayOrg
+    ) {
         Class clazz = Organization.class;
-        String resolverHint = "Resolving customized value for page " + org.getName() + " " + "failed for key %%key%% "
-                + "and value %%value%%";
+        String resolverHint =
+            "Resolving customized value for page " +
+            org.getName() +
+            " " +
+            "failed for key %%key%% " +
+            "and value %%value%%";
         for (CustomFieldSetting cfs : org.getCustomFieldSetting()) {
             String key = cfs.getKey();
             String value = cfs.getValue();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
-            CustomFieldSettingUtil.setExpandoValue(resolverHint.replace("%%key%%", key).replace("%%value%%", value),
-                    groupId, company, clazz, liferayOrg.getOrganizationId(), key, value);
+            CustomFieldSettingUtil.setExpandoValue(
+                resolverHint.replace("%%key%%", key).replace("%%value%%", value),
+                groupId,
+                company,
+                clazz,
+                liferayOrg.getOrganizationId(),
+                key,
+                value
+            );
         }
     }
 
     public static void deleteOrganization(
-            final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations, final String deleteMethod) {
-
+        final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
+        final String deleteMethod
+    ) {
         switch (deleteMethod) {
             case "excludeListed":
-                Map<String, com.ableneo.liferay.portal.setup.domain.Organization> toBeDeletedOrganisations =
-                        convertOrganisationListToHashMap(organizations);
+                Map<String, com.ableneo.liferay.portal.setup.domain.Organization> toBeDeletedOrganisations = convertOrganisationListToHashMap(
+                    organizations
+                );
                 try {
                     for (Organization organisation : OrganizationLocalServiceUtil.getOrganizations(-1, -1)) {
                         if (!toBeDeletedOrganisations.containsKey(organisation.getName())) {
@@ -215,7 +246,6 @@ public final class SetupOrganizations {
                     LOG.error("Error by retrieving organisations!", e);
                 }
                 break;
-
             case "onlyListed":
                 for (com.ableneo.liferay.portal.setup.domain.Organization organisation : organizations) {
                     String name = organisation.getName();
@@ -230,7 +260,6 @@ public final class SetupOrganizations {
                 }
 
                 break;
-
             default:
                 LOG.error(String.format("Unknown delete method : %1$s", deleteMethod));
                 break;
@@ -238,8 +267,13 @@ public final class SetupOrganizations {
     }
 
     public static void addOrganizationUser(Organization organization, User user) {
-        LOG.info(String.format("Adding user with screenName: %1$sto organization with name: %2$s", user.getScreenName(),
-                organization.getName()));
+        LOG.info(
+            String.format(
+                "Adding user with screenName: %1$sto organization with name: %2$s",
+                user.getScreenName(),
+                organization.getName()
+            )
+        );
         OrganizationLocalServiceUtil.addUserOrganization(user.getUserId(), organization);
     }
 
@@ -250,13 +284,12 @@ public final class SetupOrganizations {
     }
 
     private static Map<String, com.ableneo.liferay.portal.setup.domain.Organization> convertOrganisationListToHashMap(
-            final List<com.ableneo.liferay.portal.setup.domain.Organization> objects) {
-
+        final List<com.ableneo.liferay.portal.setup.domain.Organization> objects
+    ) {
         HashMap<String, com.ableneo.liferay.portal.setup.domain.Organization> map = new HashMap<>();
         for (com.ableneo.liferay.portal.setup.domain.Organization organization : objects) {
             map.put(organization.getName(), organization);
         }
         return map;
     }
-
 }

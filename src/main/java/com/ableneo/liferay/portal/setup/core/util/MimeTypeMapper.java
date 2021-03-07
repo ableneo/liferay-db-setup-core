@@ -109,7 +109,6 @@ public final class MimeTypeMapper {
      * @return
      */
     public static MimeTypeMapper getInstance() {
-
         if (instance == null) {
             instance = new MimeTypeMapper();
         }
@@ -837,7 +836,6 @@ public final class MimeTypeMapper {
         addEntry(".pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12");
         addEntry(".potm", "application/vnd.ms-powerpoint.template.macroEnabled.12");
         addEntry(".ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12");
-
         /*
          * .doc application/msword .dot application/msword
          *

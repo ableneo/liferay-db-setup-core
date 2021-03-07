@@ -1,5 +1,7 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
+import com.ableneo.liferay.portal.setup.domain.Translation;
+import com.liferay.portal.kernel.util.LocaleUtil;
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -31,9 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-
-import com.ableneo.liferay.portal.setup.domain.Translation;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +41,12 @@ public final class TranslationMapUtil {
 
     private TranslationMapUtil() {}
 
-    public static Map<Locale, String> getTranslationMap(final List<Translation> translations, final long groupId,
-            final String defaultLocaleTitle, final String locationHint) {
+    public static Map<Locale, String> getTranslationMap(
+        final List<Translation> translations,
+        final long groupId,
+        final String defaultLocaleTitle,
+        final String locationHint
+    ) {
         Map<Locale, String> translationMap = new HashMap<>();
 
         translationMap.put(LocaleUtil.getSiteDefault(), defaultLocaleTitle);
@@ -60,5 +63,4 @@ public final class TranslationMapUtil {
         }
         return translationMap;
     }
-
 }

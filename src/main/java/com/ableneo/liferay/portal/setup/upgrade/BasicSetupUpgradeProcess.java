@@ -1,5 +1,11 @@
 package com.ableneo.liferay.portal.setup.upgrade;
 
+import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.MarshallUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.upgrade.UpgradeException;
+import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -31,13 +37,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 
-import com.ableneo.liferay.portal.setup.LiferaySetup;
-import com.ableneo.liferay.portal.setup.MarshallUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.upgrade.UpgradeException;
-import com.liferay.portal.kernel.upgrade.UpgradeProcess;
-
 /**
  * Created by mapa on 13.3.2015.
  */
@@ -54,16 +53,18 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
      */
     @Override
     public final void upgrade() throws UpgradeException {
-
         String[] fileNames = getSetupFileNames();
         for (String fileName : fileNames) {
             try {
-                File configurationFile =
-                        new File(BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI());
+                File configurationFile = new File(
+                    BasicSetupUpgradeProcess.class.getClassLoader().getResource(fileName).toURI()
+                );
                 LiferaySetup.setup(MarshallUtil.unmarshall(configurationFile));
             } catch (FileNotFoundException | URISyntaxException e) {
                 throw new UpgradeException(
-                        String.format("Failed to process liferay setup configuration (%1$s)", fileName), e);
+                    String.format("Failed to process liferay setup configuration (%1$s)", fileName),
+                    e
+                );
             }
             if (LOG.isDebugEnabled()) {
                 LOG.debug(String.format("Upgraded database with liferay setup configuration: %1$s", fileName));

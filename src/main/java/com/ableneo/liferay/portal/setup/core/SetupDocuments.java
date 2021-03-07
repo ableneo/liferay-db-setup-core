@@ -17,7 +17,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -51,7 +50,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class SetupDocuments {
-
     private static final Log LOG = LogFactoryUtil.getLog(SetupDocuments.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
@@ -83,9 +81,7 @@ public final class SetupDocuments {
         DEFAULT_PERMISSIONS.put(RoleConstants.SITE_MEMBER, actionsViewer);
     }
 
-    private SetupDocuments() {
-
-    }
+    private SetupDocuments() {}
 
     public static void setupSiteDocuments(final Site site, long groupId) {
         for (Document doc : site.getDocument()) {
@@ -97,22 +93,32 @@ public final class SetupDocuments {
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
 
             switch (doc.getFileUploadType()) {
-            	case GENERAL:
-            		// groupid == site group (as-is)
-            		break;
-            	case LOGO_IMAGE:
-            		// groupid = 'Control Panel' groups id..
-            		try {
-						Group controlPanelGroup = GroupLocalServiceUtil.loadGetGroup(company, GroupConstants.CONTROL_PANEL);
-						groupId = controlPanelGroup.getGroupId();
-					} catch (PortalException e) {
-						LOG.error("Can not get group for "+GroupConstants.CONTROL_PANEL+" and company "+company+":", e);
-						return;
-					}
-            		break;
-        		default:
-        			LOG.error("Can not understand enum value '"+doc.getFileUploadType()+"' as upload-type.. check dependencies, implement on need!");
-        			return;
+                case GENERAL:
+                    // groupid == site group (as-is)
+                    break;
+                case LOGO_IMAGE:
+                    // groupid = 'Control Panel' groups id..
+                    try {
+                        Group controlPanelGroup = GroupLocalServiceUtil.loadGetGroup(
+                            company,
+                            GroupConstants.CONTROL_PANEL
+                        );
+                        groupId = controlPanelGroup.getGroupId();
+                    } catch (PortalException e) {
+                        LOG.error(
+                            "Can not get group for " + GroupConstants.CONTROL_PANEL + " and company " + company + ":",
+                            e
+                        );
+                        return;
+                    }
+                    break;
+                default:
+                    LOG.error(
+                        "Can not understand enum value '" +
+                        doc.getFileUploadType() +
+                        "' as upload-type.. check dependencies, implement on need!"
+                    );
+                    return;
             }
 
             long repoId = groupId;
@@ -130,15 +136,33 @@ public final class SetupDocuments {
                     if (folderPath != null && !folderPath.equals("")) {
                         folder = FolderUtil.findFolder(groupId, repoId, folderPath, true);
                     }
-                    fe = DocumentUtil.createDocument(groupId, folder.getFolderId(), documentName, documentTitle, userId, repoId,
-                            fileBytes);
-                    LOG.info(documentName + " is not found! It will be created! (c:"+company+",grp:"+groupId+" ");
+                    fe =
+                        DocumentUtil.createDocument(
+                            groupId,
+                            folder.getFolderId(),
+                            documentName,
+                            documentTitle,
+                            userId,
+                            repoId,
+                            fileBytes
+                        );
+                    LOG.info(
+                        documentName + " is not found! It will be created! (c:" + company + ",grp:" + groupId + " "
+                    );
                 } else {
-                    LOG.info(documentName + " is found! Content will be updated! (c:"+company+",grp:"+groupId+" ");
+                    LOG.info(
+                        documentName + " is found! Content will be updated! (c:" + company + ",grp:" + groupId + " "
+                    );
                     DocumentUtil.updateFile(fe, fileBytes, userId, documentName);
                 }
-                SetupPermissions.updatePermission(String.format("Document %1$s/%2$s", folderPath, documentName),
-                        company, fe.getFileEntryId(), DLFileEntry.class, doc.getRolePermissions(), DEFAULT_PERMISSIONS);
+                SetupPermissions.updatePermission(
+                    String.format("Document %1$s/%2$s", folderPath, documentName),
+                    company,
+                    fe.getFileEntryId(),
+                    DLFileEntry.class,
+                    doc.getRolePermissions(),
+                    DEFAULT_PERMISSIONS
+                );
             }
         }
     }

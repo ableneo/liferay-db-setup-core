@@ -8,7 +8,6 @@ import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-
 /*
  * #%L
  * Liferay Portal DB Setup core
@@ -41,11 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 public final class SetupWebFolders {
-
     private static final Map<String, List<String>> DEFAULT_PERMISSIONS;
-    public static final String RP_KEY = SetupWebFolders.class.getSimpleName()+"_DEFAULT_PERMISSIONS";
+    public static final String RP_KEY = SetupWebFolders.class.getSimpleName() + "_DEFAULT_PERMISSIONS";
+
     static {
-    	RolePermissionBuilder builder = RolePermissionBuilder.create();
+        RolePermissionBuilder builder = RolePermissionBuilder.create();
 
         List<String> actionsOwner = new ArrayList<>();
 
@@ -75,25 +74,19 @@ public final class SetupWebFolders {
         DEFAULT_PERMISSIONS = builder.buildMapList();
     }
 
-    private SetupWebFolders() {
-
-    }
+    private SetupWebFolders() {}
 
     public static Map<String, List<String>> getDefaultPermissions() {
         return DEFAULT_PERMISSIONS;
     }
 
     public static void setupWebFolders(final Site group, final long groupId) {
-
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
 
         for (ArticleFolder af : group.getArticleFolder()) {
+            JournalFolder jf = WebFolderUtil.findArticleWebFolder(af, groupId);
 
-        	JournalFolder jf = WebFolderUtil.findArticleWebFolder(af, groupId);
-
-        	WebFolderUtil.updateFolderPermissions(jf, companyId, groupId, DEFAULT_PERMISSIONS, af.getRolePermissions());
-
+            WebFolderUtil.updateFolderPermissions(jf, companyId, groupId, DEFAULT_PERMISSIONS, af.getRolePermissions());
         }
     }
-
 }

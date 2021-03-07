@@ -31,12 +31,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class MarshallUtilTest {
-
     private File validConfiguration;
     private File invalidConfiguration;
 

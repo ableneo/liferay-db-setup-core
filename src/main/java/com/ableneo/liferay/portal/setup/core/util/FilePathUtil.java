@@ -31,9 +31,7 @@ import java.io.File;
 
 public final class FilePathUtil {
 
-    private FilePathUtil() {
-
-    }
+    private FilePathUtil() {}
 
     public static String getExtension(final String fname) {
         String ext = "";
