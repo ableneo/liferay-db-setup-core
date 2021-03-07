@@ -20,7 +20,11 @@ The library helps to fix what need to be fixed across environments while allowin
 
 === Liferay Portal requirements
 
-The code is compatible with *Liferay Portal DXP/7.x*. We maintain a https://github.com/ableneo/liferay-db-setup-core/tree/1.x[separate branch] for *Liferay Portal EE/CE 6.2.x*.
+The code is compatible with *Liferay Portal DXP/7.3.5*. Other versions that have been or are supported:
+
+. https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[Liferay Portal EE/CE 7.1.2]
+. https://github.com/ableneo/liferay-db-setup-core/tree/1.x[Liferay Portal EE/CE 6.2.5 and higher]
+
 
 === Maven project setup
 
@@ -29,16 +33,6 @@ We didn't publish binary yet so you'll need to build the jar yourself. Here are 
 . Download sources.
 . Install Maven 3.6.3 or higher.
 . run `mvn clean install`
-. grab jar from `./target` or use as a dependency in your maven project
-+
-[source,xml]
-----
-<dependency>
-    <groupId>com.ableneo.liferay</groupId>
-    <artifactId>db-setup-core</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
-</dependency>
-----
 
 === Integration
 
