@@ -12,6 +12,8 @@ import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +35,11 @@ public final class WebFolderUtil {
         String[] folderPath = name.split("/");
         JournalFolder foundFolder = null;
         int count = 0;
-        Long parentId = 0L;
+        long parentId = 0L;
         boolean hasCreated = false;
         while (count < folderPath.length) {
             String folder = folderPath[count];
-            if (!folder.equals("")) {
+            if (!Validator.isBlank(folder)) {
                 foundFolder = findWebFolder(groupId, parentId, folder);
 
                 if (foundFolder == null && createIfNotExists) {

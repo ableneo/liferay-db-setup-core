@@ -7,9 +7,8 @@ import com.ableneo.liferay.portal.setup.core.util.ResourcesUtil;
 import com.ableneo.liferay.portal.setup.domain.Document;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.role.RoleConstants;
@@ -17,13 +16,17 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.util.Validator;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupDocuments {
-    private static final Log LOG = LogFactoryUtil.getLog(SetupDocuments.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(SetupDocuments.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {
@@ -106,22 +109,32 @@ public final class SetupDocuments {
             if (fileBytes != null) {
                 if (fe == null) {
                     Folder folder = null;
-                    if (folderPath != null && !folderPath.equals("")) {
+                    if (Validator.isBlank(folderPath)) {
                         folder = FolderUtil.findFolder(groupId, repoId, folderPath, true);
+                    } else {
+                        try {
+                            folder = DLAppLocalServiceUtil.getMountFolder(repoId);
+                        } catch (PortalException e) {
+                            LOG.warn(
+                                "Mount folder not found for file [{}], stopped creating the document.",
+                                documentName,
+                                e
+                            );
+                        }
                     }
-                    fe =
-                        DocumentUtil.createDocument(
-                            groupId,
-                            folder.getFolderId(),
-                            documentName,
-                            documentTitle,
-                            userId,
-                            repoId,
-                            fileBytes
-                        );
-                    LOG.info(
-                        documentName + " is not found! It will be created! (c:" + company + ",grp:" + groupId + " "
-                    );
+                    if (folder != null) {
+                        LOG.info("{} is not found! It will be created! (c: {},grp: {}", documentName, company, groupId);
+                        fe =
+                            DocumentUtil.createDocument(
+                                groupId,
+                                folder.getFolderId(),
+                                documentName,
+                                documentTitle,
+                                userId,
+                                repoId,
+                                fileBytes
+                            );
+                    }
                 } else {
                     LOG.info(
                         documentName + " is found! Content will be updated! (c:" + company + ",grp:" + groupId + " "
