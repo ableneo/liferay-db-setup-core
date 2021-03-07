@@ -1,7 +1,5 @@
 package com.ableneo.liferay.portal.setup.upgrade;
 
-import com.ableneo.liferay.portal.setup.upgrade.BasicSetupUpgradeProcess;
-
 /**
  * Basic class for upgrade process.
  */
