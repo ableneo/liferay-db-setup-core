@@ -29,6 +29,7 @@ package com.ableneo.liferay.portal.setup.core;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
@@ -39,11 +40,16 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.*;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.ListTypeConstants;
+import com.liferay.portal.kernel.model.Organization;
+import com.liferay.portal.kernel.model.OrganizationConstants;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 
 public final class SetupOrganizations {
 
@@ -54,7 +60,7 @@ public final class SetupOrganizations {
     }
 
     public static void setupOrganizations(
-            final List<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
+            final Iterable<com.ableneo.liferay.portal.setup.domain.Organization> organizations,
             final Organization parentOrg, final Group parentGroup) {
 
         for (com.ableneo.liferay.portal.setup.domain.Organization organization : organizations) {
@@ -68,6 +74,7 @@ public final class SetupOrganizations {
                     liferayGroup = org.getGroup();
                     groupId = org.getGroupId();
                     liferayOrg = org;
+
                     LOG.info(String.format("Setup: Organization %1$s already exist in system, not creating...",
                             organization.getName()));
 
@@ -89,6 +96,7 @@ public final class SetupOrganizations {
                     liferayOrg = newOrganization;
                     liferayGroup = liferayOrg.getGroup();
                     groupId = newOrganization.getGroupId();
+
 
                     LOG.info(String.format("New Organization created. Group ID: %1$s", groupId));
                 }
@@ -131,6 +139,8 @@ public final class SetupOrganizations {
                         liferayGroup.setParentGroupId(0);
                         GroupLocalServiceUtil.updateGroup(liferayGroup);
                     }
+
+                    SetupConfigurationThreadLocal.configureGroupExecutionContext(liferayGroup);
 
                     LOG.info("Setting organization site content...");
 

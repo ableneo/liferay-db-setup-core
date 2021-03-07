@@ -28,15 +28,33 @@ package com.ableneo.liferay.portal.setup;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.Validator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SetupConfigurationThreadLocal {
-    private static final Log LOG = LogFactoryUtil.getLog(SetupConfigurationThreadLocal.class);
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+
+public final class SetupConfigurationThreadLocal {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SetupConfigurationThreadLocal.class);
+
     private static final ThreadLocal<Long> _runAsUserId =
             new CentralizedThreadLocal<>(SetupConfigurationThreadLocal.class + "._runAsUserId", () -> {
                 try {
@@ -46,8 +64,10 @@ public class SetupConfigurationThreadLocal {
                 }
                 return null;
             });
+
     private static final ThreadLocal<Long> _runInCompanyId = new CentralizedThreadLocal<>(
             SetupConfigurationThreadLocal.class + "._runInCompanyId", PortalUtil::getDefaultCompanyId);
+
     private static final ThreadLocal<Long> _runInGroupId =
             new CentralizedThreadLocal<>(SetupConfigurationThreadLocal.class + "._runInGroupId", () -> {
                 try {
@@ -85,9 +105,105 @@ public class SetupConfigurationThreadLocal {
         _runInGroupId.set(runInGroupId);
     }
 
-    public static void clear() {
+    public static void cleanUp(
+        String originalPrincipalName, PermissionChecker originalPermissionChecker, Locale originalScopeGroupLocale) {
         _runInCompanyId.remove();
         _runAsUserId.remove();
         _runInGroupId.remove();
+
+        PrincipalThreadLocal.setName(originalPrincipalName);
+        PermissionThreadLocal.setPermissionChecker(originalPermissionChecker);
+        LocaleThreadLocal.setSiteDefaultLocale(originalScopeGroupLocale);
     }
+
+    /**
+     * Sets up mandatory data used by different setup tools: userId, companyId. Prepares needed Liferay security
+     * configuration based on userId that it retrieves from runAsUserEmail configuration. This secured that all
+     * Liferay service methods will authorize data modification method calls.
+     *
+     * @param runAsUserEmail email of a user that will be used to setup configured data
+     * @param companyId id of a company that will host data to be set up
+     * @param group group model of a group that is a target for a particular setup data configuration
+     * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
+     *                         provided it is important to set up data as the user e.g. for easier cleanup
+     */
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Group group)
+        throws PortalException {
+        Objects.requireNonNull(group);
+        configureGroupExecutionContext(group);
+        configureThreadLocalContent(runAsUserEmail, companyId);
+    }
+
+    public static void configureGroupExecutionContext(Group group) {
+        Objects.requireNonNull(group);
+        setRunInGroupId(group.getGroupId());
+        LocaleThreadLocal.setDefaultLocale(Locale.forLanguageTag(group.getDefaultLanguageId()));
+    }
+
+    /**
+     * Sets up mandatory data used by different setup tools: userId, companyId. Prepares needed Liferay security
+     * configuration based on userId that it retrieves from runAsUserEmail configuration. This secured that all
+     * Liferay service methods will authorize data modification method calls.
+     *
+     * @param runAsUserEmail email of a user that will be used to setup configured data
+     * @param companyId id of a company that will host data to be set up
+     * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
+     *                         provided it is important to set up data as the user e.g. for easier cleanup
+     */
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId)
+        throws PortalException {
+        if (Validator.isBlank(runAsUserEmail)) {
+            setRunInCompanyId(companyId);
+            SetupConfigurationThreadLocal.setRandomAdminPermissionCheckerForThread();
+            LOG.info("Using default administrator.");
+        } else {
+            User user = UserLocalServiceUtil.getUserByEmailAddress(companyId, runAsUserEmail);
+            setRunAsUserId(user.getUserId());
+            setRunInCompanyId(companyId);
+            PrincipalThreadLocal.setName(user.getUserId());
+            PermissionChecker permissionChecker = PermissionCheckerFactoryUtil.create(user);
+            PermissionThreadLocal.setPermissionChecker(permissionChecker);
+
+            LOG.info("Execute setup module as user {}", runAsUserEmail);
+        }
+    }
+
+    /**
+     * Initializes permission checker for Liferay Admin. Used to grant access to
+     * custom fields.
+     */
+    private static void setRandomAdminPermissionCheckerForThread() {
+        User adminUser = getRandomAdminUser();
+        SetupConfigurationThreadLocal.setRunAsUserId(Objects.requireNonNull(adminUser).getUserId());
+        PrincipalThreadLocal.setName(adminUser.getUserId());
+        PermissionChecker permissionChecker = PermissionCheckerFactoryUtil.create(adminUser);
+        PermissionThreadLocal.setPermissionChecker(permissionChecker);
+    }
+
+    /**
+     * Returns Liferay user, that has Administrator role assigned.
+     *
+     * @return Liferay {@link com.ableneo.liferay.portal.setup.domain.User}
+     * @throws IllegalStateException if no user is found
+     */
+    private static User getRandomAdminUser() {
+
+        final String administratorRoleName = RoleConstants.ADMINISTRATOR;
+        try {
+            final Long runInCompanyId = SetupConfigurationThreadLocal.getRunInCompanyId();
+            Role adminRole = RoleLocalServiceUtil.getRole(runInCompanyId, administratorRoleName);
+            List<User> adminUsers = UserLocalServiceUtil.getRoleUsers(adminRole.getRoleId());
+
+            if (adminUsers == null || adminUsers.isEmpty()) {
+                throw new IllegalStateException(
+                    "No user with " + administratorRoleName + " role found for company: " + runInCompanyId);
+            }
+            return adminUsers.get(0);
+
+        } catch (PortalException | SystemException e) {
+            throw new IllegalStateException(
+                "Cannot obtain Liferay role for role name: " + administratorRoleName, e);
+        }
+    }
+
 }

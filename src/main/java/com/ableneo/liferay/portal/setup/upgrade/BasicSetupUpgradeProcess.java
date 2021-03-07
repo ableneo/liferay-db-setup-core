@@ -1,4 +1,4 @@
-package com.ableneo.liferay.portal.setup;
+package com.ableneo.liferay.portal.setup.upgrade;
 
 /*
  * #%L
@@ -31,6 +31,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
 
+import com.ableneo.liferay.portal.setup.LiferaySetup;
+import com.ableneo.liferay.portal.setup.MarshallUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;

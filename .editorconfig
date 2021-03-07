@@ -9,8 +9,5 @@ max_line_length = 120
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-[*.{yml, yaml, json}]
-indent_size = 2
-
-[*.md]
+[*.adoc]
 trim_trailing_whitespace = false

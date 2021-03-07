@@ -1,4 +1,4 @@
-package com.ableneo.liferay.portal.setup;
+package com.ableneo.liferay.portal.setup.upgrade;
 
 /*
  * #%L
@@ -26,6 +26,8 @@ package com.ableneo.liferay.portal.setup;
  * THE SOFTWARE.
  * #L%
  */
+
+import com.ableneo.liferay.portal.setup.upgrade.BasicSetupUpgradeProcess;
 
 /**
  * Basic class for upgrade process.

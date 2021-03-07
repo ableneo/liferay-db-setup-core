@@ -117,7 +117,6 @@ public class SetupSites {
 			// websiteParentGroup);
 			liferayGroup = GroupLocalServiceUtil.addGroup(SetupConfigurationThreadLocal.getRunAsUserId(),
 					GroupConstants.DEFAULT_PARENT_GROUP_ID, Group.class.getName(), 0, 0,
-//                    TranslationMapUtil.getLocalizationMap(site.getName()),
 					TranslationMapUtil.getTranslationMap(site.getNameTranslation(), groupId, site.getName(),
 							site.getName()),
 					null, site.getMembershipType(), true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
@@ -127,12 +126,13 @@ public class SetupSites {
 			LOG.info(String.format("Updating site: %1$s", site.getName()));
 			GroupLocalServiceUtil.updateFriendlyURL(liferayGroup.getGroupId(), site.getSiteFriendlyUrl());
 		}
-		
+
 		groupId = liferayGroup.getGroupId();
 		LOG.info(String.format(" - Group ID: %1$s", groupId));
 
+
 		setSitePropertiesTo(site, liferayGroup);
-		
+
 		if (parentGroup != null && liferayGroup != null && site.isMaintainSiteHierarchy()) {
 			liferayGroup.setParentGroupId(parentGroup.getGroupId());
 			GroupLocalServiceUtil.updateGroup(liferayGroup);
@@ -147,6 +147,8 @@ public class SetupSites {
 		}
 		LOG.info("Setting site content...");
 
+        SetupConfigurationThreadLocal.configureGroupExecutionContext(liferayGroup);
+
 		long userId = SetupConfigurationThreadLocal.getRunAsUserId();
 		setStaging(userId, liferayGroup, site.getStaging());
 
@@ -158,10 +160,10 @@ public class SetupSites {
 
 		SetupDocumentFolders.setupDocumentFolders(site, groupId);
 		LOG.info("Document Folders setting finished.");
-		
+
 		SetupDocuments.setupSiteDocuments(site, groupId);
 		LOG.info("Documents setting finished.");
-		
+
 		SetupArticles.setupSiteStructuresAndTemplates(site, groupId);
 		LOG.info("Site DDM structures and templates setting finished.");
 
@@ -182,7 +184,7 @@ public class SetupSites {
 
 		SetupMenus.setMenus(groupId, site.getMenu());
 		LOG.info("Site menus set up.");
-		
+
 		SetupPages.setupSitePortlets(site, groupId);
 		LOG.info("Site Portlets setting finished.");
 
@@ -198,13 +200,13 @@ public class SetupSites {
 				props = new UnicodeProperties();
 				liferayGroup.setTypeSettingsProperties(props);
 			}
-		    
+
 //			inheritLocales=false
 //			languageId=hu_HU
 //			locales=en_US,hu_HU
 //			mentionsEnabled=false
 //			sharingEnabled=false
-	        
+
 			if (site.getSitePreferences().isMentionsEnabled() != null) {
 				props.setProperty("mentionsEnabled", site.getSitePreferences().isMentionsEnabled().toString());
 			}
@@ -296,7 +298,7 @@ public class SetupSites {
 		if (Objects.isNull(membershipRoles) || membershipRoles.isEmpty()) {
 			return;
 		}
-		
+
 		Set<String> roles = new HashSet<String>();
 		for (Role membershipRole : membershipRoles) {
 			try {
@@ -449,7 +451,7 @@ public class SetupSites {
 
 	static void setCustomFields(final long groupId, final List<CustomFieldSetting> customFieldSettings) {
 		if (customFieldSettings == null || customFieldSettings.isEmpty()) {
-			LOG.error("Site does has no Expando field settings.");
+			LOG.info("Site does has no Expando field settings.");
 		} else {
 			Class clazz = com.liferay.portal.kernel.model.Group.class;
 			String resolverHint = "Resolving customized value failed for key %1$s and value %2$s";

@@ -121,7 +121,7 @@ public final class SetupArticles {
 
         DEFAULT_PERMISSIONS.put(RoleConstants.OWNER, actionsOwner);
         DEFAULT_DDM_PERMISSIONS.put(RoleConstants.OWNER, ddmActionsOwner);
-        
+
         List<String> actionsUser = new ArrayList<>();
         actionsUser.add(ActionKeys.VIEW);
         DEFAULT_PERMISSIONS.put(RoleConstants.USER, actionsUser);
@@ -326,9 +326,9 @@ public final class SetupArticles {
         long classPK = 0;
         if (template.getArticleStructureKey() != null) {
             try {
-                classPK = ResolverUtil.getStructureId(template.getArticleStructureKey(), groupId, JournalArticle.class,
-                        true);
-            } catch (Exception e) {
+                classPK = ResolverUtil.getStructureId(
+                    template.getArticleStructureKey(), groupId, JournalArticle.class.getName(),true);
+            } catch (PortalException e) {
                 LOG.error(String.format(
                         "Given article structure with ID: %1$s can not be found. Therefore, article template can not be added/changed.",
                         template.getArticleStructureKey()), e);
@@ -386,7 +386,7 @@ public final class SetupArticles {
         Map<Locale, String> descriptionMap = new HashMap<>();
         descriptionMap.put(siteDefaultLocale, template.getDescription());
 
-        String language = template.getLanguage() == null ? TemplateConstants.LANG_TYPE_FTL : template.getLanguage(); 
+        String language = template.getLanguage() == null ? TemplateConstants.LANG_TYPE_FTL : template.getLanguage();
 
         DDMTemplate ddmTemplate = null;
         try {
@@ -419,9 +419,9 @@ public final class SetupArticles {
     }
 
     public static void getJournalArticleByPath(String folder, String file) {
-    	
+
     }
-    
+
     public static long getCreateFolderId(String folder, long groupId, RolePermissions roles) {
         long folderId = 0L;
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
@@ -437,7 +437,7 @@ public final class SetupArticles {
         }
         return folderId;
     }
-    
+
     public static void addJournalArticle(final Article article, final long groupId) {
     	LOG.info(String.format("Adding Journal Article %1$s", article.getTitle()));
 
@@ -445,7 +445,7 @@ public final class SetupArticles {
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         String content = null;
         long folderId = getCreateFolderId(article.getArticleFolderPath(), groupId, article.getRolePermissions());
-        
+
         try {
             content = ResourcesUtil.getFileContent(article.getPath());
             content = ResolverUtil.lookupAll(groupId, companyId, content, article.getPath());
@@ -481,7 +481,7 @@ public final class SetupArticles {
         } else {
         	journalArticle = getJournalArticle(article.getArticleId(), folderId, groupId, article.getArticleFolderPath());
         }
-        
+
 
         try {
             if (journalArticle == null) {
@@ -491,7 +491,7 @@ public final class SetupArticles {
 	                        descriptionMap, content, article.getArticleStructureKey(), article.getArticleTemplateKey(),
 	                        StringPool.BLANK, 1, 1, ARTICLE_PUBLISH_YEAR, 0, 0, 0, 0, 0, 0, 0, true, 0, 0, 0, 0, 0, true,
 	                        true, false, StringPool.BLANK, null, null, StringPool.BLANK, serviceContext);
-	
+
 	                LOG.info(String.format("Added JournalArticle %1$s with ID: %2$s", journalArticle.getTitle(),
 	                        journalArticle.getArticleId()));
 	                Indexer bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
@@ -511,7 +511,7 @@ public final class SetupArticles {
 	                journalArticle.setDescriptionMap(descriptionMap);
 
 	                JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
-	
+
 	                // if the folder changed, move it...
 	                if (journalArticle.getFolderId() != folderId) {
 	                    JournalArticleLocalServiceUtil.moveArticle(groupId, journalArticle.getArticleId(), folderId,
@@ -555,7 +555,7 @@ public final class SetupArticles {
         		LOG.warn(String.format("No such article : %1$s / %2$s (%3$s)", folderPathForTheLog, articleId, folderId));
         		return null;
         	}
-        
+
         	List<JournalArticle> withSameArticleId = new ArrayList<JournalArticle>();
         	for (JournalArticle art : articlesInFolder) {
         		LOG.info(" - "+folderPathForTheLog+"/"+art.getArticleId());
@@ -569,10 +569,10 @@ public final class SetupArticles {
         			} else {
         				LOG.info(String.format(" - found article which is not 'approved' [%1$s], leave-alone", articleId));
         			}
-        			
+
         		}
         	}
-        	
+
         	if (false == withSameArticleId.isEmpty()) {
         		if (withSameArticleId.size() == 1) {
 	        		LOG.info(String.format("FOUND article with ID: %1$s and directory:%2$s (%3$s)", articleId, folderPathForTheLog, folderId));
@@ -627,7 +627,7 @@ public final class SetupArticles {
             ddlRecordSet.setNameMap(nameMap);
             ddlRecordSet.setDescriptionMap(descMap);
             ddlRecordSet.setDDMStructureId(
-                    ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class, false));
+                    ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class.getName(), false));
             DDLRecordSetLocalServiceUtil.updateDDLRecordSet(ddlRecordSet);
             LOG.info(String.format("DDLRecordSet successfully updated: %1$s", recordSet.getName()));
             return;
@@ -635,11 +635,11 @@ public final class SetupArticles {
 
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
         DDLRecordSet newDDLRecordSet = DDLRecordSetLocalServiceUtil.addRecordSet(runAsUserId, groupId,
-                ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class, false),
+                ResolverUtil.getStructureId(recordSet.getDdlStructureKey(), groupId, DDLRecordSet.class.getName(), false),
                 recordSet.getDdlStructureKey(), nameMap, descMap, MIN_DISPLAY_ROWS, 0, new ServiceContext());
         LOG.info(String.format("Added DDLRecordSet: %1$s", newDDLRecordSet.getName()));
     }
-	
+
 	public static Long getJournalAssetEntryId(JournalArticle ja) {
 		try {
             AssetEntry ae = AssetEntryLocalServiceUtil.getEntry(JournalArticle.class.getName(), ja.getResourcePrimKey());
