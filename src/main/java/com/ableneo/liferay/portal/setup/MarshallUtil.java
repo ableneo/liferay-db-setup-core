@@ -1,37 +1,21 @@
 package com.ableneo.liferay.portal.setup;
 
-/*
- * #%L
- * Liferay Portal DB Setup core
- * %%
- * Original work Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
+import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
+import com.ableneo.liferay.portal.setup.domain.Setup;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
-import java.io.*;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParserFactory;
@@ -40,24 +24,20 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
-import com.ableneo.liferay.portal.setup.domain.Setup;
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-
 public final class MarshallUtil {
+
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
     private static final SAXParserFactory spf = SAXParserFactory.newInstance();
     private static final Schema schema = getSchema();
     private static XMLReader xr = null;
     private static Unmarshaller unmarshaller = getUnmarshaller();
+
+    private static boolean skipValidate = false;
 
     static {
         spf.setNamespaceAware(true);
@@ -106,13 +86,52 @@ public final class MarshallUtil {
         return null;
     }
 
+    public static void toXmlStdOut(Setup setup) {
+        toXmlStream(setup, System.out);
+    }
+
+    public static void toXmlStream(Setup setup, OutputStream os) {
+        Marshaller m = getMarshaller();
+        try {
+            if (MarshallUtil.skipValidate) {
+                m.setEventHandler(
+                    event -> {
+                        return true; //all-valid
+                    }
+                );
+            }
+            m.marshal(setup, os);
+        } catch (JAXBException e) {
+            LOG.error("Could not convert from xml", e);
+        }
+    }
+
+    public static void skipValidate(boolean skipValidate) {
+        MarshallUtil.skipValidate = skipValidate;
+    }
+
+    private static Marshaller getMarshaller() {
+        ClassLoader cl = ObjectFactory.class.getClassLoader();
+        JAXBContext jc;
+        try {
+            jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName(), cl);
+            final Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.setSchema(schema);
+            return marshaller;
+        } catch (JAXBException e) {
+            throw new IllegalStateException(
+                "db-setup-core library is broken in unexpected way. Please fix the library.",
+                e
+            );
+        }
+    }
+
     /**
-     * @throws IllegalStateException
-     *         Code of db-setup-core is broken. Please fix the library.
-     * @throws NullPointerException If <code>source</code> is
-     *         <code>null</code>.
      * @return if provided configuration is valid
-     *
+     * @throws IllegalStateException Code of db-setup-core is broken. Please fix the library.
+     * @throws NullPointerException  If <code>source</code> is
+     *                               <code>null</code>.
      */
     public static boolean validateAgainstXSD(final InputStream inputStream) {
         Validator validator = schema.newValidator();
@@ -123,18 +142,17 @@ public final class MarshallUtil {
         } catch (IOException e) {
             throw new IllegalStateException("db-setup-core is broken in unexpected manner. Please fix the library.", e);
         } catch (SAXException e) {
+            LOG.error("Parsing error", e);
             return false;
         }
         return true;
     }
 
     /**
-     * @throws IllegalStateException
-     *         Code of db-setup-core is broken. Please fix the library.
-     * @throws NullPointerException If <code>source</code> is
-     *         <code>null</code>.
      * @return if provided configuration is valid
-     *
+     * @throws IllegalStateException Code of db-setup-core is broken. Please fix the library.
+     * @throws NullPointerException  If <code>source</code> is
+     *                               <code>null</code>.
      */
     public static boolean validateAgainstXSD(final File xmlConfigurationFile) {
         try {
@@ -156,7 +174,7 @@ public final class MarshallUtil {
         try {
             schema = factory.newSchema(new StreamSource(schemaInputStream));
         } catch (SAXException e) {
-            throw new IllegalStateException("XSD schema that is used for configuration validation cannot be parsed");
+            throw new IllegalStateException("XSD schema that is used for configuration validation cannot be parsed", e);
         }
         return schema;
     }

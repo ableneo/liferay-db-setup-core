@@ -1,0 +1,151 @@
+= Liferay Portal DB Setup core
+:TOC:
+
+image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches]
+image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x]
+
+
+Library that allows to setup a number of https://github.com/liferay[Liferay] artifacts in the DB. It uses xml and https://docs.liferay.com/portal/7.0/javadocs/portal-kernel[Liferay APIs] to add all configured artifacts.
+
+
+== Motivation
+
+We use https://github.com/liferay[Liferay] as an application building platform.
+
+In the approach pages, portlets, content and permissions serve as a building block of an application with consistent portal UX. It's all easy and fun unless you need to move through environments or track changes. Which you always need to track. Suddenly it becomes a problem that a very important part of your application resides in database.
+
+The library helps to fix what need to be fixed across environments while allowing to use as much of a portal flexibility as needed.
+
+== Usage
+
+=== Liferay Portal requirements
+
+The code is compatible with *Liferay Portal DXP/7.x*. We maintain a https://github.com/ableneo/liferay-db-setup-core/tree/1.x[separate branch] for *Liferay Portal EE/CE 6.2.x*.
+
+=== Maven project setup
+
+We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
+
+. Download sources.
+. Install Maven 3.6.3 or higher.
+. run `mvn clean install`
+. grab jar from `./target` or use as a dependency in your maven project
++
+[source,xml]
+----
+<dependency>
+    <groupId>com.ableneo.liferay</groupId>
+    <artifactId>db-setup-core</artifactId>
+    <version>2.2.0-SNAPSHOT</version>
+</dependency>
+----
+
+=== Integration
+
+Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`] with following xml configuration:
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+    <configuration>
+        <run-as-user-email>test@liferay.com</run-as-user-email>
+    </configuration>
+
+    <!--
+    This will add new custom field that can be used in theme to control if ads should display on
+    particular page.
+    -->
+    <custom-fields>
+        <field name="showAds" type="boolean" class-name="com.liferay.portal.model.Layout">
+            <role-permission role-name="Guest" permission="view"/>
+        </field>
+    </custom-fields>
+</setup>
+----
+
+Preferred way is to deploy bundle to the portal.
+
+.Include dependency in `build.gradle`:
+```groovy
+dependencies {
+    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:7.3.5.0-SNAPSHOT'
+}
+```
+
+.Include dependency in `pom.xml`:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.ableneo.liferay</groupId>
+        <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
+        <version>7.3.5.0-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
+
+== Contributing
+
+Want/need to hack on db-setup-core? See our link:CONTRIBUTING.md[super short contributing guide] for information on building, testing and contributing changes.
+
+They are probably not perfect, please let me know if anything feels wrong or incomplete.
+
+== Roadmap
+
+* reference documentation
+* more tests
+* how-to guides
+
+= Changelog
+
+== Version 7.3.5.0
+
+=== Features & bug fixes
+
+* OSGI descriptors in JAR, the bundle can be deployed and work as a standalone Liferay 7.x bundle
+* instance import feature added, credit goes to https://github.com/bimki[@bimki] - thank you!
+* portal properties feature added, credit goes to https://github.com/fabalint[@fabalint] - thank you!
+* new helper methods to run the setup (ported from 1.x branch):
+** `com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.InputStream)`
+** `com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`
+* fixed categorization idempotency (vocabulary and category name handling)
+* fixed language handling for groups
+
+=== Refactorings & project changes
+
+* improved javadoc in entrypoint `com.ableneo.liferay.portal.setup.LiferaySetup` class
+* upped dependencies to https://liferay.dev/blogs/-/blogs/liferay-portal-7-3-ce-ga6-release[Liferay 7.3.5], credit goes to https://github.com/fabalint[@fabalint] - thank you!
+* changed versioning so that major.minor.patch version reflects target platform, build version will be used to track changes in the library
+* documentation format conversion from markdown to https://asciidoc.org/[aciidoc]
+* added slf4j and changed logger in few classes for more ergonomic log message interpolation (Liferay 7.x provides slf4j by default)
+* added prettier formatter to the project
+
+== Version 2.2.0-SNAPSHOT
+
+=== Features & bug fixes
+
+* it's possible to use more than one company id per configuration file, the configuration will be applied to all listed companies
+* tag names in configuration follow unified naming convention: word-word
+* run-as-user renamed to run-as-user-email to be explicit about expected value
+* added missing documentation to few xml elements
+* setup xsd provides a version attribute
+
+=== Refactorings & project changes
+
+* configured sonar analysis on each commit
+* configured maven test / coverage runner
+* maven project structure has changed to single-module
+* companyId, groupId and runAsUserId are set in Setup class and propagated to all involved Utils with SetupConfigurationThreadLocal context class
+* improved MarshallUtil performance
+* introduced unit tests
+* most of the problems reported by sonar are fixed
+* improved logging
+
+== Version 2.1.4
+
+=== Features & bug fixes
+
+* Added resource class name when creating ADT
+* Fix user expando assignement
+* Allow add categories and summaries to articles

@@ -1,0 +1,31 @@
+= Thank you for considering contribution!
+
+== TL;DR
+
+. find issue for the problem
+. if not found create one
+. work or wait :)
+
+== Detail
+
+In case of missing feature or a bug. Before doing anything else, please check if there is an open issue for the problem you've spotted. If not, please create an issue. The issue will be used as a mean of tracking discussion/documentation about the problem even if you'll fix it yourself.
+
+Please link the issue in commit messages, as an example here is a commit message that references issue #1:
+
+`fix broken feature #1`
+
+I recommend https://chris.beams.io/posts/git-commit/[the very good guide] on writing best commit messages.
+
+== Code formatting
+
+To ease merging pains please use prettier formatting included in maven project.
+
+To check if your formatting is ok run:
+```bash
+mvn prettier:check
+```
+
+To reformat all the source run:
+```bash
+mvn prettier:write
+```
