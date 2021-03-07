@@ -60,6 +60,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -73,22 +74,22 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <version>1.19</version>
+                <version>2.0.0</version>
                 <configuration>
-                    <outputDirectory>${project.build.directory}/generated-sources/license</outputDirectory>
+                    <outputDirectory>${project.build.directory}/generated-resources/license</outputDirectory>
                     <thirdPartyFilename>THIRD-PARTY.txt</thirdPartyFilename>
                     <licenseName>mit</licenseName>
                     <excludes>
                         <exclude>**/package-info.java</exclude>
                     </excludes>
-                    <canUpdateLicense>true</canUpdateLicense>
+                    <canUpdateLicense>false</canUpdateLicense>
                     <canUpdateCopyright>false</canUpdateCopyright>
                 </configuration>
                 <executions>
                     <execution>
                         <id>first</id>
                         <goals>
-                            <goal>update-file-header</goal>
+                            <goal>add-third-party</goal>
                         </goals>
                         <phase>process-sources</phase>
                     </execution>
@@ -119,7 +120,7 @@
                 <configuration>
                     <filters>
                         <filter>
-                            <artifact>com.liferay.*:*</artifact>
+                            <artifact>com.liferay.portal:com.liferay.portal.impl</artifact>
                             <includes>
                                 <include>**/*.class</include>
                             </includes>
@@ -205,10 +206,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
                     </archive>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.12</version>
+                <configuration>
+                    <ignoreConfigFile>false</ignoreConfigFile>
+                    <ignoreEditorConfig>false</ignoreEditorConfig>
                 </configuration>
             </plugin>
         </plugins>

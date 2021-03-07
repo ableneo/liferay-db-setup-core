@@ -16,35 +16,7 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
-import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
-
-/*
- * #%L
- * Liferay Portal DB Setup core
- * %%
- * Original work Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-import java.util.ArrayList;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,19 +25,14 @@ import java.util.Map;
 import java.util.Set;
 
 public final class SetupPermissions {
-
-    private static final String[] PERMISSION_RO = {ActionKeys.VIEW};
-    private static final String[] PERMISSION_RW = {ActionKeys.VIEW, ActionKeys.UPDATE};
+    private static final String[] PERMISSION_RO = { ActionKeys.VIEW };
+    private static final String[] PERMISSION_RW = { ActionKeys.VIEW, ActionKeys.UPDATE };
     private static final Log LOG = LogFactoryUtil.getLog(SetupPermissions.class);
 
-    private SetupPermissions() {
-
-    }
+    private SetupPermissions() {}
 
     public static void setupPortletPermissions(final ResourcePermissions resourcePermissions) {
-
         for (ResourcePermissions.Resource resource : resourcePermissions.getResource()) {
-
             deleteAllPortletPermissions(resource);
 
             Map<String, Set<String>> actionsPerRole = getActionsPerRole(resource);
@@ -77,8 +44,14 @@ public final class SetupPermissions {
                     final Set<String> actionStrings = actionsPerRoleEntry.getValue();
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
-                    ResourcePermissionLocalServiceUtil.setResourcePermissions(companyId, resource.getResourceId(),
-                        ResourceConstants.SCOPE_COMPANY, String.valueOf(companyId), roleId, actionIds);
+                    ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                        companyId,
+                        resource.getResourceId(),
+                        ResourceConstants.SCOPE_COMPANY,
+                        String.valueOf(companyId),
+                        roleId,
+                        actionIds
+                    );
                     LOG.info(String.format("Set permission for role: %1$s for action ids: %2$s", roleName, actionIds));
                 } catch (NestableException e) {
                     LOG.error(String.format("Could not set permission to resource :%1$s", resource.getResourceId()), e);
@@ -105,82 +78,132 @@ public final class SetupPermissions {
     }
 
     public static void addReadRight(final String roleName, final String className, final String primaryKey) {
-
         addPermission(roleName, className, primaryKey, PERMISSION_RO);
     }
 
     public static void addReadWrightRight(final String roleName, final String className, final String primaryKey) {
-
         addPermission(roleName, className, primaryKey, PERMISSION_RW);
     }
 
     public static void removePermission(final long companyId, final String name, final String primKey)
-            throws PortalException {
-        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(companyId, name,
-                ResourceConstants.SCOPE_INDIVIDUAL, primKey);
+        throws PortalException {
+        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(
+            companyId,
+            name,
+            ResourceConstants.SCOPE_INDIVIDUAL,
+            primKey
+        );
     }
 
     public static void addPermission(String roleName, String name, String primaryKey, int scope, String[] permissions) {
         try {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             long roleId = RoleLocalServiceUtil.getRole(companyId, roleName).getRoleId();
-            ResourcePermissionLocalServiceUtil.setResourcePermissions(companyId, name, scope, primaryKey, roleId,
-                    permissions);
+            ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                companyId,
+                name,
+                scope,
+                primaryKey,
+                roleId,
+                permissions
+            );
         } catch (Exception ex) {
-            LOG.error("Error when adding permissions("+Arrays.asList(permissions)+") to role("+roleName+"), name:("+name+")!", ex);
+            LOG.error(
+                "Error when adding permissions(" +
+                Arrays.asList(permissions) +
+                ") to role(" +
+                roleName +
+                "), name:(" +
+                name +
+                ")!",
+                ex
+            );
         }
     }
 
-    public static void addPermission(final String roleName, final String className, final String primaryKey,
-            final String[] permission) {
+    public static void addPermission(
+        final String roleName,
+        final String className,
+        final String primaryKey,
+        final String[] permission
+    ) {
         try {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             com.liferay.portal.kernel.model.Role role = RoleLocalServiceUtil.getRole(companyId, roleName);
             if (role != null) {
-	            long roleId = role.getRoleId();
-	            ResourcePermissionLocalServiceUtil.setResourcePermissions(companyId, className, ResourceConstants.SCOPE_INDIVIDUAL, primaryKey, roleId, permission);
-            	LOG.info(" - ["+roleName+"] -> ["+primaryKey+"] ADD OK");
+                long roleId = role.getRoleId();
+                ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                    companyId,
+                    className,
+                    ResourceConstants.SCOPE_INDIVIDUAL,
+                    primaryKey,
+                    roleId,
+                    permission
+                );
+                LOG.info(" - [" + roleName + "] -> [" + primaryKey + "] ADD OK");
             } else {
-            	LOG.warn(" - CANNOT SET ROLE["+roleName+"] to key["+primaryKey+"]");
+                LOG.warn(" - CANNOT SET ROLE[" + roleName + "] to key[" + primaryKey + "]");
             }
         } catch (Exception ex) {
-        	LOG.warn(" - CANNOT SET ROLE["+roleName+"] to key["+primaryKey+"]");
+            LOG.warn(" - CANNOT SET ROLE[" + roleName + "] to key[" + primaryKey + "]");
         }
     }
-    public static void removePermission(final String roleName, final String className, final String primaryKey,
-            final String[] permission) {
+
+    public static void removePermission(
+        final String roleName,
+        final String className,
+        final String primaryKey,
+        final String[] permission
+    ) {
         try {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             com.liferay.portal.kernel.model.Role role = RoleLocalServiceUtil.getRole(companyId, roleName);
             if (role != null) {
-	            long roleId = role.getRoleId();
-	            for (String permissionAction : permission) {
-		            ResourcePermissionLocalServiceUtil.removeResourcePermission(companyId, className, ResourceConstants.SCOPE_INDIVIDUAL, primaryKey, roleId, permissionAction);
-	            	LOG.info(" - ["+roleName+":"+permissionAction+"] X ["+primaryKey+"] RM OK");
-	            }
+                long roleId = role.getRoleId();
+                for (String permissionAction : permission) {
+                    ResourcePermissionLocalServiceUtil.removeResourcePermission(
+                        companyId,
+                        className,
+                        ResourceConstants.SCOPE_INDIVIDUAL,
+                        primaryKey,
+                        roleId,
+                        permissionAction
+                    );
+                    LOG.info(" - [" + roleName + ":" + permissionAction + "] X [" + primaryKey + "] RM OK");
+                }
             } else {
-            	LOG.warn(" - CANNOT REMOVE ROLE["+roleName+"] FROM key["+primaryKey+"]");
+                LOG.warn(" - CANNOT REMOVE ROLE[" + roleName + "] FROM key[" + primaryKey + "]");
             }
         } catch (Exception ex) {
-        	LOG.warn(" - CANNOT REMOVE ROLE["+roleName+"] to key["+primaryKey+"], exception:"+ex.getMessage()+";");
+            LOG.warn(
+                " - CANNOT REMOVE ROLE[" + roleName + "] to key[" + primaryKey + "], exception:" + ex.getMessage() + ";"
+            );
         }
     }
 
     public static void addPermissionToPage(final Role role, final String primaryKey, final String[] actionKeys)
-            throws PortalException {
-
+        throws PortalException {
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         long roleId = RoleLocalServiceUtil.getRole(companyId, role.getName()).getRoleId();
-        ResourcePermissionLocalServiceUtil.setResourcePermissions(companyId, Layout.class.getName(),
-                ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(primaryKey), roleId, actionKeys);
+        ResourcePermissionLocalServiceUtil.setResourcePermissions(
+            companyId,
+            Layout.class.getName(),
+            ResourceConstants.SCOPE_INDIVIDUAL,
+            String.valueOf(primaryKey),
+            roleId,
+            actionKeys
+        );
     }
 
     private static void deleteAllPortletPermissions(final ResourcePermissions.Resource resource) {
-
         try {
             long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
             List<ResourcePermission> resourcePermissions = ResourcePermissionLocalServiceUtil.getResourcePermissions(
-                    companyId, resource.getResourceId(), ResourceConstants.SCOPE_COMPANY, String.valueOf(companyId));
+                companyId,
+                resource.getResourceId(),
+                ResourceConstants.SCOPE_COMPANY,
+                String.valueOf(companyId)
+            );
             for (ResourcePermission resourcePermission : resourcePermissions) {
                 ResourcePermissionLocalServiceUtil.deleteResourcePermission(resourcePermission);
             }
@@ -190,87 +213,158 @@ public final class SetupPermissions {
     }
 
     public static void clearPagePermissions(final String primaryKey) throws PortalException {
-
-        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(SetupConfigurationThreadLocal.getRunInCompanyId(),
-                Layout.class.getName(), ResourceConstants.SCOPE_INDIVIDUAL, String.valueOf(primaryKey));
+        ResourcePermissionLocalServiceUtil.deleteResourcePermissions(
+            SetupConfigurationThreadLocal.getRunInCompanyId(),
+            Layout.class.getName(),
+            ResourceConstants.SCOPE_INDIVIDUAL,
+            String.valueOf(primaryKey)
+        );
     }
 
-    public static void updatePermission(final String locationHint, final long companyId,
-            final long elementId, final Class clazz, final RolePermissions rolePermissions,
-            final Map<String, List<String>> defaultPermissions) {
-
-        updatePermission(locationHint, companyId, elementId, clazz.getName(), rolePermissions,
-                defaultPermissions);
-    }
-    
-    public static void updatePermission(final String locationHint, final long companyId,
-            final long elementId, final String className, final RolePermissions rolePermissions,
-            final Map<String, List<String>> defaultPermissions) {
-
-    	updatePermission(locationHint, companyId, Arrays.asList(new Long[] {elementId}), className, rolePermissions,
-                defaultPermissions);
-    }
-    
-    public static void updatePermission(final String locationHint, final long companyId,
-            final List<Object> elementIdList, final Class clazz, final RolePermissions rolePermissions,
-            final Map<String, List<String>> defaultPermissions) {
-    	updatePermission(locationHint, companyId, elementIdList, clazz.getName(), rolePermissions, defaultPermissions);
+    public static void updatePermission(
+        final String locationHint,
+        final long companyId,
+        final long elementId,
+        final Class clazz,
+        final RolePermissions rolePermissions,
+        final Map<String, List<String>> defaultPermissions
+    ) {
+        updatePermission(locationHint, companyId, elementId, clazz.getName(), rolePermissions, defaultPermissions);
     }
 
-    public static void updatePermission(final String locationHint, final long companyId,
-            final List<Object> elementIdList, final String className, final RolePermissions rolePermissions,
-            final Map<String, List<String>> defaultPermissions) {
+    public static void updatePermission(
+        final String locationHint,
+        final long companyId,
+        final long elementId,
+        final String className,
+        final RolePermissions rolePermissions,
+        final Map<String, List<String>> defaultPermissions
+    ) {
+        updatePermission(
+            locationHint,
+            companyId,
+            Arrays.asList(new Long[] { elementId }),
+            className,
+            rolePermissions,
+            defaultPermissions
+        );
+    }
+
+    public static void updatePermission(
+        final String locationHint,
+        final long companyId,
+        final List<Object> elementIdList,
+        final Class clazz,
+        final RolePermissions rolePermissions,
+        final Map<String, List<String>> defaultPermissions
+    ) {
+        updatePermission(locationHint, companyId, elementIdList, clazz.getName(), rolePermissions, defaultPermissions);
+    }
+
+    public static void updatePermission(
+        final String locationHint,
+        final long companyId,
+        final List<Object> elementIdList,
+        final String className,
+        final RolePermissions rolePermissions,
+        final Map<String, List<String>> defaultPermissions
+    ) {
         boolean useDefaultPermissions = false;
         if (rolePermissions != null) {
             List<String> actions = new ArrayList<>();
             if (rolePermissions.isClearPermissions()) {
-            	for (Object elementId : elementIdList) {
-	                try {
-	                    SetupPermissions.removePermission(companyId, className, String.valueOf(elementId));
-	                } catch (PortalException | SystemException e) {
-	                    LOG.error(String.format("Permissions for %1$s could not be cleared. (elId:%2$s)", locationHint, elementId), e);
-	                }
+                for (Object elementId : elementIdList) {
+                    try {
+                        SetupPermissions.removePermission(companyId, className, String.valueOf(elementId));
+                    } catch (PortalException | SystemException e) {
+                        LOG.error(
+                            String.format(
+                                "Permissions for %1$s could not be cleared. (elId:%2$s)",
+                                locationHint,
+                                elementId
+                            ),
+                            e
+                        );
+                    }
                 }
             }
-//             else {
-            	List<RolePermission> rmRolePermissionList = rolePermissions.getRemoveRolePermission();
-            	if (rmRolePermissionList != null) {
-            		for (RolePermission rp : rmRolePermissionList) {
-            			actions.clear();
-            			String roleName = rp.getRoleName();
-            			List<PermissionAction> roleActions = rp.getPermissionAction();
-            			for (PermissionAction pa : roleActions) {
-            				String actionName = pa.getActionName();
-            				actions.add(actionName);
-            			}
-            			for (Object elementId : elementIdList) {
-            				try {
-            					// we need to have 'NO_XXX_RIGHT', and not MISSING XXX_RIGHT; and 
-            					// LR optimizes out remove-action-right when there is no permission row
-            					// to substract from.. so let there be a row.
-            					SetupPermissions.addPermission(roleName, className, String.valueOf(elementId),
-            							actions.toArray(new String[actions.size()]));
-            				} catch (SystemException e) {
-            					LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be removed, step add. ",
-            							e);
-            				} catch (NullPointerException e) {
-            					LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be removed, step add. "
-            							+ "Probably role not found! ", e);
-            				}
-            				try {
-            					SetupPermissions.removePermission(roleName, className, String.valueOf(elementId),
-            							actions.toArray(new String[actions.size()]));
-            				} catch (SystemException e) {
-            					LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be removed, step rm. ",
-            							e);
-            				} catch (NullPointerException e) {
-            					LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be removed, step rm. "
-            							+ "Probably role not found! ", e);
-            				}
-            			}
-            		}
-            	}
-//            }
+            //             else {
+            List<RolePermission> rmRolePermissionList = rolePermissions.getRemoveRolePermission();
+            if (rmRolePermissionList != null) {
+                for (RolePermission rp : rmRolePermissionList) {
+                    actions.clear();
+                    String roleName = rp.getRoleName();
+                    List<PermissionAction> roleActions = rp.getPermissionAction();
+                    for (PermissionAction pa : roleActions) {
+                        String actionName = pa.getActionName();
+                        actions.add(actionName);
+                    }
+                    for (Object elementId : elementIdList) {
+                        try {
+                            // we need to have 'NO_XXX_RIGHT', and not MISSING XXX_RIGHT; and
+                            // LR optimizes out remove-action-right when there is no permission row
+                            // to substract from.. so let there be a row.
+                            SetupPermissions.addPermission(
+                                roleName,
+                                className,
+                                String.valueOf(elementId),
+                                actions.toArray(new String[actions.size()])
+                            );
+                        } catch (SystemException e) {
+                            LOG.error(
+                                "Permissions for " +
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be removed, step add. ",
+                                e
+                            );
+                        } catch (NullPointerException e) {
+                            LOG.error(
+                                "Permissions for " +
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be removed, step add. " +
+                                "Probably role not found! ",
+                                e
+                            );
+                        }
+                        try {
+                            SetupPermissions.removePermission(
+                                roleName,
+                                className,
+                                String.valueOf(elementId),
+                                actions.toArray(new String[actions.size()])
+                            );
+                        } catch (SystemException e) {
+                            LOG.error(
+                                "Permissions for " +
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be removed, step rm. ",
+                                e
+                            );
+                        } catch (NullPointerException e) {
+                            LOG.error(
+                                "Permissions for " +
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be removed, step rm. " +
+                                "Probably role not found! ",
+                                e
+                            );
+                        }
+                    }
+                }
+            }
+            //            }
             List<RolePermission> rolePermissionList = rolePermissions.getRolePermission();
             if (rolePermissionList != null) {
                 for (RolePermission rp : rolePermissionList) {
@@ -282,16 +376,30 @@ public final class SetupPermissions {
                         actions.add(actionName);
                     }
                     for (Object elementId : elementIdList) {
-	                    try {
-	                        SetupPermissions.addPermission(roleName, className, String.valueOf(elementId),
-	                                actions.toArray(new String[actions.size()]));
-	                    } catch (SystemException e) {
-	                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be set. ",
-	                                e);
-	                    } catch (NullPointerException e) {
-	                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be set. "
-	                                + "Probably role not found! ", e);
-	                    }
+                        try {
+                            SetupPermissions.addPermission(
+                                roleName,
+                                className,
+                                String.valueOf(elementId),
+                                actions.toArray(new String[actions.size()])
+                            );
+                        } catch (SystemException e) {
+                            LOG.error(
+                                "Permissions for " + roleName + " for " + locationHint + " " + "could not be set. ",
+                                e
+                            );
+                        } catch (NullPointerException e) {
+                            LOG.error(
+                                "Permissions for " +
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be set. " +
+                                "Probably role not found! ",
+                                e
+                            );
+                        }
                     }
                 }
             } else {
@@ -307,18 +415,31 @@ public final class SetupPermissions {
                 actions = defaultPermissions.get(roleName);
                 for (Object elementId : elementIdList) {
                     try {
-		                SetupPermissions.addPermission(roleName, className, String.valueOf(elementId),
-		                        actions.toArray(new String[actions.size()]));
+                        SetupPermissions.addPermission(
+                            roleName,
+                            className,
+                            String.valueOf(elementId),
+                            actions.toArray(new String[actions.size()])
+                        );
                     } catch (SystemException e) {
-                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be defaulted. ",
-                                e);
+                        LOG.error(
+                            "Permissions for " + roleName + " for " + locationHint + " " + "could not be defaulted. ",
+                            e
+                        );
                     } catch (NullPointerException e) {
-                        LOG.error("Permissions for " + roleName + " for " + locationHint + " " + "could not be defaulted. "
-                                + "Probably role not found! ", e);
+                        LOG.error(
+                            "Permissions for " +
+                            roleName +
+                            " for " +
+                            locationHint +
+                            " " +
+                            "could not be defaulted. " +
+                            "Probably role not found! ",
+                            e
+                        );
                     }
-		        }
+                }
             }
         }
     }
-
 }

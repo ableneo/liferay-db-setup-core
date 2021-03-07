@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
-           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup" version="2.0">
+           targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup" version="2.1">
 
     <xs:element name="setup">
         <xs:annotation>
             <xs:appinfo>Liferay Setup Configuration</xs:appinfo>
             <xs:documentation xml:lang="en">
-                This configuration is used to setup Liferay DB with desired entities. It can be applied to: default, one, many Liferay instances at once. Additionally one can specify the groups on which the setup will take place.
+                This configuration is used to setup Liferay DB with desired entities. It can be applied to: default,
+                one, many Liferay instances at once. Additionally one can specify the groups on which the setup will
+                take place.
             </xs:documentation>
         </xs:annotation>
         <xs:complexType>
@@ -127,7 +129,7 @@
             </xs:documentation>
         </xs:annotation>
     </xs:element>
-    
+
     <xs:element name="portal">
         <xs:annotation>
             <xs:documentation>
@@ -144,7 +146,8 @@
     <xs:element name="company">
         <xs:annotation>
             <xs:documentation>
-                Used to define companies and groups on whose below defined setup configuration will run. When not specified setup will only take place on default company and "Guest" group within.
+                Used to define companies and groups on whose below defined setup configuration will run. When not
+                specified setup will only take place on default company and "Guest" group within.
             </xs:documentation>
         </xs:annotation>
         <xs:complexType>
@@ -157,7 +160,9 @@
                 <xs:element name="group-name" type="xs:string" minOccurs="0" maxOccurs="unbounded">
                     <xs:annotation>
                         <xs:documentation>
-                            Setup configuration will be executed on every provided group or only on "Guest" group if none is provided. If you need separate setups for different groups create different configuration file per group and execute all of them.
+                            Setup configuration will be executed on every provided group or only on "Guest" group if
+                            none is provided. If you need separate setups for different groups create different
+                            configuration file per group and execute all of them.
                         </xs:documentation>
                     </xs:annotation>
                 </xs:element>
@@ -296,7 +301,7 @@
 		<xs:attribute name="column" type="xs:string" use="required"/>
 		<xs:attribute name="column-position" type="xs:int" default="-1"/>
     </xs:complexType>
-    
+
     <xs:element name="menu-view-portlet" type="menu-view-portlet"></xs:element>
     <xs:complexType name="menu-view-portlet">
         <xs:annotation>

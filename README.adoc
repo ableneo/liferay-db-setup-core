@@ -1,8 +1,14 @@
-= Liferay Portal DB Setup core image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches] image:https://badges.gitter.im/ableneo/liferay-db-setup-core.png[Gitter chat,link=https://gitter.im/ableneo/liferay-db-setup-core] image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x]
+= Liferay Portal DB Setup core
+:TOC:
+
+image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches]
+image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x]
+
 
 Library that allows to setup a number of https://github.com/liferay[Liferay] artifacts in the DB. It uses xml and https://docs.liferay.com/portal/7.0/javadocs/portal-kernel[Liferay APIs] to add all configured artifacts.
 
-= Motivation
+
+== Motivation
 
 We use https://github.com/liferay[Liferay] as an application building platform.
 
@@ -10,18 +16,18 @@ In the approach pages, portlets, content and permissions serve as a building blo
 
 The library helps to fix what need to be fixed across environments while allowing to use as much of a portal flexibility as needed.
 
-= Usage
+== Usage
 
-== Liferay Portal requirements
+=== Liferay Portal requirements
 
 The code is compatible with *Liferay Portal DXP/7.x*. We maintain a https://github.com/ableneo/liferay-db-setup-core/tree/1.x[separate branch] for *Liferay Portal EE/CE 6.2.x*.
 
-== Maven project setup
+=== Maven project setup
 
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 . Download sources.
-. Install Maven 3.x.
+. Install Maven 3.6.3 or higher.
 . run `mvn clean install`
 . grab jar from `./target` or use as a dependency in your maven project
 +
@@ -34,9 +40,9 @@ We didn't publish binary yet so you'll need to build the jar yourself. Here are 
 </dependency>
 ----
 
-== Integration
+=== Integration
 
-Run <code>com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)</code> with following xml configuration:
+Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`] with following xml configuration:
 
 [source,xml]
 ----
@@ -58,14 +64,26 @@ Run <code>com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)</cod
 </setup>
 ----
 
-When adding the library to a liferay OSGI module it will be necessary to specify the dependency into the bnd file:
+Preferred way is to deploy bundle to the portal.
 
-[source,gradle]
-----
-Include-Resource: @db-setup-core-2.2.0-SNAPSHOT.jar
-----
+.Include dependency in `build.gradle`:
+```groovy
+dependencies {
+    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:7.3.5.0-SNAPSHOT'
+}
+```
 
-the name of the file is the same that you will find inside the maven/gradle repository.
+.Include dependency in `pom.xml`:
+```xml
+<dependencies>
+    <dependency>
+        <groupId>com.ableneo.liferay</groupId>
+        <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
+        <version>7.3.5.0-SNAPSHOT</version>
+        <scope>provided</scope>
+    </dependency>
+</dependencies>
+```
 
 == Contributing
 
@@ -73,9 +91,8 @@ Want/need to hack on db-setup-core? See our link:CONTRIBUTING.md[super short con
 
 They are probably not perfect, please let me know if anything feels wrong or incomplete.
 
-= Roadmap
+== Roadmap
 
-* OSGi descriptors exporting link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[LiferaySetup]
 * reference documentation
 * more tests
 * how-to guides
@@ -86,15 +103,23 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 === Features & bug fixes
 
-* OSGI descriptors in JAR
+* OSGI descriptors in JAR, the bundle can be deployed and work as a standalone Liferay 7.x bundle
 * instance import feature added, credit goes to https://github.com/bimki[@bimki] - thank you!
 * portal properties feature added, credit goes to https://github.com/fabalint[@fabalint] - thank you!
+* new helper methods to run the setup (ported from 1.x branch):
+** `com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.InputStream)`
+** `com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`
+* fixed categorization idempotency (vocabulary and category name handling)
+* fixed language handling for groups
 
 === Refactorings & project changes
 
+* improved javadoc in entrypoint `com.ableneo.liferay.portal.setup.LiferaySetup` class
 * upped dependencies to https://liferay.dev/blogs/-/blogs/liferay-portal-7-3-ce-ga6-release[Liferay 7.3.5], credit goes to https://github.com/fabalint[@fabalint] - thank you!
 * changed versioning so that major.minor.patch version reflects target platform, build version will be used to track changes in the library
 * documentation format conversion from markdown to https://asciidoc.org/[aciidoc]
+* added slf4j and changed logger in few classes for more ergonomic log message interpolation (Liferay 7.x provides slf4j by default)
+* added prettier formatter to the project
 
 == Version 2.2.0-SNAPSHOT
 

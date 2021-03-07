@@ -1,32 +1,5 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-/*
- * #%L
- * Liferay Portal DB Setup core
- * %%
- * Original work Copyright (C) 2016 - 2018 mimacom ag
- * Modified work Copyright (C) 2018 - 2020 ableneo, s. r. o.
- * %%
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- * #L%
- */
-
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
@@ -43,12 +16,9 @@ import com.liferay.portal.kernel.service.ServiceContext;
  * @author msi
  */
 public final class DocumentUtil {
-
     private static final Log LOG = LogFactoryUtil.getLog(DocumentUtil.class);
 
-    private DocumentUtil() {
-
-    }
+    private DocumentUtil() {}
 
     /**
      * Tries to retrieve the file entry of a document.
@@ -59,8 +29,12 @@ public final class DocumentUtil {
      * @param repoId the id of the repository where the file is stored.
      * @return Returns the file entry of the specified document.
      */
-    public static FileEntry findDocument(final String documentName, final String folderPath, final long groupId,
-            final long repoId) {
+    public static FileEntry findDocument(
+        final String documentName,
+        final String folderPath,
+        final long groupId,
+        final long repoId
+    ) {
         Folder folder = FolderUtil.findFolder(groupId, repoId, folderPath, false);
         FileEntry entry = null;
         if (folder != null) {
@@ -111,12 +85,26 @@ public final class DocumentUtil {
      * @param sourceFileName The filename of the file.
      */
     // FIXME jdk11
-    public static void updateFile(final FileEntry fe, final byte[] content, final long userId,
-            final String sourceFileName) {
+    public static void updateFile(
+        final FileEntry fe,
+        final byte[] content,
+        final long userId,
+        final String sourceFileName
+    ) {
         try {
-        	DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
-            DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName, fe.getMimeType(),
-                    fe.getTitle(), fe.getDescription(), "update content", inc, content, new ServiceContext());
+            DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
+            DLAppLocalServiceUtil.updateFileEntry(
+                userId,
+                fe.getFileEntryId(),
+                sourceFileName,
+                fe.getMimeType(),
+                fe.getTitle(),
+                fe.getDescription(),
+                "update content",
+                inc,
+                content,
+                new ServiceContext()
+            );
         } catch (Exception e) {
             LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
@@ -152,8 +140,15 @@ public final class DocumentUtil {
      * @return returns the file entry of the created file.
      */
     // CHECKSTYLE:OFF
-    public static FileEntry createDocument(final long groupId, final long folderId, final String fileName,
-            final String title, final long userId, final long repoId, final byte[] content) {
+    public static FileEntry createDocument(
+        final long groupId,
+        final long folderId,
+        final String fileName,
+        final String title,
+        final long userId,
+        final long repoId,
+        final byte[] content
+    ) {
         String fname = FilePathUtil.getFileName(fileName);
         String extension = FilePathUtil.getExtension(fname);
         String mtype = MimeTypeMapper.getInstance().getMimeType(extension);
@@ -167,12 +162,22 @@ public final class DocumentUtil {
         }
         if (fileEntry == null) {
             try {
-                fileEntry = DLAppLocalServiceUtil.addFileEntry(userId, repoId, folderId, fname, mtype, title, title,
-                        "Ableneo import", content, new ServiceContext());
+                fileEntry =
+                    DLAppLocalServiceUtil.addFileEntry(
+                        userId,
+                        repoId,
+                        folderId,
+                        fname,
+                        mtype,
+                        title,
+                        title,
+                        "Ableneo import",
+                        content,
+                        new ServiceContext()
+                    );
             } catch (PortalException e) {
                 LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);
             }
-
         }
         return fileEntry;
     }
