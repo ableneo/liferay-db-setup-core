@@ -31,13 +31,42 @@ The code is compatible with *Liferay Portal DXP/7.3.5*. Other versions that have
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 . Download sources.
+. Install JDK 1.8
 . Install Maven 3.6.3 or higher.
-. run `mvn clean install`
+. Run: `mvn clean install`
+
+==== Automated local build environment setup with nix
+
+===== nix + nix-shell
+Sets up required JDK and all other software required for building. Does not change any global OS settings. Building environment is local to the project e.g. you're using JDK11 by default.
+
+Helps if you want to build the project without changing global system JDK/Maven settings.
+
+. Install nix: https://nixos.org/guides/install-nix.html
+. Run:
++
+```bash
+cd liferay-db-setup-core
+nix-shell
+mvn clean install
+```
+
+===== nix + direnv
+Enters local development environment for the project every time you cd into the project directory.
+
+. Install nix: https://nixos.org/guides/install-nix.html
+. Install direnv_nix: https://github.com/nix-community/nix-direnv#with-nix-env
+. Run:
++
+```bash
+cd liferay-db-setup-core
+mvn clean install
+```
+
 
 === Integration
 
 Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`] with following xml configuration:
-
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -114,6 +143,7 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 * documentation format conversion from markdown to https://asciidoc.org/[aciidoc]
 * added slf4j and changed logger in few classes for more ergonomic log message interpolation (Liferay 7.x provides slf4j by default)
 * added prettier formatter to the project
+* added build environment setup automation with <<_automated_local_build_environment_setup_with_nix,nix>>
 
 == Version 2.2.0-SNAPSHOT
 

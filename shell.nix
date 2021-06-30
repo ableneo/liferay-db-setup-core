@@ -14,19 +14,25 @@
 #  - git
 #  - bash shell with command completion
 #
-{ pkgs ? import <nixpkgs> { overlays = [( self: super:
-{
-    maven = super.maven.override {
-        jdk = self.adoptopenjdk-hotspot-bin-8; # use jdk8 with maven
-    };
-}
-)]; } }:
+with import <nixpkgs> { overlays =
+    [( self: super:
+    {
+        maven = super.maven.override {
+            jdk = self.adoptopenjdk-hotspot-bin-8; # use jdk8 with maven
+        };
+    }
+    )];
+};
 
-(pkgs.buildFHSUserEnv {
-    name = "db-setup-core";
-    targetPkgs = pkgs: (with pkgs; [ adoptopenjdk-hotspot-bin-8 maven gitAndTools.gitFull bash-completion bash]) ++ (with pkgs.xorg; []);
-    multiPkgs = pkgs: (with pkgs; [ ]);
-    runScript = ''
-        env SHELL_NAME="db-setup-core" bash --rcfile <(cat ~/.bashrc; echo 'source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-completion.bash"; source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-prompt.sh";')
+mkShell {
+    buildInputs = [
+        adoptopenjdk-hotspot-bin-8
+        maven
+        gitAndTools.gitFull
+        bash
+        bash-completion
+    ];
+    shellHook = ''
+        bash --rcfile <(cat ~/.bashrc; echo 'source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-completion.bash"; source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-prompt.sh";')
     '';
-}).env
+}
