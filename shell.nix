@@ -32,7 +32,4 @@ mkShell {
         bash
         bash-completion
     ];
-    shellHook = ''
-        bash --rcfile <(cat ~/.bashrc; echo 'source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-completion.bash"; source "${pkgs.gitAndTools.gitFull}/share/git/contrib/completion/git-prompt.sh";')
-    '';
 }
