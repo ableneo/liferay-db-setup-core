@@ -66,7 +66,7 @@ mvn clean install
 ```
 
 
-=== Integration
+=== 4 Step Integration
 
 . Install the `com.ableneo.liferay.db.setup.core-{liferay-version}.*.jar` bundle in `${liferay.home}/osgi/modules`
 . Prepare your own bundle that uses the library as a `provided`/`compileOnly` dependency. For example:
@@ -126,25 +126,9 @@ image:doc/xsd-inline-documentation.png[]
 ----
 ├── com
 │   └── example
-│       └── (some classes that run #runDbSetupConfiguration method)
+│       └── (some classes that runs #runDbSetupConfiguration method with specific data setup file e.g. bundle activator, panel app, upgrade step, it's common to have )
 ├── setup.xml
 ----
-
-Preferred way is to deploy bundle to the portal.
-
-
-.Include dependency in `pom.xml`:
-[subs=attributes+]
-```xml
-<dependencies>
-    <dependency>
-        <groupId>com.ableneo.liferay</groupId>
-        <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
-        <version>{liferay-version}.0-SNAPSHOT</version>
-        <scope>provided</scope>
-    </dependency>
-</dependencies>
-```
 
 == Contributing
 
