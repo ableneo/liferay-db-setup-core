@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <version>7.3.5.0-SNAPSHOT</version>
+    <version>7.3.6.0-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
@@ -13,7 +13,8 @@
 
     <properties>
         <!--  7.3:  -->
-        <liferay.release.bom.version>7.3.5</liferay.release.bom.version>
+        <liferay.version>7.3.6</liferay.version>
+        <liferay.version.portal.api>${liferay.version}-ga7</liferay.version.portal.api>
 
         <jmockit.version>1.46</jmockit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -114,30 +115,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
-                <configuration>
-                    <filters>
-                        <filter>
-                            <artifact>com.liferay.portal:com.liferay.portal.impl</artifact>
-                            <includes>
-                                <include>**/*.class</include>
-                            </includes>
-                        </filter>
-                    </filters>
-                    <minimizeJar>true</minimizeJar>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.22.1</version>
                 <dependencies>
@@ -154,7 +131,8 @@
                 </dependencies>
                 <configuration>
                     <argLine>
-                        @{argLine} -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+                        @{argLine}
+                        -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
                     </argLine>
                 </configuration>
             </plugin>
@@ -248,21 +226,14 @@
             <dependency>
                 <groupId>com.liferay.portal</groupId>
                 <artifactId>release.portal.bom</artifactId>
-                <version>${liferay.release.bom.version}</version>
+                <version>${liferay.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>com.liferay.portal</groupId>
                 <artifactId>release.portal.bom.third.party</artifactId>
-                <version>${liferay.release.bom.version}</version>
-                <scope>import</scope>
-                <type>pom</type>
-            </dependency>
-            <dependency>
-                <groupId>com.liferay.portal</groupId>
-                <artifactId>release.portal.bom.compile.only</artifactId>
-                <version>${liferay.release.bom.version}</version>
+                <version>${liferay.version}</version>
                 <scope>import</scope>
                 <type>pom</type>
             </dependency>
@@ -270,24 +241,19 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <!-- special dependency, only one class is used, included to the jar with share plugin above -->
             <groupId>com.liferay.portal</groupId>
-            <artifactId>com.liferay.portal.impl</artifactId>
+            <artifactId>release.portal.api</artifactId>
+            <version>${liferay.version.portal.api}</version>
         </dependency>
         <dependency>
-            <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.petra.string</artifactId>
-            <scope>provided</scope>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
         </dependency>
-        <dependency>
-            <!-- 7.3 dep tree changes -->
-            <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.petra.sql.dsl.api</artifactId>
-            <scope>provided</scope>
-        </dependency>
+        <!-- debug deps -->
+        <!--
         <dependency>
             <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.petra.lang</artifactId>
+            <artifactId>com.liferay.site.navigation.service</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -296,60 +262,18 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.journal.api</artifactId>
+            <groupId>com.liferay.portal</groupId>
+            <artifactId>com.liferay.portal.impl</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.dynamic.data.lists.api</artifactId>
+            <artifactId>com.liferay.dynamic.data.mapping.service</artifactId>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.liferay</groupId>
-            <artifactId>com.liferay.dynamic.data.mapping.api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-		    <groupId>com.liferay</groupId>
-		    <artifactId>com.liferay.site.navigation.api</artifactId>
-            <scope>provided</scope>
-		</dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-		<!-- debug deps -->
-		<!--
-        <dependency>
-		    <groupId>com.liferay</groupId>
-		    <artifactId>com.liferay.site.navigation.service</artifactId>
-            <scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>com.liferay.portal</groupId>
-		    <artifactId>com.liferay.portal.kernel</artifactId>
-		    <scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>com.liferay.portal</groupId>
-		    <artifactId>com.liferay.portal.impl</artifactId>
-		    <scope>provided</scope>
-		</dependency>
-		<dependency>
-		    <groupId>com.liferay</groupId>
-		    <artifactId>com.liferay.dynamic.data.mapping.service</artifactId>
-		    <scope>provided</scope>
-		</dependency>
-		 -->
-		<!-- debug deps END -->
+         -->
+        <!-- debug deps END -->
 
-        <dependency>
-            <groupId>javax.portlet</groupId>
-            <artifactId>portlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <!-- Test -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -386,25 +310,25 @@
             </activation>
             <dependencies>
                 <dependency>
-                  <groupId>javax.xml.bind</groupId>
-                  <artifactId>jaxb-api</artifactId>
-                  <version>2.3.0</version>
+                    <groupId>javax.xml.bind</groupId>
+                    <artifactId>jaxb-api</artifactId>
+                    <version>2.3.0</version>
                 </dependency>
                 <dependency>
-                  <groupId>com.sun.xml.bind</groupId>
-                  <artifactId>jaxb-core</artifactId>
-                  <version>2.3.0</version>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-core</artifactId>
+                    <version>2.3.0</version>
                 </dependency>
                 <dependency>
-                  <groupId>com.sun.xml.bind</groupId>
-                  <artifactId>jaxb-impl</artifactId>
-                  <version>2.3.0</version>
+                    <groupId>com.sun.xml.bind</groupId>
+                    <artifactId>jaxb-impl</artifactId>
+                    <version>2.3.0</version>
                 </dependency>
                 <dependency>
-				    <groupId>javax.activation</groupId>
-				    <artifactId>activation</artifactId>
-				    <version>1.1.1</version>
-				</dependency>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                    <version>1.1.1</version>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>

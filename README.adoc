@@ -122,6 +122,24 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 = Changelog
 
+== Version 7.3.6.0
+
+=== Features & bug fixes
+* Bumped target Liferay Portal version to minimum 7.3.6 ga7.
+* Improved category/vocabulary idempotency, it's possible to update categories and vocabularies with optional uuid, before categories/vocabularies were identified only by name. That allows to update a category name which wasn't possible before.
+* Improved categories/vocabulary updates performance, update is only issued if anything in the definition differs compared to the data in the DB.
+* Category by_name search is scoped only to a particular vocabulary.
+* Added property element in categories that allows to define AssetCategoryProperty. These are identified by a key. 
++
+TIP: TODO: deletion of existing property.
+
+=== Refactorings & project changes
+* divided xsd to "elements" and "types" parts, replaced many element references with types which improves naming flexibility
+* every xsd type follows is camel cased and suffixed with word: Type, e.g. UuidType
+* simplified dependency management with `release.portal.bom`
+* removed `shade` maven plugin as portal exports `com.liferay.portlet.asset.util` package already in `org.eclipse.osgi_3.13.0.LIFERAY-PATCHED-11` bundle
+
+
 == Version 7.3.5.0
 
 === Features & bug fixes

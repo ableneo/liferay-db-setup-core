@@ -2,7 +2,7 @@ package com.ableneo.liferay.portal.setup.core;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.domain.CustomFields;
-import com.ableneo.liferay.portal.setup.domain.RolePermission;
+import com.ableneo.liferay.portal.setup.domain.RolePermissionType;
 import com.liferay.expando.kernel.model.*;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
@@ -104,7 +104,7 @@ public final class SetupCustomFields {
     }
 
     private static void setCustomFieldPermission(
-        final List<RolePermission> rolePermissions,
+        final List<RolePermissionType> rolePermissions,
         final ExpandoBridge bridge,
         final String fieldName
     ) {
@@ -116,7 +116,7 @@ public final class SetupCustomFields {
             ExpandoTableConstants.DEFAULT_TABLE_NAME,
             fieldName
         );
-        for (RolePermission rolePermission : rolePermissions) {
+        for (RolePermissionType rolePermission : rolePermissions) {
             String roleName = rolePermission.getRoleName();
             String permission = rolePermission.getPermission();
             switch (permission) {

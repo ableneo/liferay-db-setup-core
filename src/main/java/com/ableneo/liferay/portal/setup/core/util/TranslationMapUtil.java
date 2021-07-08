@@ -1,21 +1,23 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-import com.ableneo.liferay.portal.setup.domain.Translation;
+import com.ableneo.liferay.portal.setup.domain.TranslationType;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class TranslationMapUtil {
     private static final Logger LOG = LoggerFactory.getLogger(TranslationMapUtil.class);
 
-    private TranslationMapUtil() {}
+    private TranslationMapUtil() {
+    }
 
     public static Map<Locale, String> getTranslationMap(
-        final List<Translation> translations,
+        final List<TranslationType> translations,
         final long groupId,
         final String defaultLocaleTitle,
         final String locationHint
@@ -24,7 +26,7 @@ public final class TranslationMapUtil {
 
         translationMap.put(LocaleUtil.getSiteDefault(), defaultLocaleTitle);
         if (translations != null) {
-            for (Translation translation : translations) {
+            for (TranslationType translation : translations) {
                 try {
                     // convert posix locale format to language tag
                     Locale locale = Locale.forLanguageTag(translation.getLocale().replace('_', '-'));
