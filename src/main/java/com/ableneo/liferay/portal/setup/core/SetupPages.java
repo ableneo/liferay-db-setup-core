@@ -4,17 +4,17 @@ import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.core.util.CustomFieldSettingUtil;
 import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
 import com.ableneo.liferay.portal.setup.core.util.TranslationMapUtil;
-import com.ableneo.liferay.portal.setup.domain.ArticleDisplayPortlet;
-import com.ableneo.liferay.portal.setup.domain.AssetPublisherPortlet;
+import com.ableneo.liferay.portal.setup.domain.ArticleDisplayPortletType;
+import com.ableneo.liferay.portal.setup.domain.AssetPublisherPortletType;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
-import com.ableneo.liferay.portal.setup.domain.MenuViewPortlet;
-import com.ableneo.liferay.portal.setup.domain.Page;
-import com.ableneo.liferay.portal.setup.domain.PagePortlet;
+import com.ableneo.liferay.portal.setup.domain.MenuViewPortletType;
+import com.ableneo.liferay.portal.setup.domain.PageType;
+import com.ableneo.liferay.portal.setup.domain.PagePortletType;
 import com.ableneo.liferay.portal.setup.domain.PageTemplate;
 import com.ableneo.liferay.portal.setup.domain.PageTemplates;
-import com.ableneo.liferay.portal.setup.domain.Pages;
+import com.ableneo.liferay.portal.setup.domain.PagesType;
 import com.ableneo.liferay.portal.setup.domain.PortletPreference;
-import com.ableneo.liferay.portal.setup.domain.PropertyKeyValue;
+import com.ableneo.liferay.portal.setup.domain.PropertyKeyValueType;
 import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.ableneo.liferay.portal.setup.domain.Theme;
@@ -144,7 +144,7 @@ public final class SetupPages {
      * @throws PortalException
      */
     public static void setupSitePages(final Site site, final long groupId) throws PortalException {
-        Pages publicPages = site.getPublicPages();
+        PagesType publicPages = site.getPublicPages();
         long company = SetupConfigurationThreadLocal.getRunInCompanyId();
         long userid = SetupConfigurationThreadLocal.getRunAsUserId();
         if (publicPages != null) {
@@ -170,7 +170,7 @@ public final class SetupPages {
             }
         }
 
-        Pages privatePages = site.getPrivatePages();
+        PagesType privatePages = site.getPrivatePages();
         if (privatePages != null) {
             if (privatePages.getTheme() != null) {
                 setupTheme(groupId, privatePages.getTheme(), true);
@@ -241,7 +241,7 @@ public final class SetupPages {
                     if (lp != null) {
                         Layout layout = lp.getLayout();
                         if (pageTemplate.getPage() != null) {
-                            Page page = pageTemplate.getPage();
+                            PageType page = pageTemplate.getPage();
                             if (page.getFriendlyUrl() != null && !page.getFriendlyUrl().equals("")) {
                                 LOG.error(
                                     String.format(
@@ -284,13 +284,13 @@ public final class SetupPages {
         LayoutSetLocalServiceUtil.updateLayoutSet(set);
     }
 
-    private static UnicodeProperties mergeConvertProperties(UnicodeProperties original, List<PropertyKeyValue> props) {
+    private static UnicodeProperties mergeConvertProperties(UnicodeProperties original, List<PropertyKeyValueType> props) {
         if (props == null || props.isEmpty()) {
             return original;
         }
         UnicodeProperties res = new UnicodeProperties();
         res.putAll(original);
-        for (PropertyKeyValue kv : props) {
+        for (PropertyKeyValueType kv : props) {
             res.put(kv.getKey(), kv.getValue());
         }
         return res;
@@ -308,7 +308,7 @@ public final class SetupPages {
      * @throws PortalException
      */
     private static void addPages(
-        final List<Page> pages,
+        final List<PageType> pages,
         String defaultLayout,
         String defaultLayoutContainedInThemeWithId,
         final long groupId,
@@ -318,7 +318,7 @@ public final class SetupPages {
         final long userId
     )
         throws PortalException {
-        for (Page page : pages) {
+        for (PageType page : pages) {
             Layout layout = null;
             try {
                 layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, isPrivate, page.getFriendlyUrl());
@@ -376,7 +376,7 @@ public final class SetupPages {
 
     private static void setupLiferayPage(
         final Layout layout,
-        final Page page,
+        final PageType page,
         final String defaultLayout,
         final String defaultLayoutContainedInThemeWithId,
         final long groupId,
@@ -395,17 +395,17 @@ public final class SetupPages {
 
         setPageTarget(page, layout);
 
-        List<PagePortlet> portlets = page.getPagePortlet();
+        List<PagePortletType> portlets = page.getPagePortlet();
         if (portlets != null && !portlets.isEmpty()) {
             List<PortletWithRuntimeData> deferredAdd = new ArrayList<SetupPages.PortletWithRuntimeData>();
-            for (PagePortlet portlet : portlets) {
+            for (PagePortletType portlet : portlets) {
                 addRuntimeInfo(deferredAdd, portlet, page, layout, company, groupId);
             }
             portlets.clear();
             portlets.addAll(deferredAdd);
         }
 
-        List<Page> subPages = page.getPage();
+        List<PageType> subPages = page.getPage();
         if (subPages != null && !subPages.isEmpty()) {
             if (pageTemplateName != null && !pageTemplateName.equals("")) {
                 LOG.error(
@@ -454,7 +454,7 @@ public final class SetupPages {
     }
 
     private static Layout createLinkPage(
-        final Page p,
+        final PageType p,
         final long groupId,
         final long parentLayoutId,
         final long userId
@@ -509,7 +509,7 @@ public final class SetupPages {
         return layout;
     }
 
-    private static void updateLinkPage(final Page page, final long groupId) {
+    private static void updateLinkPage(final PageType page, final long groupId) {
         try {
             Layout layout = LayoutLocalServiceUtil.getFriendlyURLLayout(groupId, false, page.getFriendlyUrl());
             if (layout.getLayoutType().getTypeSettingsProperties().get("url") == null) {
@@ -549,7 +549,7 @@ public final class SetupPages {
 
     private static Layout createPage(
         final long groupId,
-        final Page currentPage,
+        final PageType currentPage,
         final long parentLayoutId,
         final boolean isPrivate
     )
@@ -587,7 +587,7 @@ public final class SetupPages {
         );
     }
 
-    private static void setCustomFields(final long groupId, final long company, final Page page, final Layout layout) {
+    private static void setCustomFields(final long groupId, final long company, final PageType page, final Layout layout) {
         Class clazz = Layout.class;
         String resolverHint =
             "Resolving customized value for page " +
@@ -610,7 +610,7 @@ public final class SetupPages {
         }
     }
 
-    private static void setPageTarget(final Page page, final Layout layout) {
+    private static void setPageTarget(final PageType page, final Layout layout) {
         UnicodeProperties props = layout.getTypeSettingsProperties();
         props.put("target", page.getTarget());
         layout.setTypeSettingsProperties(props);
@@ -633,7 +633,7 @@ public final class SetupPages {
         }
     }
 
-    private static void setPageTheme(final Layout layout, final Page page) {
+    private static void setPageTheme(final Layout layout, final PageType page) {
         Theme theme = page.getTheme();
         if (theme != null) {
             layout.setThemeId(theme.getName());
@@ -651,7 +651,7 @@ public final class SetupPages {
         }
     }
 
-    private static boolean isLinkPage(Page page) {
+    private static boolean isLinkPage(PageType page) {
         if (page.getLinkToUrl() != null && !page.getLinkToUrl().equals("")) {
             LOG.error(
                 "This is a link page! It cannot be cleared. If you intend to use this page for portlets, please delete this page, or remove the link from the page!"
@@ -663,9 +663,9 @@ public final class SetupPages {
     }
 
     private static void addAssetPublisherPortletIntoPage(
-        Page page,
+        PageType page,
         Layout layout,
-        AssetPublisherPortlet portlet,
+        AssetPublisherPortletType portlet,
         long company,
         long groupId
     )
@@ -683,9 +683,9 @@ public final class SetupPages {
             "; ADTgroupIdFrom:" +
             portlet.getAdtTemplateSiteUrl()
         );
-        PagePortlet toInsert = null;
+        PagePortletType toInsert = null;
 
-        toInsert = new PagePortlet();
+        toInsert = new PagePortletType();
         toInsert.setColumn(portlet.getColumn());
         toInsert.setColumnPosition(portlet.getColumnPosition());
         toInsert.setPortletId(portlet.getPortletId());
@@ -731,9 +731,9 @@ public final class SetupPages {
     }
 
     private static void addArticleDisplayPortletIntoPage(
-        final Page page,
+        final PageType page,
         final Layout layout,
-        final ArticleDisplayPortlet portlet,
+        final ArticleDisplayPortletType portlet,
         final long companyId,
         final long groupId
     )
@@ -753,7 +753,7 @@ public final class SetupPages {
             ":" +
             portlet.getArticleId()
         );
-        PagePortlet toInsert = null;
+        PagePortletType toInsert = null;
         long folderId = SetupArticles.getCreateFolderId(
             portlet.getArticleFolder().getFolderPath(),
             groupId,
@@ -768,7 +768,7 @@ public final class SetupPages {
         if (journalArticle != null) {
             Long assetEntryId = SetupArticles.getJournalAssetEntryId(journalArticle);
 
-            toInsert = new PagePortlet();
+            toInsert = new PagePortletType();
             toInsert.setColumn(portlet.getColumn());
             toInsert.setColumnPosition(portlet.getColumnPosition());
             toInsert.setPortletId(portlet.getPortletId());
@@ -788,9 +788,9 @@ public final class SetupPages {
     }
 
     private static void addMenuViewPortletIntoPage(
-        Page page,
+        PageType page,
         Layout layout,
-        MenuViewPortlet portlet,
+        MenuViewPortletType portlet,
         long companyId,
         long groupId
     )
@@ -811,7 +811,7 @@ public final class SetupPages {
             ":" +
             portlet.getMenuName()
         );
-        PagePortlet toInsert = null;
+        PagePortletType toInsert = null;
 
         Long menuId = getMenuIdByName(groupId, portlet.getMenuName());
         if (menuId == null || menuId == 0L) {
@@ -832,12 +832,11 @@ public final class SetupPages {
             .getPortletPreference()
             .add(newPortletPreference("displayStyleGroupId", String.valueOf(group.getPrimaryKey()))); //
 
-        toInsert = new PagePortlet();
+        toInsert = new PagePortletType();
         toInsert.setColumn(portlet.getColumn());
         toInsert.setColumnPosition(portlet.getColumnPosition());
         toInsert.setPortletId(portlet.getPortletId());
         toInsert.setRolePermissions(portlet.getRolePermissions());
-        //		toInsert.getPortletPreference().addAll(portlet.getPortletPreference());
         for (Entry<String, String> e : CONFIG_MENU_VIEW_PREFERENCES.entrySet()) {
             toInsert.getPortletPreference().add(newPortletPreference(e.getKey(), e.getValue()));
         }
@@ -851,8 +850,6 @@ public final class SetupPages {
 
         DDMTemplate ddmTemplate = null;
         try {
-            //ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, adtTemplate, true);
-            //            DDMTemplateLocalServiceUtil.getTemplate(0, 0, "left-menu-template".toUpperCase(), true);
             List<DDMTemplate> tplsWithoutStruct = DDMTemplateLocalServiceUtil.getTemplates(classNameId);
             for (DDMTemplate tpl : tplsWithoutStruct) {
                 if (
@@ -892,9 +889,9 @@ public final class SetupPages {
     }
 
     private static void addGenericPortletIntoPage(
-        final Page page,
+        final PageType page,
         final Layout layout,
-        final PagePortlet portlet,
+        final PagePortletType portlet,
         final long companyId,
         final long groupId
     )
@@ -915,9 +912,9 @@ public final class SetupPages {
     }
 
     private static void insertPortletIntoPage(
-        final Page page,
+        final PageType page,
         final Layout layout,
-        final PagePortlet portlet,
+        final PagePortletType portlet,
         final long companyId,
         final long groupId
     )
@@ -1000,10 +997,10 @@ public final class SetupPages {
     }
 
     public static void updatePortletDisplayPermissions(
-        PagePortlet portlet,
+        PagePortletType portlet,
         String portletIdInc,
         Layout layout,
-        Page page,
+        PageType page,
         long companyId,
         long groupId,
         RolePermissions rolePermissions,
@@ -1059,7 +1056,7 @@ public final class SetupPages {
     private static String resolvePortletPrefValue(
         final String key,
         final String value,
-        final PagePortlet portlet,
+        final PagePortletType portlet,
         final long company,
         final long groupId
     ) {
@@ -1067,7 +1064,7 @@ public final class SetupPages {
         return ResolverUtil.lookupAll(groupId, company, value, locationHint);
     }
 
-    public static void setLayoutTemplate(final Layout layout, final Page page, final long userid) {
+    public static void setLayoutTemplate(final Layout layout, final PageType page, final long userid) {
         if (layout.getLayoutType() instanceof LayoutTypePortlet) {
             LayoutTypePortlet portletLayout = (LayoutTypePortlet) layout.getLayoutType();
 
@@ -1187,19 +1184,19 @@ public final class SetupPages {
 
     public static void setupSitePortlets(Site site, long groupId) {
         if (site.getPrivatePages() != null) {
-            for (Page p : site.getPrivatePages().getPage()) {
+            for (PageType p : site.getPrivatePages().getPage()) {
                 setupPagePortlets(p, groupId);
             }
         }
         if (site.getPublicPages() != null) {
-            for (Page p : site.getPublicPages().getPage()) {
+            for (PageType p : site.getPublicPages().getPage()) {
                 setupPagePortlets(p, groupId);
             }
         }
     }
 
-    private static void setupPagePortlets(Page page, long groupId) {
-        for (PagePortlet p : page.getPagePortlet()) {
+    private static void setupPagePortlets(PageType page, long groupId) {
+        for (PagePortletType p : page.getPagePortlet()) {
             if (p instanceof PortletWithRuntimeData) {
                 addDeferredPortlet((PortletWithRuntimeData) p);
             } else {
@@ -1207,7 +1204,7 @@ public final class SetupPages {
             }
         }
         if (false == page.getPage().isEmpty()) {
-            for (Page sub : page.getPage()) {
+            for (PageType sub : page.getPage()) {
                 setupPagePortlets(sub, groupId);
             }
         }
@@ -1215,27 +1212,27 @@ public final class SetupPages {
 
     private static void addDeferredPortlet(PortletWithRuntimeData wrap) {
         try {
-            if (wrap.wrappedPortlet instanceof ArticleDisplayPortlet) {
+            if (wrap.wrappedPortlet instanceof ArticleDisplayPortletType) {
                 addArticleDisplayPortletIntoPage(
                     wrap.page,
                     wrap.layout,
-                    (ArticleDisplayPortlet) wrap.wrappedPortlet,
+                    (ArticleDisplayPortletType) wrap.wrappedPortlet,
                     wrap.company,
                     wrap.groupId
                 );
-            } else if (wrap.wrappedPortlet instanceof AssetPublisherPortlet) {
+            } else if (wrap.wrappedPortlet instanceof AssetPublisherPortletType) {
                 addAssetPublisherPortletIntoPage(
                     wrap.page,
                     wrap.layout,
-                    (AssetPublisherPortlet) wrap.wrappedPortlet,
+                    (AssetPublisherPortletType) wrap.wrappedPortlet,
                     wrap.company,
                     wrap.groupId
                 );
-            } else if (wrap.wrappedPortlet instanceof MenuViewPortlet) {
+            } else if (wrap.wrappedPortlet instanceof MenuViewPortletType) {
                 addMenuViewPortletIntoPage(
                     wrap.page,
                     wrap.layout,
-                    (MenuViewPortlet) wrap.wrappedPortlet,
+                    (MenuViewPortletType) wrap.wrappedPortlet,
                     wrap.company,
                     wrap.groupId
                 );
@@ -1249,8 +1246,8 @@ public final class SetupPages {
 
     private static void addRuntimeInfo(
         List<PortletWithRuntimeData> deferredAdd,
-        PagePortlet portlet,
-        Page page,
+        PagePortletType portlet,
+        PageType page,
         Layout layout,
         long company,
         long groupId
@@ -1265,12 +1262,12 @@ public final class SetupPages {
     }
 
     // TODO: better implement it.. maybe later.
-    private static class PortletWithRuntimeData extends PagePortlet {
+    private static class PortletWithRuntimeData extends PagePortletType {
         public long groupId;
         public long company;
         public Layout layout;
-        public Page page;
-        private PagePortlet wrappedPortlet;
+        public PageType page;
+        private PagePortletType wrappedPortlet;
     }
 
     public static final Map<String, String> CONFIG_MENU_VIEW_PREFERENCES = new HashMap<String, String>();

@@ -14,7 +14,7 @@ import com.ableneo.liferay.portal.setup.domain.RelatedAsset;
 import com.ableneo.liferay.portal.setup.domain.RelatedAssets;
 import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import com.ableneo.liferay.portal.setup.domain.Site;
-import com.ableneo.liferay.portal.setup.domain.Structure;
+import com.ableneo.liferay.portal.setup.domain.StructureType;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetLinkConstants;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
@@ -112,20 +112,20 @@ public final class SetupArticles {
     private SetupArticles() {}
 
     public static void setupSiteStructuresAndTemplates(final Site site, long groupId) throws PortalException {
-        List<Structure> articleStructures = site.getArticleStructure();
+        List<StructureType> articleStructures = site.getArticleStructure();
 
         if (articleStructures != null && false == articleStructures.isEmpty()) {
             long classNameId = ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class);
-            for (Structure structure : articleStructures) {
+            for (StructureType structure : articleStructures) {
                 addDDMStructure(structure, groupId, classNameId);
             }
         }
 
-        List<Structure> ddlStructures = site.getDdlStructure();
+        List<StructureType> ddlStructures = site.getDdlStructure();
 
         if (ddlStructures != null && false == ddlStructures.isEmpty()) {
             long classNameId = ClassNameLocalServiceUtil.getClassNameId(DDLRecordSet.class);
-            for (Structure structure : ddlStructures) {
+            for (StructureType structure : ddlStructures) {
                 LOG.info(String.format("Adding DDL structure %1$s", structure.getName()));
                 addDDMStructure(structure, groupId, classNameId);
             }
@@ -175,7 +175,7 @@ public final class SetupArticles {
         }
     }
 
-    public static void addDDMStructure(final Structure structure, final long groupId, final long classNameId)
+    public static void addDDMStructure(final StructureType structure, final long groupId, final long classNameId)
         throws PortalException {
         LOG.info(String.format("Adding Article structure %1$s", structure.getName()));
         Map<Locale, String> nameMap = new HashMap<>();
@@ -300,7 +300,7 @@ public final class SetupArticles {
         LOG.info(String.format("Added Article structure: %1$s", newStructure.getName()));
     }
 
-    private static String getStructureNameOrKey(final Structure structure) {
+    private static String getStructureNameOrKey(final StructureType structure) {
         if (structure.getName() == null) {
             return structure.getName();
         }

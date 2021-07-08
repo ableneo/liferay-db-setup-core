@@ -1,7 +1,7 @@
 package com.ableneo.liferay.portal.setup.core;
 
 import com.ableneo.liferay.portal.setup.domain.Portal;
-import com.ableneo.liferay.portal.setup.domain.PropertyKeyValue;
+import com.ableneo.liferay.portal.setup.domain.PropertyKeyValueType;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import java.util.HashMap;
@@ -25,10 +25,10 @@ public class SetupPortal {
         }
     }
 
-    private static void setPortalProperties(List<PropertyKeyValue> portalProperties) {
+    private static void setPortalProperties(List<PropertyKeyValueType> portalProperties) {
         Set<String> keys = new HashSet<String>();
         Map<String, String> values = new HashMap<String, String>();
-        for (PropertyKeyValue kv : portalProperties) {
+        for (PropertyKeyValueType kv : portalProperties) {
             keys.add(kv.getKey());
             values.put(kv.getKey(), kv.getValue());
         }

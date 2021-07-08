@@ -1,7 +1,7 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
 import com.ableneo.liferay.portal.setup.domain.PermissionAction;
-import com.ableneo.liferay.portal.setup.domain.RolePermission;
+import com.ableneo.liferay.portal.setup.domain.RolePermissionType;
 import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,8 +81,8 @@ public class RolePermissionBuilder {
         return res;
     }
 
-    private RolePermission rolePermissionFrom(String key, Set<String> value) {
-        RolePermission rp = new RolePermission();
+    private RolePermissionType rolePermissionFrom(String key, Set<String> value) {
+        RolePermissionType rp = new RolePermissionType();
         rp.setRoleName(key);
         for (String action : value) {
             rp.getPermissionAction().add(permissionActionFrom(action));

@@ -5,7 +5,11 @@ import com.ableneo.liferay.portal.setup.core.util.ResolverUtil;
 import com.ableneo.liferay.portal.setup.core.util.TranslationMapUtil;
 import com.ableneo.liferay.portal.setup.domain.AssociatedAssetType;
 import com.ableneo.liferay.portal.setup.domain.Category;
+import com.ableneo.liferay.portal.setup.domain.PropertyKeyValueType;
 import com.ableneo.liferay.portal.setup.domain.Vocabulary;
+import com.liferay.asset.category.property.model.AssetCategoryProperty;
+import com.liferay.asset.category.property.service.AssetCategoryPropertyLocalServiceUtil;
+import com.liferay.asset.kernel.exception.NoSuchCategoryException;
 import com.liferay.asset.kernel.exception.NoSuchVocabularyException;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
@@ -19,15 +23,17 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Setup module for creating / updating the categorization. So far it creates
@@ -35,25 +41,35 @@ import org.slf4j.LoggerFactory;
  * here.
  * <p/>
  * Created by guno on 8. 6. 2015.
+ *
  * @author guno
  */
 public final class SetupCategorization {
     private static final Logger LOG = LoggerFactory.getLogger(SetupCategorization.class);
 
-    private SetupCategorization() {}
+    private SetupCategorization() {
+    }
 
     public static void setupVocabularies(final Iterable<Vocabulary> vocabularies, final long groupId) {
         Locale siteDefaultLocale = LocaleUtil.getSiteDefault();
 
-        LOG.info("Setting up vocabularies");
+        LOG.info("Vocabulary setup STARTUP. It may take long time. To see runtime details enable DEBUG logging on {} class.", SetupCategorization.class.getName());
+        StringBuilder statusLine = new StringBuilder();
 
+        int index = 0;
         for (Vocabulary vocabulary : vocabularies) {
             setupVocabulary(vocabulary, groupId, siteDefaultLocale);
+            if (index > 0) {
+                statusLine.append(", ");
+            }
+            statusLine.append(vocabulary.getName());
+            index++;
         }
+        LOG.info("Vocabulary setup DONE. Created/updated following vocabularies: {}", statusLine);
     }
 
     private static void setupVocabulary(final Vocabulary vocabulary, final long groupId, final Locale defaultLocale) {
-        LOG.info("Setting up vocabulary [{}]", vocabulary.getName());
+        LOG.debug("Setting up vocabulary [{}]", vocabulary.getName());
 
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(
             vocabulary.getTitleTranslation(),
@@ -68,30 +84,56 @@ public final class SetupCategorization {
         AssetVocabulary assetVocabulary = null;
 
         try {
-            assetVocabulary =
-                AssetVocabularyLocalServiceUtil.getGroupVocabulary(
-                    groupId,
-                    StringUtil.toLowerCase(vocabulary.getName().trim())
-                );
+            assetVocabulary = AssetVocabularyLocalServiceUtil.getAssetVocabularyByUuidAndGroupId(vocabulary.getUuid(), groupId);
         } catch (NoSuchVocabularyException e) {
-            LOG.trace("", e);
-            LOG.info("Asset vocabulary: [{}] was not found", vocabulary.getName());
+            LOG.warn("Asset vocabulary: [{}] was not found", vocabulary.getName());
         } catch (PortalException e) {
             LOG.error("Error while fetching asset vocabulary: [{}]", vocabulary.getName(), e);
         }
 
+        if (assetVocabulary == null) {
+            try {
+                assetVocabulary =
+                    AssetVocabularyLocalServiceUtil.getGroupVocabulary(
+                        groupId,
+                        StringUtil.toLowerCase(vocabulary.getName().trim())
+                    );
+            } catch (NoSuchVocabularyException e) {
+                LOG.warn("Asset vocabulary: [{}] was not found", vocabulary.getName());
+            } catch (PortalException e) {
+                LOG.error("Error while fetching asset vocabulary: [{}]", vocabulary.getName(), e);
+            }
+        }
+
+        final String settings = composeVocabularySettings(vocabulary, groupId);
         if (assetVocabulary != null) {
             LOG.debug("Vocabulary [{}] already exists. Will be updated.", assetVocabulary.getName());
 
-            assetVocabulary.setTitleMap(titleMap);
-            assetVocabulary.setDescriptionMap(descMap);
-            assetVocabulary.setSettings(composeVocabularySettings(vocabulary, groupId));
+            boolean update = false;
+            if (!assetVocabulary.getTitleMap().equals(titleMap)) {
+                assetVocabulary.setTitleMap(titleMap);
+                update = true;
+            }
+            if (!assetVocabulary.getDescriptionMap().equals(descMap)) {
+                assetVocabulary.setDescriptionMap(descMap);
+                update = true;
+            }
+            if (!assetVocabulary.getSettings().equals(settings)) {
+                assetVocabulary.setSettings(settings);
+                update = true;
+            }
+            if (!Validator.isBlank(vocabulary.getUuid()) && !assetVocabulary.getUuid().equals(vocabulary.getUuid())) {
+                assetVocabulary.setUuid(vocabulary.getUuid());
+                update = true;
+            }
 
             try {
-                assetVocabulary = AssetVocabularyLocalServiceUtil.updateAssetVocabulary(assetVocabulary);
-                LOG.debug("Vocabulary [{}] successfully updated.", assetVocabulary.getName());
+                if (update) {
+                    assetVocabulary = AssetVocabularyLocalServiceUtil.updateAssetVocabulary(assetVocabulary);
+                    LOG.debug("Vocabulary [{}] successfully updated.", assetVocabulary.getName());
+                }
             } catch (RuntimeException e) {
-                LOG.info(
+                LOG.warn(
                     "Error while trying to update AssetVocabulary with ID: {}. Skipping.",
                     assetVocabulary.getVocabularyId(),
                     e
@@ -99,35 +141,39 @@ public final class SetupCategorization {
                 return;
             }
 
-            setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L, vocabulary.getCategory(), defaultLocale);
-            return;
-        }
-
-        try {
+        } else {
             ServiceContext serviceContext = new ServiceContext();
             serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
             serviceContext.setScopeGroupId(groupId);
-            assetVocabulary =
-                AssetVocabularyLocalServiceUtil.addVocabulary(
-                    SetupConfigurationThreadLocal.getRunAsUserId(),
-                    groupId,
-                    vocabulary.getName(),
-                    vocabulary.getName(),
-                    titleMap,
-                    descMap,
-                    composeVocabularySettings(vocabulary, groupId),
-                    serviceContext
-                );
-            LOG.info(
+            try {
+                assetVocabulary =
+                    AssetVocabularyLocalServiceUtil.addVocabulary(
+                        SetupConfigurationThreadLocal.getRunAsUserId(),
+                        groupId,
+                        vocabulary.getName(),
+                        vocabulary.getName(),
+                        titleMap,
+                        descMap,
+                        settings,
+                        serviceContext
+                    );
+
+                if (!Validator.isBlank(vocabulary.getUuid())) {
+                    assetVocabulary.setUuid(vocabulary.getUuid());
+                    AssetVocabularyLocalServiceUtil.updateAssetVocabulary(assetVocabulary);
+                }
+            } catch (PortalException e) {
+                LOG.error("Error while trying to create vocabulary with title: {}", titleMap, e);
+            }
+            LOG.debug(
                 "AssetVocabulary [{}] successfuly added. ID: {}, group: {}",
                 assetVocabulary.getName(),
                 assetVocabulary.getVocabularyId(),
                 assetVocabulary.getGroupId()
             );
-            setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L, vocabulary.getCategory(), defaultLocale);
-        } catch (PortalException e) {
-            LOG.error("Error while trying to create vocabulary with title: {}", titleMap, e);
         }
+        setupCategories(assetVocabulary.getVocabularyId(), groupId, 0L, vocabulary.getCategory(), defaultLocale);
+
     }
 
     private static String composeVocabularySettings(Vocabulary vocabulary, final long groupId) {
@@ -138,9 +184,9 @@ public final class SetupCategorization {
 
         if (Objects.isNull(types) || types.isEmpty()) {
             assetVocabularySettingsHelper.setClassNameIdsAndClassTypePKs(
-                new long[] { AssetCategoryConstants.ALL_CLASS_NAME_ID },
-                new long[] { AssetCategoryConstants.ALL_CLASS_TYPE_PK },
-                new boolean[] { false }
+                new long[]{AssetCategoryConstants.ALL_CLASS_NAME_ID},
+                new long[]{AssetCategoryConstants.ALL_CLASS_TYPE_PK},
+                new boolean[]{false}
             );
             return assetVocabularySettingsHelper.toString();
         }
@@ -175,9 +221,9 @@ public final class SetupCategorization {
         // no valid associated types case
         if (classNameIds.isEmpty()) {
             assetVocabularySettingsHelper.setClassNameIdsAndClassTypePKs(
-                new long[] { AssetCategoryConstants.ALL_CLASS_NAME_ID },
-                new long[] { AssetCategoryConstants.ALL_CLASS_TYPE_PK },
-                new boolean[] { false }
+                new long[]{AssetCategoryConstants.ALL_CLASS_NAME_ID},
+                new long[]{AssetCategoryConstants.ALL_CLASS_TYPE_PK},
+                new boolean[]{false}
             );
             return assetVocabularySettingsHelper.toString();
         }
@@ -207,15 +253,15 @@ public final class SetupCategorization {
     private static void setupCategories(
         final long vocabularyId,
         final long groupId,
-        final long parentId,
+        final long parentCategoryId,
         final List<Category> categories,
         final Locale defaultLocale
     ) {
-        LOG.debug("Setting up categories for parentId: [{}]", parentId);
+        LOG.debug("Setting up categories with parentCategoryId: [{}]", parentCategoryId);
 
         if (categories != null && !categories.isEmpty()) {
             for (Category category : categories) {
-                setupCategory(category, vocabularyId, groupId, defaultLocale, parentId);
+                setupCategory(category, vocabularyId, groupId, defaultLocale, parentCategoryId);
             }
         }
     }
@@ -245,27 +291,43 @@ public final class SetupCategorization {
 
         AssetCategory assetCategory = null;
 
-        try {
-            List<AssetCategory> existingCategories = AssetCategoryLocalServiceUtil.getChildCategories(parentCategoryId);
-            for (AssetCategory ac : existingCategories) {
-                if (ac.getName().equals(titleMap.get(LocaleUtil.getSiteDefault()))) {
-                    assetCategory = ac;
-                }
-            }
-        } catch (RuntimeException e) {
-            LOG.error("Error while trying to find category [{}]", category.getName(), e);
+        if (!Validator.isBlank(category.getUuid())) {
+            assetCategory = fetchAssetCategoryByUuid(category.getUuid(), groupId);
+        }
+
+        if (assetCategory == null) {
+            assetCategory = fetchAssetCategoryByName(titleMap.get(LocaleUtil.getSiteDefault()), parentCategoryId, vocabularyId);
         }
 
         if (assetCategory != null) {
-            LOG.info("Updating category [{}]", assetCategory.getName());
+            LOG.debug("Updating category {}", assetCategory.getName());
 
-            assetCategory.setTitleMap(titleMap);
-            assetCategory.setDescriptionMap(descMap);
-            assetCategory.setName(category.getName());
+            boolean update = false;
+            if (!assetCategory.getTitleMap().equals(titleMap)) {
+                assetCategory.setTitleMap(titleMap);
+                update = true;
+            }
+            if (!assetCategory.getDescriptionMap().equals(descMap)) {
+                assetCategory.setDescriptionMap(descMap);
+                update = true;
+            }
+            if (!assetCategory.getName().equals(category.getName())) {
+                assetCategory.setName(category.getName());
+                update = true;
+            }
+            if (!assetCategory.getUuid().equals(category.getUuid())) {
+                assetCategory.setUuid(category.getUuid());
+                update = true;
+            }
 
             try {
-                AssetCategoryLocalServiceUtil.updateAssetCategory(assetCategory);
-                LOG.info("Category [{}] successfully updated.", assetCategory.getName());
+                if (update) {
+                    AssetCategoryLocalServiceUtil.updateAssetCategory(assetCategory);
+                }
+                if (!category.getProperty().isEmpty()) {
+                    updateCategoryProperties(category.getProperty(), assetCategory);
+                }
+                LOG.debug("Category [{}] successfully updated.", assetCategory.getName());
             } catch (RuntimeException e) {
                 LOG.error("Error while trying to update category [{}]", assetCategory.getName(), e);
             }
@@ -281,7 +343,7 @@ public final class SetupCategorization {
         }
 
         try {
-            LOG.info("Creating new category [{}]", category.getName());
+            LOG.debug("Creating new category [{}]", category.getName());
             assetCategory =
                 AssetCategoryLocalServiceUtil.addCategory(
                     SetupConfigurationThreadLocal.getRunAsUserId(),
@@ -293,7 +355,15 @@ public final class SetupCategorization {
                     null,
                     serviceContext
                 );
-            LOG.info(
+
+            if (!Validator.isBlank(category.getUuid())) {
+                assetCategory.setUuid(category.getUuid());
+                assetCategory = AssetCategoryLocalServiceUtil.updateAssetCategory(assetCategory);
+            }
+            if (!category.getProperty().isEmpty()) {
+                updateCategoryProperties(category.getProperty(), assetCategory);
+            }
+            LOG.debug(
                 "Category [{}] successfully added with title: {}",
                 assetCategory.getName(),
                 assetCategory.getTitle()
@@ -309,5 +379,57 @@ public final class SetupCategorization {
         } catch (PortalException e) {
             LOG.error("Error in creating category [{}]", category.getName(), e);
         }
+    }
+
+    private static void updateCategoryProperties(List<PropertyKeyValueType> property, AssetCategory assetCategory) {
+        for (PropertyKeyValueType propertyKeyValueType : property) {
+            AssetCategoryProperty assetCategoryProperty = null;
+            try {
+                assetCategoryProperty = AssetCategoryPropertyLocalServiceUtil.getCategoryProperty(assetCategory.getCategoryId(), propertyKeyValueType.getKey());
+            } catch (PortalException e) {
+                LOG.debug("Failed to get asset category property for asset category {} with id {} with key {}", assetCategory.getTitleCurrentValue(), assetCategory.getCategoryId(), propertyKeyValueType.getKey(), e);
+            }
+            if (assetCategoryProperty != null) {
+                if (!assetCategoryProperty.getValue().equals(propertyKeyValueType.getValue())) {
+                    assetCategoryProperty.setValue(propertyKeyValueType.getValue());
+                    AssetCategoryPropertyLocalServiceUtil.updateAssetCategoryProperty(assetCategoryProperty);
+                }
+            } else {
+                try {
+                    AssetCategoryPropertyLocalServiceUtil.addCategoryProperty(SetupConfigurationThreadLocal.getRunAsUserId(), assetCategory.getCategoryId(), propertyKeyValueType.getKey(), propertyKeyValueType.getValue());
+                } catch (PortalException e) {
+                    LOG.error("Failed to add category property {} with value {} to category {} with id {} uuid {}", propertyKeyValueType.getKey(), propertyKeyValueType.getValue(), assetCategory.getTitleCurrentValue(), assetCategory.getCategoryId(), assetCategory.getUuid(), e);
+                }
+            }
+        }
+    }
+
+
+    private static AssetCategory fetchAssetCategoryByName(String categoryName, long parentCategoryId, long vocabularyId) {
+        AssetCategory assetCategory = null;
+        try {
+            List<AssetCategory> existingCategories = AssetCategoryLocalServiceUtil.getChildCategories(parentCategoryId);
+            for (AssetCategory ac : existingCategories) {
+                if (ac.getName().equals(categoryName) && ac.getVocabularyId() == vocabularyId) {
+                    assetCategory = ac;
+                }
+            }
+        } catch (RuntimeException e) {
+            LOG.warn("Error while trying to find category {} in a children list of category with id {}", categoryName, parentCategoryId, e);
+        }
+        return assetCategory;
+    }
+
+    private static AssetCategory fetchAssetCategoryByUuid(String uuid, long groupId) {
+        AssetCategory assetCategory = null;
+        try {
+            assetCategory = AssetCategoryLocalServiceUtil.getAssetCategoryByUuidAndGroupId(uuid, groupId);
+        } catch (NoSuchCategoryException e) {
+            LOG.warn("Failed to fetch category with uuid {} from group with groupId {}. It will be updated by name or created as new.", uuid, groupId);
+        } catch (PortalException e) {
+            LOG.error("Failed to fetch category with uuid {} from group with groupId {}. Unexpected error occured.", uuid, groupId);
+            throw new IllegalStateException(e);
+        }
+        return assetCategory;
     }
 }

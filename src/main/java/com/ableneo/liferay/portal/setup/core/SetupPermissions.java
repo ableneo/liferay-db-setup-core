@@ -4,7 +4,7 @@ import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.ableneo.liferay.portal.setup.domain.PermissionAction;
 import com.ableneo.liferay.portal.setup.domain.ResourcePermissions;
 import com.ableneo.liferay.portal.setup.domain.Role;
-import com.ableneo.liferay.portal.setup.domain.RolePermission;
+import com.ableneo.liferay.portal.setup.domain.RolePermissionType;
 import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import com.liferay.portal.kernel.exception.NestableException;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -16,7 +16,10 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
-import com.liferay.portal.kernel.service.RoleLocalServiceUtil;import java.util.ArrayList;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.permission.RolePermission;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,11 +28,12 @@ import java.util.Map;
 import java.util.Set;
 
 public final class SetupPermissions {
-    private static final String[] PERMISSION_RO = { ActionKeys.VIEW };
-    private static final String[] PERMISSION_RW = { ActionKeys.VIEW, ActionKeys.UPDATE };
+    private static final String[] PERMISSION_RO = {ActionKeys.VIEW};
+    private static final String[] PERMISSION_RW = {ActionKeys.VIEW, ActionKeys.UPDATE};
     private static final Log LOG = LogFactoryUtil.getLog(SetupPermissions.class);
 
-    private SetupPermissions() {}
+    private SetupPermissions() {
+    }
 
     public static void setupPortletPermissions(final ResourcePermissions resourcePermissions) {
         for (ResourcePermissions.Resource resource : resourcePermissions.getResource()) {
@@ -110,12 +114,12 @@ public final class SetupPermissions {
         } catch (Exception ex) {
             LOG.error(
                 "Error when adding permissions(" +
-                Arrays.asList(permissions) +
-                ") to role(" +
-                roleName +
-                "), name:(" +
-                name +
-                ")!",
+                    Arrays.asList(permissions) +
+                    ") to role(" +
+                    roleName +
+                    "), name:(" +
+                    name +
+                    ")!",
                 ex
             );
         }
@@ -243,7 +247,7 @@ public final class SetupPermissions {
         updatePermission(
             locationHint,
             companyId,
-            Arrays.asList(new Long[] { elementId }),
+            Arrays.asList(new Long[]{elementId}),
             className,
             rolePermissions,
             defaultPermissions
@@ -289,9 +293,9 @@ public final class SetupPermissions {
                 }
             }
             //             else {
-            List<RolePermission> rmRolePermissionList = rolePermissions.getRemoveRolePermission();
+            List<RolePermissionType> rmRolePermissionList = rolePermissions.getRemoveRolePermission();
             if (rmRolePermissionList != null) {
-                for (RolePermission rp : rmRolePermissionList) {
+                for (RolePermissionType rp : rmRolePermissionList) {
                     actions.clear();
                     String roleName = rp.getRoleName();
                     List<PermissionAction> roleActions = rp.getPermissionAction();
@@ -313,22 +317,22 @@ public final class SetupPermissions {
                         } catch (SystemException e) {
                             LOG.error(
                                 "Permissions for " +
-                                roleName +
-                                " for " +
-                                locationHint +
-                                " " +
-                                "could not be removed, step add. ",
+                                    roleName +
+                                    " for " +
+                                    locationHint +
+                                    " " +
+                                    "could not be removed, step add. ",
                                 e
                             );
                         } catch (NullPointerException e) {
                             LOG.error(
                                 "Permissions for " +
-                                roleName +
-                                " for " +
-                                locationHint +
-                                " " +
-                                "could not be removed, step add. " +
-                                "Probably role not found! ",
+                                    roleName +
+                                    " for " +
+                                    locationHint +
+                                    " " +
+                                    "could not be removed, step add. " +
+                                    "Probably role not found! ",
                                 e
                             );
                         }
@@ -342,22 +346,22 @@ public final class SetupPermissions {
                         } catch (SystemException e) {
                             LOG.error(
                                 "Permissions for " +
-                                roleName +
-                                " for " +
-                                locationHint +
-                                " " +
-                                "could not be removed, step rm. ",
+                                    roleName +
+                                    " for " +
+                                    locationHint +
+                                    " " +
+                                    "could not be removed, step rm. ",
                                 e
                             );
                         } catch (NullPointerException e) {
                             LOG.error(
                                 "Permissions for " +
-                                roleName +
-                                " for " +
-                                locationHint +
-                                " " +
-                                "could not be removed, step rm. " +
-                                "Probably role not found! ",
+                                    roleName +
+                                    " for " +
+                                    locationHint +
+                                    " " +
+                                    "could not be removed, step rm. " +
+                                    "Probably role not found! ",
                                 e
                             );
                         }
@@ -365,9 +369,9 @@ public final class SetupPermissions {
                 }
             }
             //            }
-            List<RolePermission> rolePermissionList = rolePermissions.getRolePermission();
+            List<RolePermissionType> rolePermissionList = rolePermissions.getRolePermission();
             if (rolePermissionList != null) {
-                for (RolePermission rp : rolePermissionList) {
+                for (RolePermissionType rp : rolePermissionList) {
                     actions.clear();
                     String roleName = rp.getRoleName();
                     List<PermissionAction> roleActions = rp.getPermissionAction();
@@ -391,12 +395,12 @@ public final class SetupPermissions {
                         } catch (NullPointerException e) {
                             LOG.error(
                                 "Permissions for " +
-                                roleName +
-                                " for " +
-                                locationHint +
-                                " " +
-                                "could not be set. " +
-                                "Probably role not found! ",
+                                    roleName +
+                                    " for " +
+                                    locationHint +
+                                    " " +
+                                    "could not be set. " +
+                                    "Probably role not found! ",
                                 e
                             );
                         }
@@ -429,12 +433,12 @@ public final class SetupPermissions {
                     } catch (NullPointerException e) {
                         LOG.error(
                             "Permissions for " +
-                            roleName +
-                            " for " +
-                            locationHint +
-                            " " +
-                            "could not be defaulted. " +
-                            "Probably role not found! ",
+                                roleName +
+                                " for " +
+                                locationHint +
+                                " " +
+                                "could not be defaulted. " +
+                                "Probably role not found! ",
                             e
                         );
                     }
