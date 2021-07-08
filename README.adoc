@@ -1,4 +1,5 @@
 = Liferay Portal DB Setup core
+:liferay-version: 7.3.6
 :TOC:
 
 image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches]
@@ -20,8 +21,9 @@ The library helps to fix what need to be fixed across environments while allowin
 
 === Liferay Portal requirements
 
-The code is compatible with *Liferay Portal DXP/7.3.5*. Other versions that have been or are supported:
+The code is compatible with *Liferay Portal {liferay-version}*. Other versions that have been or are supported:
 
+. https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[Liferay Portal EE/CE 7.3.5]
 . https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[Liferay Portal EE/CE 7.1.2]
 . https://github.com/ableneo/liferay-db-setup-core/tree/1.x[Liferay Portal EE/CE 6.2.5 and higher]
 
@@ -66,43 +68,79 @@ mvn clean install
 
 === Integration
 
-Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.ableneo.liferay.portal.setup.LiferaySetup#setup(java.io.File)`] with following xml configuration:
+. Install the `com.ableneo.liferay.db.setup.core-{liferay-version}.*.jar` bundle in `${liferay.home}/osgi/modules`
+. Prepare your own bundle that uses the library as a `provided`/`compileOnly` dependency. For example:
++
+.build.gradle
+[subs=attributes+]
+```groovy
+dependencies {
+    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:{liferay-version}.0-SNAPSHOT'
+}
+```
++
+.pom.xml
+[subs=attributes+]
+```xml
+<dependency>
+    <groupId>com.ableneo.liferay</groupId>
+    <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
+    <version>{liferay-version}.0-SNAPSHOT</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+. Prepare xml data configuration. Documentation sits directly in the link:src/main/resources/setup_definition.xsd[setup_definition.xsd] file.
++
+.Example documentation
+image:doc/xsd-inline-documentation.png[]
++
+.Example configuration: setup.xml
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8" ?>
 <setup xmlns="http://www.ableneo.com/liferay/setup">
-    <configuration>
-        <run-as-user-email>test@liferay.com</run-as-user-email>
+    <configuration> 
+        <!-- uses random administrator account for the setup in the company, run-as-user-email tag allows to specify particular admin account to be used for the setup -->
+        <company> 
+            <companyid>20101</companyid> <!-- companywebid can be used alternatively -->
+        </company>
     </configuration>
-
-    <!--
-    This will add new custom field that can be used in theme to control if ads should display on
-    particular page.
-    -->
-    <custom-fields>
-        <field name="showAds" type="boolean" class-name="com.liferay.portal.model.Layout">
-            <role-permission role-name="Guest" permission="view"/>
-        </field>
-    </custom-fields>
+    <sites>
+        <site> <!-- Guest by default -->
+            <vocabulary name="Some categories" uuid="602f55b6-6021-455e-8d6d-696cc25daa91">
+                <title-translation locale="de_DE" text="Einige Kategorien"/>
+                <category name="Other categories" uuid="867b33df-2465-4a81-9945-88159c604589">
+                    <title-translation locale="de_DE" text="Andere Kategorien"/>
+                    <category name="New category" uuid="5fb4308e-bd21-4cf4-bdc5-3557508ffe4a">
+                        <title-translation locale="de_DE" text="Neue Kategorie"/>
+                    </category>
+                </category>
+            </vocabulary>
+        </site>
+    </sites>
 </setup>
+----
+. Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.lukreo.liferay.db.setup.RunDbSetupUtil#runDbSetupConfiguration(String url)`] e.g `RunDbSetupUtil.runDbSetupConfiguration("setup.xml");`. `setup.xml` must be available in the root directory of bundle classpath, example:
++
+----
+├── com
+│   └── example
+│       └── (some classes that run #runDbSetupConfiguration method)
+├── setup.xml
 ----
 
 Preferred way is to deploy bundle to the portal.
 
-.Include dependency in `build.gradle`:
-```groovy
-dependencies {
-    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:7.3.5.0-SNAPSHOT'
-}
-```
 
 .Include dependency in `pom.xml`:
+[subs=attributes+]
 ```xml
 <dependencies>
     <dependency>
         <groupId>com.ableneo.liferay</groupId>
         <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
-        <version>7.3.5.0-SNAPSHOT</version>
+        <version>{liferay-version}.0-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
@@ -120,11 +158,11 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 * more tests
 * how-to guides
 
-= Changelog
+== Changelog
 
-== Version 7.3.6.0
+=== Version 7.3.6.0
 
-=== Features & bug fixes
+==== Features & bug fixes
 * Bumped target Liferay Portal version to minimum 7.3.6 ga7.
 * Improved category/vocabulary idempotency, it's possible to update categories and vocabularies with optional uuid, before categories/vocabularies were identified only by name. That allows to update a category name which wasn't possible before.
 * Improved categories/vocabulary updates performance, update is only issued if anything in the definition differs compared to the data in the DB.
@@ -133,16 +171,15 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 +
 TIP: TODO: deletion of existing property.
 
-=== Refactorings & project changes
+==== Refactorings & project changes
 * divided xsd to "elements" and "types" parts, replaced many element references with types which improves naming flexibility
 * every xsd type follows is camel cased and suffixed with word: Type, e.g. UuidType
 * simplified dependency management with `release.portal.bom`
 * removed `shade` maven plugin as portal exports `com.liferay.portlet.asset.util` package already in `org.eclipse.osgi_3.13.0.LIFERAY-PATCHED-11` bundle
 
+=== Version 7.3.5.0
 
-== Version 7.3.5.0
-
-=== Features & bug fixes
+==== Features & bug fixes
 
 * OSGI descriptors in JAR, the bundle can be deployed and work as a standalone Liferay 7.x bundle
 * instance import feature added, credit goes to https://github.com/bimki[@bimki] - thank you!
@@ -153,7 +190,7 @@ TIP: TODO: deletion of existing property.
 * fixed categorization idempotency (vocabulary and category name handling)
 * fixed language handling for groups
 
-=== Refactorings & project changes
+==== Refactorings & project changes
 
 * improved javadoc in entrypoint `com.ableneo.liferay.portal.setup.LiferaySetup` class
 * upped dependencies to https://liferay.dev/blogs/-/blogs/liferay-portal-7-3-ce-ga6-release[Liferay 7.3.5], credit goes to https://github.com/fabalint[@fabalint] - thank you!
@@ -163,9 +200,9 @@ TIP: TODO: deletion of existing property.
 * added prettier formatter to the project
 * added build environment setup automation with <<_automated_local_build_environment_setup_with_nix,nix>>
 
-== Version 2.2.0-SNAPSHOT
+=== Version 2.2.0-SNAPSHOT
 
-=== Features & bug fixes
+==== Features & bug fixes
 
 * it's possible to use more than one company id per configuration file, the configuration will be applied to all listed companies
 * tag names in configuration follow unified naming convention: word-word
@@ -173,7 +210,7 @@ TIP: TODO: deletion of existing property.
 * added missing documentation to few xml elements
 * setup xsd provides a version attribute
 
-=== Refactorings & project changes
+==== Refactorings & project changes
 
 * configured sonar analysis on each commit
 * configured maven test / coverage runner
@@ -184,9 +221,9 @@ TIP: TODO: deletion of existing property.
 * most of the problems reported by sonar are fixed
 * improved logging
 
-== Version 2.1.4
+=== Version 2.1.4
 
-=== Features & bug fixes
+==== Features & bug fixes
 
 * Added resource class name when creating ADT
 * Fix user expando assignement
