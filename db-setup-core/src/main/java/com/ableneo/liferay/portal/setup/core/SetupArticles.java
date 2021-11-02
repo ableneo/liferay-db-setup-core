@@ -209,9 +209,14 @@ public final class SetupArticles {
             return;
         }
 
+        ServiceContext serviceContext = new ServiceContext();
+
+        serviceContext.setAddGroupPermissions(true);
+        serviceContext.setAddGuestPermissions(true);
+
         DDMStructure newStructure =
                 DDMStructureLocalServiceUtil.addStructure(getRunAsUserId(), groupId, structure.getParent(), classNameId,
-                        structure.getKey(), nameMap, descMap, xsd, "xml", 0, new ServiceContext());
+                        structure.getKey(), nameMap, descMap, xsd, "xml", 0, serviceContext);
         LOG.info("Added Article structure: " + newStructure.getName());
     }
 

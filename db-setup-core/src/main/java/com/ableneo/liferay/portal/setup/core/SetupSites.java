@@ -110,6 +110,7 @@ public class SetupSites {
                     GroupLocalServiceUtil.updateFriendlyURL(liferayGroup.getGroupId(), site.getSiteFriendlyUrl());
                 }
                 groupId = liferayGroup.getGroupId();
+                setupContext.setRunInGroupId(groupId);
 
                 if (parentGroup != null && liferayGroup != null && site.isMaintainSiteHierarchy()) {
                     liferayGroup.setParentGroupId(parentGroup.getGroupId());
