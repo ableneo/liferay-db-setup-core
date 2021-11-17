@@ -1,5 +1,6 @@
-= Liferay Portal DB Setup core
+= Liferay Portal DB setup core
 :liferay-version: 7.3.6
+:current-db-setup-core-version: 7.3.601
 :TOC:
 
 image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches]
@@ -8,74 +9,167 @@ image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-
 
 Library that allows to setup a number of https://github.com/liferay[Liferay] artifacts in the DB. It uses xml and https://docs.liferay.com/portal/7.0/javadocs/portal-kernel[Liferay APIs] to add all configured artifacts.
 
-
-== Motivation
-
-We use https://github.com/liferay[Liferay] as an application building platform.
-
-In the approach pages, portlets, content and permissions serve as a building block of an application with consistent portal UX. It's all easy and fun unless you need to move through environments or track changes. Which you always need to track. Suddenly it becomes a problem that a very important part of your application resides in database.
-
-The library helps to fix what need to be fixed across environments while allowing to use as much of a portal flexibility as needed.
-
 == Usage
 
-=== Liferay Portal requirements
+We recommend wrapping the library calls in either Liferay *upgrade process* or in a control panel app for a *reset to defaults* application.
 
-The code is compatible with *Liferay Portal {liferay-version}*. Other versions that have been or are supported:
+=== Examples
+==== Configuration
+All data definitions in examples are applied according to XML file header which defines on which company data creation should take effect and which admin user should be used for data creation.
 
-. https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[Liferay Portal EE/CE 7.3.5]
-. https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[Liferay Portal EE/CE 7.1.2]
-. https://github.com/ableneo/liferay-db-setup-core/tree/1.x[Liferay Portal EE/CE 6.2.5 and higher]
+.Automatically selected admin user
+[source, xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+  <configuration>
+    <!-- run as automatically selected admin -->
 
+    <company>
+        <companywebid>liferay.com</companywebid>
+    </company>
+  </configuration>
+----
 
-=== Maven project setup
+.Specified admin user
+[source, xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+  <configuration>
+    <run-as-user-email>admin@my.web.com</run-as-user-email>
 
-We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
+    <company>
+        <companywebid>liferay.com</companywebid>
+    </company>
+  </configuration>
+----
 
-. Download sources.
-. Install JDK 1.8
-. Install Maven 3.6.3 or higher.
-. Run: `mvn clean install`
+==== Permissions
+Resource permissions.
+[source, xml]
+----
+<resource-permissions>
+    <resource resource-id="my.custom.resource.string">
+        <actionId name="SPECIAL_PERMISSION">
+            <role name="My Role"/>
+            <role name="Your Role"/>
+        </actionId>
+    </resource>
+</resource-permissions>
+----
+Resource permissions are set per company are verifiable with followin API call.
+[source, java]
+----
+permissionChecker.hasPermission(
+            groupId,
+            "my.custom.resource.string",
+            companyId,
+            "SPECIAL_PERMISSION"
+        );
+----
 
-==== Automated local build environment setup with nix
+Portlet permissions.
+[source, xml]
+----
+<resource-permissions>
+    <resource resource-id="myportlet_WAR_portlets">
+        <actionId name="VIEW">
+            <role name="User"/>
+            <role name="Guest"/>
+        </actionId>
+    </resource>
+</resource-permissions>
+----
+==== Roles
+[source, xml]
+----
+<roles>
+    <role name="Regular Role"/>
+    <role name="Site Role" type="site"/>
+<roles>
+----
+==== Expando attribute
+Following snippet creates expando attribute `canonical-url` with permissions to view by guest user.
+[source, xml]
+----
+<custom-fields>
+    <field name="canonical-url" type="string" class-name="com.liferay.portal.kernel.model.Layout">
+        <role-permission role-name="Guest" permission="view"/>
+    </field>
+</custom-fields>
+----
+==== Site
+Site element must always have `site-friendly-url` attribute. Guest site is determined by `default` attribute with `true` value. All content like *pages*, *articles*, *documents* etc. is always created within a specific site.
+[source, xml]
+----
+<sites>
+    <site default="true" site-friendly-url="/guest">
+    </site>
+    <site default="false" site-friendly-url="/admin">
+        <name>Admin</name>
+        <name-translation locale="en_US" text="Admin"/>
+    </site>
+</sites>
+----
+==== Journal Article structure and template
+Files `new_structure.xml` and `new_structure_template.ftl` are deployed as a part of a module that is using the `db-setup-core` library and reside in it's classpath.
+[source, xml]
+----
 
-===== nix + nix-shell
-Sets up required JDK and all other software required for building. Does not change any global OS settings. Building environment is local to the project e.g. you're using JDK11 by default.
+    <site site-friendly-url="/admin">
+      <article-structure key="NEW-STRUCTURE-KEY"
+                         path="new_structure.xml"
+                         name="New Structure"/>
 
-Helps if you want to build the project without changing global system JDK/Maven settings.
+      <article-template key="NEW-STRUCTURE-TEMPLATE-KEY"
+                        path="new_structure_template.ftl"
+                        article-structure-key="NEW-STRUCTURE-KEY" name="New Structure Template" cacheable="true"/>
 
-. Install nix: https://nixos.org/guides/install-nix.html
-. Run:
-+
-```bash
-cd liferay-db-setup-core
-nix-shell
-mvn clean install
-```
+      <name>Admin</name>
+    </site>
+----
+==== Articles
+File `artcle.xml` is deployed as a part of a module that is using the `db-setup-core` library and reside in it's classpath.
+[source, xml]
+----
+<sites>
+    <site>
+        <article
+            title="Article Title"
+            path="article.xml"
+            article-structure-key="NEW-STRUCTURE-KEY"
+            article-template-key="NEW-STRUCTURE-TEMPLATE-KEY"
+            articleId="ARTICLE_ID">
+            <tag name="product" />
+        </article>
+    </site>
+</sites>
+----
+==== Document
+Document's file itself is determined by `file-system-name` attribute which defines resource on classpath.
+[source, xml]
+----
+<sites>
+    <site>
+        <document file-system-name="image.svg"
+                  document-folder-name="/Images"
+                  document-filename="image.svg"
+                  document-title="image.svg"/>
+    </site>
+</sites>
+----
 
-===== nix + direnv
-Enters local development environment for the project every time you cd into the project directory.
+=== Setup guide
 
-. Install nix: https://nixos.org/guides/install-nix.html
-. Install direnv_nix: https://github.com/nix-community/nix-direnv#with-nix-env
-. Run:
-+
-```bash
-cd liferay-db-setup-core
-mvn clean install
-```
-
-
-=== 4 Step Integration
-
-. Install the `com.ableneo.liferay.db.setup.core-{liferay-version}.*.jar` bundle in `${liferay.home}/osgi/modules`
+. Install the `com.ableneo.liferay.db.setup.core-{current-db-setup-core-version}.jar` bundle in `${liferay.home}/osgi/modules`
 . Prepare your own bundle that uses the library as a `provided`/`compileOnly` dependency. For example:
 +
 .build.gradle
 [subs=attributes+]
 ```groovy
 dependencies {
-    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:{liferay-version}.0-SNAPSHOT'
+    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:{current-db-setup-core-version}'
 }
 ```
 +
@@ -85,7 +179,7 @@ dependencies {
 <dependency>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
-    <version>{liferay-version}.0-SNAPSHOT</version>
+    <version>{current-db-setup-core-version}</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -121,14 +215,37 @@ image:doc/xsd-inline-documentation.png[]
     </sites>
 </setup>
 ----
-. Run link:src/main/java/com/ableneo/liferay/portal/setup/LiferaySetup.java[`com.lukreo.liferay.db.setup.RunDbSetupUtil#runDbSetupConfiguration(String url)`] e.g `RunDbSetupUtil.runDbSetupConfiguration("setup.xml");`. `setup.xml` must be available in the root directory of bundle classpath, example:
+. Load the XML setup file and run `setup` method on it:
 +
+[source, java]
 ----
-├── com
-│   └── example
-│       └── (some classes that runs #runDbSetupConfiguration method with specific data setup file e.g. bundle activator, panel app, upgrade step, it's common to have )
-├── setup.xml
+URL resource = Thread.currentThread().getContextClassLoader().getResource(path);
+InputStream setupFile = Objects.requireNonNull(resource, "XML Liferay DB setup file not found in classpath.").openStream();
+Setup setup = MarshallUtil.unmarshall(setupFile);
+boolean setupSuccess = LiferaySetup.setup(setup);
 ----
+
+
+=== Liferay Portal requirements
+
+The code is compatible with *Liferay Portal {liferay-version}*. Other versions that have been or are supported:
+
+. https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[Liferay Portal EE/CE 7.3.5]
+. https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[Liferay Portal EE/CE 7.1.2]
+. https://github.com/ableneo/liferay-db-setup-core/tree/1.x[Liferay Portal EE/CE 6.2.5 and higher]
+
+== Roadmap
+
+* more tests
+* project integration with lundegaard fork: https://github.com/lundegaard/liferay-db-setup-core, until than changes and fixes from lundegaard fork will be ported to the library
+
+== Motivation
+
+We use https://github.com/liferay[Liferay] as an application building platform.
+
+Portlets, content and permissions, in short- *data* serve as a building block of a web application with consistent portal UX. In the use case the *data* play important role in application building, greatly influencing UX.
+
+By storing the application *data* as XML declaration we enable developers to version and progress *data* development as if it was a *code*. All standard development practices like versioning, code review, building and deployment can be applied to the Liferay *data as code*.
 
 == Contributing
 
@@ -136,13 +253,26 @@ Want/need to hack on db-setup-core? See our link:CONTRIBUTING.md[super short con
 
 They are probably not perfect, please let me know if anything feels wrong or incomplete.
 
-== Roadmap
-
-* reference documentation
-* more tests
-* how-to guides
 
 == Changelog
+
+=== Version 7.3.601
+==== Features & bug fixes
+* target Liferay Portal version is still minimum 7.3.6 (GA7)
+* fix: add individual resource for permissions setup in case there are declared not for portlet but a `model-resource`, allows to use `hasUserPermission` method for the custom resource id string and a `primKey = companyId`
++
+.Fixed configuration
+[source, xml]
+----
+    <resource-permissions>
+        <resource resource-id="custom.resource.id-not.a.portlet.id">
+            <actionId name="SOME_PERMISSION">
+                <role name="Some Portal Role"/>
+----
+
+==== Refactorings & project changes
+* version changed from 4 to 3 numbers, build version will increment every time there is a new feature or bugfix
+* improved docs
 
 === Version 7.3.6.0
 
