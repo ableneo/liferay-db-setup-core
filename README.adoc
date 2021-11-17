@@ -249,7 +249,7 @@ By storing the application *data* as XML declaration we enable developers to ver
 
 == Contributing
 
-Want/need to hack on db-setup-core? See our link:CONTRIBUTING.md[super short contributing guide] for information on building, testing and contributing changes.
+Want/need to hack on db-setup-core? See our link:CONTRIBUTING.adoc[super short contributing guide] for information on building, testing and contributing changes.
 
 They are probably not perfect, please let me know if anything feels wrong or incomplete.
 
