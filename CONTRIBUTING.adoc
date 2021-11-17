@@ -1,10 +1,48 @@
 = Thank you for considering contribution!
+:TOC:
 
 == TL;DR
 
 . find issue for the problem
 . if not found create one
 . work or wait :)
+
+== How to build
+
+We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
+
+. Download sources.
+. Install JDK 1.8
+. Install Maven 3.6.3 or higher.
+. Run: `mvn clean install`
+
+=== Automated local build environment setup with nix
+
+==== nix + nix-shell
+Sets up required JDK and all other software required for building. Does not change any global OS settings. Building environment is local to the project e.g. you're using JDK11 by default.
+
+Helps if you want to build the project without changing global system JDK/Maven settings.
+
+. Install nix: https://nixos.org/guides/install-nix.html
+. Run:
++
+```bash
+cd liferay-db-setup-core
+nix-shell
+mvn clean install
+```
+
+==== nix + direnv
+Enters local development environment for the project every time you cd into the project directory.
+
+. Install nix: https://nixos.org/guides/install-nix.html
+. Install direnv_nix: https://github.com/nix-community/nix-direnv#with-nix-env
+. Run:
++
+```bash
+cd liferay-db-setup-core
+mvn clean install
+```
 
 == Detail
 

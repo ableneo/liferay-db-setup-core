@@ -24,11 +24,7 @@ public final class CustomFieldSettingUtil {
      * Auxiliary method that returns the expando value of a given expando field
      * with a given key.
      *
-     * @param user
-     *        The user whose expando field will be retrieved.
-     * @param key
-     *        The name of the expando field.
-     * @return Returns false, if the expando field or the value is not defined.
+     * @param key The name of the expando field.
      */
     // CHECKSTYLE:OFF
     public static void setExpandoValue(

@@ -39,8 +39,9 @@ import java.util.Objects;
  * Setup module for creating / updating the categorization. So far it creates
  * tree of categories. In the future also AssetTag creation feature should be
  * here.
- * <p/>
+ * <p>
  * Created by guno on 8. 6. 2015.
+ * </p>
  *
  * @author guno
  */
