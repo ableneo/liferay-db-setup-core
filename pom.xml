@@ -48,7 +48,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <configuration>
-                    <tagNameFormat>@{project.artifactId}/@{project.version}</tagNameFormat>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
                 </configuration>
             </plugin>
             <plugin>
@@ -389,10 +389,10 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/ableneo/liferay-db-setup-core.git</connection>
-        <developerConnection>scm:git:ssh://github.com:ableneo/liferay-db-setup-core.git</developerConnection>
+        <connection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</connection>
+        <developerConnection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</developerConnection>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
-      <tag>com.ableneo.liferay.db.setup.core/7.3.601</tag>
+      <tag>7.3.601</tag>
   </scm>
 
     <licenses>
