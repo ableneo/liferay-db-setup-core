@@ -57,7 +57,7 @@ public final class DocumentUtil {
      * @param documentName The name of the document (title)
      * @param groupId the group id.
      * @param repoId the repository id.
-     * @return
+     * @return file entry if found, null if not found
      */
     public static FileEntry findDocument(final String documentName, final long groupId, final long repoId) {
         //
@@ -128,7 +128,6 @@ public final class DocumentUtil {
     /**
      * Creates a document that will be located at a particular folder.
      *
-     * @param companyId the company id to which the file will be associated.
      * @param groupId the group id to which the file will be associated.
      * @param folderId the folder id where the file will be located in documents and
      *        media

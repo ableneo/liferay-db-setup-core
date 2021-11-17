@@ -316,11 +316,11 @@ public final class ResolverUtil {
 
     /**
      * Substitutes all references for documents and media files. A file
-     * reference must have the following format in BNF: <br/>
-     * fileReference ::= "{{$FILE=" siteReference+ filePath "$}}"<br/>
-     * siteReference ::= "::" &lt; site-name &gt; "::"<br/>
-     * filePath ::= ("/" &lt; path-segment &gt;)*<br/>
-     * <br/>
+     * reference must have the following format in BNF: <br>
+     * fileReference ::= "{{$FILE=" siteReference+ filePath "$}}"<br>
+     * siteReference ::= "::" &lt; site-name &gt; "::"<br>
+     * filePath ::= ("/" &lt; path-segment &gt;)*<br>
+     * <br>
      *
      * @param content The content of the article.
      * @param locationHint A location hint where the substitution is done (for logging),
