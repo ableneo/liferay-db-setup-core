@@ -8,7 +8,7 @@ if ( [ "$REPLY" == "yes" ] ) then
   eval `ssh-agent`
   ssh-add ~/.ssh/id_rsa
   ssh-add -l
-  mvn release:clean release:prepare release:perform -B -e | tee maven-central-deploy.log
+  mvn release:clean release:prepare release:perform -Dgoals='deploy' -B -e
   ssh-add -D
 else
   echo 'Exit without deploy'
