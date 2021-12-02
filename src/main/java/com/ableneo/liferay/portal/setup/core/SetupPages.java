@@ -8,10 +8,10 @@ import com.ableneo.liferay.portal.setup.domain.ArticleDisplayPortletType;
 import com.ableneo.liferay.portal.setup.domain.AssetPublisherPortletType;
 import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
 import com.ableneo.liferay.portal.setup.domain.MenuViewPortletType;
-import com.ableneo.liferay.portal.setup.domain.PageType;
 import com.ableneo.liferay.portal.setup.domain.PagePortletType;
 import com.ableneo.liferay.portal.setup.domain.PageTemplate;
 import com.ableneo.liferay.portal.setup.domain.PageTemplates;
+import com.ableneo.liferay.portal.setup.domain.PageType;
 import com.ableneo.liferay.portal.setup.domain.PagesType;
 import com.ableneo.liferay.portal.setup.domain.PortletPreference;
 import com.ableneo.liferay.portal.setup.domain.PropertyKeyValueType;
@@ -284,7 +284,10 @@ public final class SetupPages {
         LayoutSetLocalServiceUtil.updateLayoutSet(set);
     }
 
-    private static UnicodeProperties mergeConvertProperties(UnicodeProperties original, List<PropertyKeyValueType> props) {
+    private static UnicodeProperties mergeConvertProperties(
+        UnicodeProperties original,
+        List<PropertyKeyValueType> props
+    ) {
         if (props == null || props.isEmpty()) {
             return original;
         }
@@ -587,7 +590,12 @@ public final class SetupPages {
         );
     }
 
-    private static void setCustomFields(final long groupId, final long company, final PageType page, final Layout layout) {
+    private static void setCustomFields(
+        final long groupId,
+        final long company,
+        final PageType page,
+        final Layout layout
+    ) {
         Class clazz = Layout.class;
         String resolverHint =
             "Resolving customized value for page " +

@@ -5,7 +5,6 @@ import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -29,7 +28,6 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
 public final class MarshallUtil {
-
     private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
 
     private static final SAXParserFactory spf = SAXParserFactory.newInstance();

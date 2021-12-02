@@ -2,19 +2,17 @@ package com.ableneo.liferay.portal.setup.core.util;
 
 import com.ableneo.liferay.portal.setup.domain.TranslationType;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class TranslationMapUtil {
     private static final Logger LOG = LoggerFactory.getLogger(TranslationMapUtil.class);
 
-    private TranslationMapUtil() {
-    }
+    private TranslationMapUtil() {}
 
     public static Map<Locale, String> getTranslationMap(
         final List<TranslationType> translations,

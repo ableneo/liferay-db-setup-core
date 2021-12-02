@@ -35,7 +35,12 @@ public final class TaggingUtil {
             .stream()
             .map(
                 category ->
-                    ResolverUtil.lookupAll(groupId, journalArticle.getCompanyId(), category.getUuid(), article.getPath())
+                    ResolverUtil.lookupAll(
+                        groupId,
+                        journalArticle.getCompanyId(),
+                        category.getUuid(),
+                        article.getPath()
+                    )
             )
             .filter(Validator::isNumber)
             .mapToLong(Long::parseLong)
