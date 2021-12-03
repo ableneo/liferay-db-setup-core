@@ -381,11 +381,96 @@
 
     <developers>
         <developer>
+            <id>abenitezsan</id>
+            <name>Adolfo Carlos Benitez Sanchez</name>
+            <url>https://github.com/abenitezsan</url>
+        </developer>
+        <developer>
+            <id>dmmrch</id>
+            <name>Dmitry Marchuk</name>
+            <url>https://github.com/dmmrch</url>
+        </developer>
+        <developer>
+            <id>fabalint</id>
+            <name>Balint FARKAS</name>
+            <email>balint.farkas@raiffeisen.hu</email>
+            <url>https://github.com/fabalint</url>
+        </developer>
+        <developer>
+            <id>gustavnovotny</id>
+            <name>Gustav Novotny</name>
+            <email>gustav.novotny@ableneo.com</email>
+            <url>https://github.com/gustavnovotny</url>
+            <organization>ableneo Slovensko s.r.o.</organization>
+            <organizationUrl>http://www.ableneo.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>ivanmrva</id>
+            <name>Ivan Mrva</name>
+            <email>ivan.mrva@mimacom.com</email>
+            <url>https://github.com/ivanmrva</url>
+            <organization>mimacom ag</organization>
+            <organizationUrl>http://www.mimacom.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>jgomezp</id>
+            <name>José Gómez</name>
+            <email>jose.gomez@mimacom.com</email>
+            <organization>mimacom España</organization>
+            <organizationUrl>http://www.mimacom.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>ludevik</id>
+            <name>Ludovit Hajzer</name>
+            <url>https://github.com/ludevik</url>
+        </developer>
+        <developer>
             <id>ktor</id>
             <name>Pawel Kruszewski</name>
-            <email>pawel.kruszewski@ableneo.com</email>
-            <organization>ableneo s.r.o.</organization>
+            <email>kruszewsky@gmail.com</email>
+            <url>https://github.com/ktor</url>
+            <organization>ableneo Slovensko s.r.o.</organization>
             <organizationUrl>https://www.ableneo.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>marekpalenik</id>
+            <name>Marek Palenik</name>
+            <url>https://github.com/marekpalenik</url>
+        </developer>
+        <developer>
+            <id>MarcelFadtke</id>
+            <name>Marcel Fadtke</name>
+            <url>https://github.com/MarcelFadtke</url>
+        </developer>
+        <developer>
+            <id>ntrp</id>
+            <name>Ivan Greguric Ortolan</name>
+            <email>ivan.g.ortolan@gmail.com</email>
+            <url>https://github.com/ntrp</url>
+            <organization>mimacom ag</organization>
+            <organizationUrl>http://www.mimacom.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>piotrdiuk</id>
+            <name>Piotr Paradiuk</name>
+            <email>piotrdiuk@gmail.com</email>
+            <url>https://github.com/piotrdiuk</url>
+            <organization>ableneo Slovensko s.r.o.</organization>
+            <organizationUrl>https://www.ableneo.com</organizationUrl>
+        </developer>
+        <developer>
+            <id>ronky</id>
+            <name>Martin Ronckevic</name>
+            <email>martin.ronky@gmail.com</email>
+            <url>https://github.com/ronky</url>
+            <organization>http://ronky.net</organization>
+            <organizationUrl>http://ronky.net</organizationUrl>
+        </developer>
+        <developer>
+            <name>Silvio Meier</name>
+            <email>silvio.meier@empa.ch</email>
+            <organization>Empa</organization>
+            <organizationUrl>http://www.empa.ch</organizationUrl>
         </developer>
     </developers>
 
