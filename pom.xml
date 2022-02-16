@@ -8,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <version>7.3.602</version>
+    <version>7.3.603-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
