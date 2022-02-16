@@ -651,8 +651,8 @@
                 <xs:element ref="role-permissions" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="category" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
-            <xs:attribute name="article-structure-key" type="xs:string"/>
-            <xs:attribute name="article-template-key" type="xs:string"/>
+            <xs:attribute name="article-structure-key" type="xs:string" use="required"/>
+            <xs:attribute name="article-template-key" type="xs:string" use="required"/>
             <xs:attribute name="articleId" type="xs:string" default=""/>
             <xs:attribute name="title" use="required" type="xs:string"/>
             <xs:attribute name="article-folder-path" type="xs:string"/>
