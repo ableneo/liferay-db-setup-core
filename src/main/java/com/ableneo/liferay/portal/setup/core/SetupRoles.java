@@ -34,7 +34,7 @@ public final class SetupRoles {
             try {
                 long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
                 RoleLocalServiceUtil.getRole(companyId, role.getName());
-                LOG.info(String.format("Setup: Role %1$s already exist, not creating...", role.getName()));
+                LOG.info(String.format("Setup: Role %s already exists in company %s, not creating...", role.getName(), companyId));
             } catch (NoSuchRoleException | ObjectNotFoundException e) {
                 addRole(role);
             } catch (SystemException | PortalException e) {
@@ -72,7 +72,7 @@ public final class SetupRoles {
                 null
             );
 
-            LOG.info(String.format("Setup: Role %1$s does not exist, adding...", role.getName()));
+            LOG.info(String.format("Setup: Role %s does not exist in company %s, adding...", role.getName(), companyId));
         } catch (PortalException | SystemException e) {
             LOG.error("error while adding up roles", e);
         }
