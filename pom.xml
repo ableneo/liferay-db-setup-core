@@ -484,7 +484,7 @@
         <connection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</connection>
         <developerConnection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</developerConnection>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
-        <tag>HEAD</tag>
+        <tag>7.3.602</tag>
   </scm>
 
     <licenses>
