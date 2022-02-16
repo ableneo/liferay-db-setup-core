@@ -448,7 +448,7 @@
             <email>ivan.g.ortolan@gmail.com</email>
             <url>https://github.com/ntrp</url>
             <organization>mimacom ag</organization>
-            <organizationUrl>http://www.mimacom.com</organizationUrl>
+            <organizationUrl>https://www.mimacom.com</organizationUrl>
         </developer>
         <developer>
             <id>piotrdiuk</id>
@@ -464,13 +464,19 @@
             <email>martin.ronky@gmail.com</email>
             <url>https://github.com/ronky</url>
             <organization>http://ronky.net</organization>
-            <organizationUrl>http://ronky.net</organizationUrl>
+            <organizationUrl>https://ronky.net</organizationUrl>
+        </developer>
+        <developer>
+            <name>Milan Kuljovsky</name>
+            <email>milan.kuljovsky@o2.sk</email>
+            <organization>O2</organization>
+            <organizationUrl>https://www.o2.sk</organizationUrl>
         </developer>
         <developer>
             <name>Silvio Meier</name>
             <email>silvio.meier@empa.ch</email>
             <organization>Empa</organization>
-            <organizationUrl>http://www.empa.ch</organizationUrl>
+            <organizationUrl>https://www.empa.ch</organizationUrl>
         </developer>
     </developers>
 
