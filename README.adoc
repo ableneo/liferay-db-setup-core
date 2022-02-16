@@ -256,6 +256,11 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 == Changelog
 
+=== Version 7.3.602
+==== Features & bug fixes
+* fixed configuration related resource reading, library can read e.g. article files from caller bundle
+* article-structure-key and article-template-key article element attributes are required
+
 === Version 7.3.601
 ==== Features & bug fixes
 * target Liferay Portal version is still minimum 7.3.6 (GA7)
