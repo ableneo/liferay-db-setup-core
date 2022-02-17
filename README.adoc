@@ -258,8 +258,8 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 === Version 7.3.602
 ==== Features & bug fixes
-* fixed configuration related resource reading, library can read e.g. article files from caller bundle
-* article-structure-key and article-template-key article element attributes are required
+* fixed configuration related resource reading, library can read e.g. article files from caller bundle, credit goes to Milan Kuljovsky- thank you!
+* article-structure-key and article-template-key article element attributes are required as there are no defaults for those values
 
 === Version 7.3.601
 ==== Features & bug fixes
@@ -301,6 +301,7 @@ TIP: TODO: deletion of existing property.
 ==== Features & bug fixes
 
 * OSGI descriptors in JAR, the bundle can be deployed and work as a standalone Liferay 7.x bundle
+
 * instance import feature added, credit goes to https://github.com/bimki[@bimki] - thank you!
 * portal properties feature added, credit goes to https://github.com/fabalint[@fabalint] - thank you!
 * new helper methods to run the setup (ported from 1.x branch):
