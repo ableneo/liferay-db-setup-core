@@ -262,6 +262,7 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 ==== Refactorings & project changes
 * upgraded test harness to latest mockito, added basic tests for multiple company/groups setup execution
+* fixed SonarCloud scan integration with GitHub actions, TODO: pull request decoration
 
 === Version 7.3.602
 ==== Features & bug fixes
