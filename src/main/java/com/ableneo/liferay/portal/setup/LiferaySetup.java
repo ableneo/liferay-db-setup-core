@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
-import com.liferay.portal.kernel.util.PortalUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -153,11 +152,7 @@ public final class LiferaySetup {
     private static void setupGroup(Setup setup, String runAsUserEmail, long companyId, String groupName)
         throws PortalException {
         Group group = GroupLocalServiceUtil.getGroup(companyId, groupName);
-        SetupConfigurationThreadLocal.configureThreadLocalContent(
-            runAsUserEmail,
-            PortalUtil.getDefaultCompanyId(),
-            group
-        );
+        SetupConfigurationThreadLocal.setRunInGroupId(group.getGroupId());
         setupPortalGroup(setup);
     }
 

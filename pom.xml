@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -21,10 +22,16 @@
         <liferay.version>7.3.6</liferay.version>
         <liferay.version.portal.api>${liferay.version}-ga7</liferay.version.portal.api>
 
-        <jmockit.version>1.46</jmockit.version>
+        <junit.version>5.8.2</junit.version>
+        <mockito.version>4.3.1</mockito.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <bnd.version>5.2.0</bnd.version>
+
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.organization>ableneo</sonar.organization>
+        <sonar.projectKey>liferay-db-setup-core-2_x</sonar.projectKey>
     </properties>
 
     <build>
@@ -148,22 +155,11 @@
                 <version>2.22.1</version>
                 <dependencies>
                     <dependency>
-                        <groupId>org.junit.platform</groupId>
-                        <artifactId>junit-platform-surefire-provider</artifactId>
-                        <version>1.2.0</version>
-                    </dependency>
-                    <dependency>
                         <groupId>org.junit.jupiter</groupId>
                         <artifactId>junit-jupiter-engine</artifactId>
-                        <version>5.3.1</version>
+                        <version>${junit.version}</version>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <argLine>
-                        @{argLine}
-                        -javaagent:${settings.localRepository}/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
-                    </argLine>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -185,6 +181,12 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <!-- see versions at https://search.maven.org/search?q=g:org.sonarsource.scanner.maven%20AND%20a:sonar-maven-plugin -->
+                <version>3.9.1.2184</version>
             </plugin>
             <plugin>
                 <groupId>biz.aQute.bnd</groupId>
@@ -274,10 +276,12 @@
             <groupId>com.liferay.portal</groupId>
             <artifactId>release.portal.api</artifactId>
             <version>${liferay.version.portal.api}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <!-- debug deps -->
         <!--
@@ -304,32 +308,44 @@
          -->
         <!-- debug deps END -->
 
-        <!-- Test -->
+        <!-- test deps start -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.3.1</version>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>2.21.0</version>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
-            <version>2.23.0</version>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- static method mocking -->
         <dependency>
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
-            <version>${jmockit.version}</version>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.10</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- test deps stop -->
     </dependencies>
 
     <profiles>
@@ -360,6 +376,31 @@
                     <version>1.1.1</version>
                 </dependency>
             </dependencies>
+        </profile>
+        <profile>
+            <id>coverage</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 
@@ -443,6 +484,13 @@
             <url>https://github.com/MarcelFadtke</url>
         </developer>
         <developer>
+            <id>milan</id>
+            <name>Milan Kuljovsky</name>
+            <email>milan.kuljovsky@o2.sk</email>
+            <organization>O2</organization>
+            <organizationUrl>https://www.o2.sk</organizationUrl>
+        </developer>
+        <developer>
             <id>ntrp</id>
             <name>Ivan Greguric Ortolan</name>
             <email>ivan.g.ortolan@gmail.com</email>
@@ -467,12 +515,7 @@
             <organizationUrl>https://ronky.net</organizationUrl>
         </developer>
         <developer>
-            <name>Milan Kuljovsky</name>
-            <email>milan.kuljovsky@o2.sk</email>
-            <organization>O2</organization>
-            <organizationUrl>https://www.o2.sk</organizationUrl>
-        </developer>
-        <developer>
+            <id>silvio</id>
             <name>Silvio Meier</name>
             <email>silvio.meier@empa.ch</email>
             <organization>Empa</organization>
@@ -485,7 +528,7 @@
         <developerConnection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</developerConnection>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
         <tag>7.3.602</tag>
-  </scm>
+    </scm>
 
     <licenses>
         <license>

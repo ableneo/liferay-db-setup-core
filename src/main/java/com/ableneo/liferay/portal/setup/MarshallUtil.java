@@ -4,13 +4,12 @@ import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
 import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.XMLReader;
+
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -23,12 +22,15 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public final class MarshallUtil {
-    private static final Log LOG = LogFactoryUtil.getLog(MarshallUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MarshallUtil.class);
 
     private static final SAXParserFactory spf = SAXParserFactory.newInstance();
     private static final Schema schema = getSchema();
@@ -43,7 +45,7 @@ public final class MarshallUtil {
             spf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
             xr = spf.newSAXParser().getXMLReader();
         } catch (SAXException | ParserConfigurationException e) {
-            LOG.error(e);
+            LOG.error("Failed to setup SAX parser.", e);
         }
     }
 
