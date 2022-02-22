@@ -4,7 +4,7 @@
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
-image:https://travis-ci.org/ableneo/liferay-db-setup-core.svg?branch=master[Build Status,link=https://travis-ci.org/ableneo/liferay-db-setup-core/branches]
+image:https://github.com/ableneo/liferay-db-setup-core/actions/workflows/build.yml/badge.svg[Build workflow status,link=https://github.com/ableneo/liferay-db-setup-core/actions/workflows/build.yml]
 image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x]
 
 Library that allows to setup a number of https://github.com/liferay[Liferay] artifacts in the DB. It uses xml and https://docs.liferay.com/portal/7.0/javadocs/portal-kernel[Liferay APIs] to add all configured artifacts.
