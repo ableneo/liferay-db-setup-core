@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -9,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <version>7.3.603-SNAPSHOT</version>
+    <version>7.3.603</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
@@ -527,7 +526,7 @@
         <connection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</connection>
         <developerConnection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</developerConnection>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
-        <tag>7.3.602</tag>
+        <tag>7.3.603</tag>
     </scm>
 
     <licenses>
