@@ -201,4 +201,5 @@ public final class SetupConfigurationThreadLocal {
             throw new IllegalStateException("Cannot obtain Liferay role for role name: " + administratorRoleName, e);
         }
     }
+
 }

@@ -1,27 +1,26 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
+import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import static com.ableneo.liferay.portal.setup.core.util.ResolverUtil.CLASS_ID_BY_NAME;
 import static com.ableneo.liferay.portal.setup.core.util.ResolverUtil.CLOSING_TAG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.jupiter.api.Test;
-
+@ExtendWith(MockitoExtension.class)
 class ResolverUtil_getClassIdByNameTest {
-    @Mocked
+    @Mock
     ClassNameLocalServiceUtil classNameLocalServiceUtil;
 
     @Test
     void happyDayScenario1() {
-        new Expectations(ClassNameLocalServiceUtil.class) {
 
-            {
-                classNameLocalServiceUtil.getClassNameId("com.liferay.portal.kernel.model.Layout");
-                result = 7l;
-            }
-        };
+        Mockito.mockStatic(ClassNameLocalServiceUtil.class);
+        Mockito.when(ClassNameLocalServiceUtil.getClassNameId("com.liferay.portal.kernel.model.Layout")).thenReturn(7l);
         assertEquals(
             "test 7 test",
             ResolverUtil.getClassIdByName(

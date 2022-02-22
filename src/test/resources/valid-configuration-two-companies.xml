@@ -5,6 +5,9 @@
         <company>
             <companyid>1</companyid>
         </company>
+        <company>
+            <companyid>2</companyid>
+        </company>
     </configuration>
 
     <roles>

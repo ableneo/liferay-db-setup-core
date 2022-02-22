@@ -1,6 +1,6 @@
 = Liferay Portal DB setup core
 :liferay-version: 7.3.6
-:current-db-setup-core-version: 7.3.602
+:current-db-setup-core-version: 7.3.603
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
@@ -255,6 +255,13 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 
 == Changelog
+
+=== Version 7.3.603
+==== Features & bug fixes
+* fixed setup for multiple companies/groups
+
+==== Refactorings & project changes
+* upgraded test harness to latest mockito, added basic tests for multiple company/groups setup execution
 
 === Version 7.3.602
 ==== Features & bug fixes
