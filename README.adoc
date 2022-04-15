@@ -1,6 +1,6 @@
 = Liferay Portal DB setup core
 :liferay-version: 7.3.6
-:current-db-setup-core-version: 7.3.603
+:current-db-setup-core-version: 7.3.604
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
@@ -11,11 +11,13 @@ Library that allows to setup a number of https://github.com/liferay[Liferay] art
 
 == Usage
 
-We recommend wrapping the library calls in either Liferay *upgrade process* or in a control panel app for a *reset to defaults* application.
+We recommend using Liferay's link:https://learn.liferay.com/dxp/latest/en/building-applications/data-frameworks/upgrade-processes.html[upgrade process] or control panel portlet to apply declared database changes.
 
-=== Examples
-==== Configuration
-All data definitions in examples are applied according to XML file header which defines on which company data creation should take effect and which admin user should be used for data creation.
+=== Configuration header
+All data definitions in the setup XML file are applied according to the `configuration` header. The header defines:
+
+. the link:https://learn.liferay.com/dxp/latest/en/system-administration/configuring-liferay/virtual_instances.html[virtual instance] on which the library will modify the data.
+. admin user account to be used for data modification
 
 .Automatically selected admin user
 [source, xml]
@@ -29,6 +31,7 @@ All data definitions in examples are applied according to XML file header which 
         <companywebid>liferay.com</companywebid>
     </company>
   </configuration>
+</setup>
 ----
 
 .Specified admin user
@@ -44,7 +47,38 @@ All data definitions in examples are applied according to XML file header which 
     </company>
   </configuration>
 ----
+=== Features
 
+==== Service Access Policy
+link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html#[Service access policy] is a link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services.html[second] from four of Liferay's API security layers. Together with _IP Permission Layer_, _Authentication and verification layer_ and _User permission layer_ is responsible for securing access to web services provided by portal instance.
+
+If you develop new link:https://learn.liferay.com/dxp/latest/en/headless-delivery/apis-with-rest-builder.html[REST Builder] REST/GraphQL endpoint's it's a common requirement to setup an access for those API's for an unauthenticated portal user- Guest which is by default forbidden.
+
+.Add new or update existing Service Access Policy by name
+[source, xml]
+----
+<company-settings>
+    <service-access-policies>
+        <service-access-policy name="MY_ACCESS_POLICY" enabled="true" unauthenticated="true">
+            <title locale="sk_SK" text="Moja pristupova politika" />
+            <allowed-service-signatures> <1>
+                com.liferay.headless.admin.user.internal.resource.v1_0.SiteResourceImpl#getSite
+            </allowed-service-signatures>
+        </service-access-policy>
+    </service-access-policies>
+</company>
+----
+<1> `allowed-service-signatures` provides the same functionality as link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html#creating-a-service-access-policy[_Advanced Mode_]
+
+.Delete existing Service Access Policy by name
+[source,xml]
+----
+<company-settings>
+    <service-access-policies>
+        <delete-service-access-policy name="WIZARD_GUEST_ACCESS"/>
+    </service-access-policies>
+</company-settings>
+----
 ==== Permissions
 Resource permissions.
 [source, xml]
@@ -255,6 +289,13 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 
 == Changelog
+
+=== Version 7.3.604
+==== Features & bug fixes
+* added an ability to create/update/delete link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html[Service Access Policies]
+
+==== Refactorings & project changes
+* refactored common mock setup into a separate class
 
 === Version 7.3.603
 ==== Features & bug fixes

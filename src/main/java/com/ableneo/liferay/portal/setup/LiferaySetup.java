@@ -6,6 +6,7 @@ import com.ableneo.liferay.portal.setup.core.SetupPages;
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
 import com.ableneo.liferay.portal.setup.core.SetupPortal;
 import com.ableneo.liferay.portal.setup.core.SetupRoles;
+import com.ableneo.liferay.portal.setup.core.SetupServiceAccessPolicies;
 import com.ableneo.liferay.portal.setup.core.SetupSites;
 import com.ableneo.liferay.portal.setup.core.SetupUserGroups;
 import com.ableneo.liferay.portal.setup.core.SetupUsers;
@@ -14,6 +15,7 @@ import com.ableneo.liferay.portal.setup.domain.Configuration;
 import com.ableneo.liferay.portal.setup.domain.CustomFields;
 import com.ableneo.liferay.portal.setup.domain.ObjectsToBeDeleted;
 import com.ableneo.liferay.portal.setup.domain.Organization;
+import com.ableneo.liferay.portal.setup.domain.ServiceAccessPolicies;
 import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -119,6 +121,15 @@ public final class LiferaySetup {
                     }
                     SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId, callerBundle);
                     executeSetupConfiguration(setup);
+
+                    // setup company settings
+                    if (setup.getCompanySettings() != null) {
+                        // setup service access policies
+                        final ServiceAccessPolicies serviceAccessPolicies = setup.getCompanySettings().getServiceAccessPolicies();
+                        if (serviceAccessPolicies != null) {
+                            SetupServiceAccessPolicies.setupServiceAccessPolicies(serviceAccessPolicies);
+                        }
+                    }
 
                     // iterate over group names or choose GUEST group for the company
                     if (company.getGroupName().isEmpty()) {
