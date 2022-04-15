@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
            targetNamespace="http://www.ableneo.com/liferay/setup" xmlns="http://www.ableneo.com/liferay/setup"
-           version="2.1">
+           version="2.2">
 
     <!-- definitions of elements start -->
     <xs:element name="setup">
@@ -19,6 +19,7 @@
                     all operations within setup hook -->
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
                 <xs:element ref="portal" minOccurs="0"/>
+                <xs:element name="company-settings" type="CompanySettings" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="user-groups" minOccurs="0"/>
                 <xs:element ref="users" minOccurs="0"/>
@@ -876,6 +877,80 @@
     <!-- definitions of elements end -->
 
     <!-- definitions of types start -->
+    <xs:complexType name="CompanySettings">
+        <xs:annotation>
+            <xs:documentation>
+                Used to define company level settings.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="service-access-policies" type="ServiceAccessPolicies" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="ServiceAccessPolicies">
+        <xs:sequence>
+            <xs:element name="service-access-policy" type="ServiceAccessPolicy" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="delete-service-access-policy" type="DeleteServiceAccessPolicy" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="DeleteServiceAccessPolicy">
+        <xs:annotation>
+            <xs:documentation>
+                Removes declared service access policy from company if it exists. Logs WARN if policy not found.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" use="required" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Unique identifier of the Service Access Policy in a company.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+    <xs:complexType name="ServiceAccessPolicy">
+        <xs:annotation>
+            <xs:documentation>
+                Adds new or replaces declared service access policy according to declarations. If not specified the policy is enabled and applied to unauthenticated requests (Default). Policy name (not title) is used as an identification.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:sequence>
+            <xs:element name="title" minOccurs="1" maxOccurs="unbounded" type="TranslationType">
+                <xs:annotation>
+                    <xs:documentation>
+                        Service Access Policy title translation. Title in at least one language is required.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+            <xs:element name="allowed-service-signatures" type="xs:string" minOccurs="1" maxOccurs="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        List of allowed service signatures. Each entry in separate line. "Advanced mode" documentation (https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html#creating-a-service-access-policy) applies to contents of the element. It is possible not to define one. In the case library will create empty policy or update attributes of an existing one according to the declaration.
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:element>
+        </xs:sequence>
+        <xs:attribute name="name" use="required" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>
+                    Unique identifier of the Service Access Policy in a company.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="enabled" use="optional" default="true" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>
+                    Library presumes that policy is to be enabled by default but allows to define a disabling action as well.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="unauthenticated" use="optional" default="true" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>
+                    Library presumes that policy is to be applied to all requests, authenticated and unauthenticated as well.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
     <xs:complexType name="SitePreferencesType">
         <xs:sequence>
             <xs:element name="inheritLocales" minOccurs="0" maxOccurs="1" type="xs:boolean" default="true"/>

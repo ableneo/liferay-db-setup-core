@@ -225,10 +225,18 @@
             <plugin>
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.12</version>
+                <version>0.17</version>
                 <configuration>
+                    <prettierJavaVersion>1.6.1</prettierJavaVersion>
+                    <printWidth>120</printWidth>
+                    <useTabs>false</useTabs>
+                    <tabWidth>4</tabWidth>
                     <ignoreConfigFile>false</ignoreConfigFile>
                     <ignoreEditorConfig>false</ignoreEditorConfig>
+                    <inputGlobs>
+                        <inputGlob>src/main/java/**/*.java</inputGlob>
+                        <inputGlob>src/test/java/**/*.java</inputGlob>
+                    </inputGlobs>
                 </configuration>
             </plugin>
 
