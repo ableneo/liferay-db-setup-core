@@ -10,15 +10,19 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.security.service.access.policy.exception.NoSuchEntryException;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalServiceUtil;
+import java.io.BufferedReader;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SetupServiceAccessPolicies {
 
+    protected static final Pattern ALL_WHITE_SPACE_CHARACTERS = Pattern.compile("\\W");
     private static final Logger LOG = LoggerFactory.getLogger(SetupCategorization.class);
 
     public static void setupServiceAccessPolicies(ServiceAccessPolicies serviceAccessPolicies) {
@@ -40,7 +44,11 @@ public class SetupServiceAccessPolicies {
             } else {
                 sapEntry.setEnabled(serviceAccessPolicyConfiguration.isEnabled());
                 sapEntry.setDefaultSAPEntry(serviceAccessPolicyConfiguration.isUnauthenticated());
-                sapEntry.setAllowedServiceSignatures(serviceAccessPolicyConfiguration.getAllowedServiceSignatures());
+
+                final String allowedServiceSignatures = cleanUpAllowedServiceSignatures(
+                    serviceAccessPolicyConfiguration.getAllowedServiceSignatures()
+                );
+                sapEntry.setAllowedServiceSignatures(allowedServiceSignatures);
                 if (!titleMap.isEmpty()) {
                     sapEntry.setTitleMap(titleMap);
                 }
@@ -54,9 +62,27 @@ public class SetupServiceAccessPolicies {
             if (sapEntry != null) {
                 deleteSAPEntry(sapEntry);
             } else {
-                LOG.warn("Tried to delete SAP Entry {} in company {} but the entry haven't been found.", deleteServiceAccessPolicy.getName(), runInCompanyId);
+                LOG.warn(
+                    "Tried to delete SAP Entry {} in company {} but the entry haven't been found.",
+                    deleteServiceAccessPolicy.getName(),
+                    runInCompanyId
+                );
             }
         });
+    }
+
+    public static String cleanUpAllowedServiceSignatures(String allowedServiceSignatures) {
+        if (
+            allowedServiceSignatures == null ||
+            ALL_WHITE_SPACE_CHARACTERS.matcher(allowedServiceSignatures).replaceAll("").isEmpty()
+        ) {
+            return "";
+        }
+        final String normalizedMultilineConfiguration = new BufferedReader(new StringReader(allowedServiceSignatures))
+            .lines()
+            .filter(line -> !line.trim().isEmpty())
+            .reduce("", (result, element) -> result.concat(element.trim() + "\n"));
+        return normalizedMultilineConfiguration.substring(0, normalizedMultilineConfiguration.length() - 1);
     }
 
     private static void deleteSAPEntry(SAPEntry sapEntry) {

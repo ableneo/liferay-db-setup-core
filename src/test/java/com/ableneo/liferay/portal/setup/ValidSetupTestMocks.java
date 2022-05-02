@@ -1,5 +1,10 @@
 package com.ableneo.liferay.portal.setup;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
 import com.ableneo.liferay.portal.setup.core.SetupServiceAccessPolicies;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -11,6 +16,8 @@ import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import java.io.File;
+import java.net.URISyntaxException;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,15 +26,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.net.URISyntaxException;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 public abstract class ValidSetupTestMocks {
 
@@ -38,23 +36,18 @@ public abstract class ValidSetupTestMocks {
     public static MockedStatic<UserLocalServiceUtil> userLocalServiceUtilMockedStatic;
     public static MockedStatic<LocaleUtil> localeUtilMockedStatic;
     public static MockedStatic<SetupServiceAccessPolicies> setupServiceAccessPoliciesMockedStatic;
-
+    public static MockedStatic<SetupConfigurationThreadLocal> setupConfigurationThreadLocalMockedStatic;
     @Mock
     public User liferayUser;
-
-    @Mock
+    @Mock(lenient = true)
     public Group liferayGroup;
-
     @Mock
     public PermissionChecker permissionChecker;
-
     @Mock
     public PermissionCheckerFactory permissionCheckerFactory;
-
     public File validConfiguration;
     public File invalidConfiguration;
     public File validConfigurationTwoCompanies;
-    public static MockedStatic<SetupConfigurationThreadLocal> setupConfigurationThreadLocalMockedStatic;
 
     @BeforeAll
     static void beforeAll() {
@@ -65,7 +58,12 @@ public abstract class ValidSetupTestMocks {
         userLocalServiceUtilMockedStatic = Mockito.mockStatic(UserLocalServiceUtil.class);
         localeUtilMockedStatic = Mockito.mockStatic(LocaleUtil.class);
         setupServiceAccessPoliciesMockedStatic = Mockito.mockStatic(SetupServiceAccessPolicies.class);
-        setupConfigurationThreadLocalMockedStatic.when(() -> SetupServiceAccessPolicies.setupServiceAccessPolicies(any())).thenCallRealMethod();
+        setupServiceAccessPoliciesMockedStatic
+            .when(() -> SetupServiceAccessPolicies.cleanUpAllowedServiceSignatures(anyString()))
+            .thenCallRealMethod();
+        setupConfigurationThreadLocalMockedStatic
+            .when(() -> SetupServiceAccessPolicies.setupServiceAccessPolicies(any()))
+            .thenCallRealMethod();
     }
 
     @AfterAll
@@ -84,7 +82,8 @@ public abstract class ValidSetupTestMocks {
         try {
             validConfiguration = new File(MarshallUtilTest.class.getResource("/valid-configuration.xml").toURI());
             invalidConfiguration = new File(MarshallUtilTest.class.getResource("/invalid-configuration.xml").toURI());
-            validConfigurationTwoCompanies = new File(MarshallUtilTest.class.getResource("/valid-configuration-two-companies.xml").toURI());
+            validConfigurationTwoCompanies =
+                new File(MarshallUtilTest.class.getResource("/valid-configuration-two-companies.xml").toURI());
         } catch (URISyntaxException e) {
             LOGGER.error("Failed to parse configuration file", e);
         }
@@ -93,9 +92,8 @@ public abstract class ValidSetupTestMocks {
             when(UserLocalServiceUtil.getUserByEmailAddress(anyLong(), anyString())).thenReturn(liferayUser);
             when(GroupLocalServiceUtil.getGroup(anyLong(), anyString())).thenReturn(liferayGroup);
         } catch (PortalException e) {
-            LOGGER.error("",e);
+            LOGGER.error("", e);
         }
         when(liferayGroup.getGroupId()).thenReturn(20l);
     }
-
 }

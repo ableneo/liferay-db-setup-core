@@ -1,6 +1,6 @@
 = Liferay Portal DB setup core
 :liferay-version: 7.3.6
-:current-db-setup-core-version: 7.3.604
+:current-db-setup-core-version: 7.3.605
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
@@ -289,6 +289,10 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 
 == Changelog
+
+=== Version 7.3.605
+==== Features & bug fixes
+* fixed bug when handling multiline link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html[service access policy]
 
 === Version 7.3.604
 ==== Features & bug fixes
