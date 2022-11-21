@@ -18,7 +18,7 @@
 
     <properties>
         <!--  7.3:  -->
-        <liferay.version>7.3.6</liferay.version>
+        <liferay.version>7.4.3.48</liferay.version>
         <liferay.version.portal.api>${liferay.version}-ga7</liferay.version.portal.api>
 
         <junit.version>5.8.2</junit.version>
