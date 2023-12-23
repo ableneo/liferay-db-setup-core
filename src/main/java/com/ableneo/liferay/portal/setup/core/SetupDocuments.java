@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class SetupDocuments {
-
     private static final Logger LOG = LoggerFactory.getLogger(SetupDocuments.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 

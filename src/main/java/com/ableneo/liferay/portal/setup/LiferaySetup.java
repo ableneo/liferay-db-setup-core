@@ -6,6 +6,7 @@ import com.ableneo.liferay.portal.setup.core.SetupPages;
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
 import com.ableneo.liferay.portal.setup.core.SetupPortal;
 import com.ableneo.liferay.portal.setup.core.SetupRoles;
+import com.ableneo.liferay.portal.setup.core.SetupServiceAccessPolicies;
 import com.ableneo.liferay.portal.setup.core.SetupSites;
 import com.ableneo.liferay.portal.setup.core.SetupUserGroups;
 import com.ableneo.liferay.portal.setup.core.SetupUsers;
@@ -14,6 +15,7 @@ import com.ableneo.liferay.portal.setup.domain.Configuration;
 import com.ableneo.liferay.portal.setup.domain.CustomFields;
 import com.ableneo.liferay.portal.setup.domain.ObjectsToBeDeleted;
 import com.ableneo.liferay.portal.setup.domain.Organization;
+import com.ableneo.liferay.portal.setup.domain.ServiceAccessPolicies;
 import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -26,12 +28,13 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
-import com.liferay.portal.kernel.util.PortalUtil;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
+
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +52,19 @@ public final class LiferaySetup {
      */
     public static boolean setup(final File file) throws FileNotFoundException {
         Setup setup = MarshallUtil.unmarshall(file);
-        return setup(setup);
+        return setup(setup, null);
+    }
+
+    /**
+     * Helper method that unmarshalls xml configuration from data stream.
+     *
+     * @param inputStream data containing xml file that follows http://www.ableneo.com/liferay/setup schema
+     * @param callerBundle caller bundle to resolve its file resources during processing
+     * @return if setup was successfull
+     */
+    public static boolean setup(final InputStream inputStream, Bundle callerBundle) {
+        Setup setup = MarshallUtil.unmarshall(inputStream);
+        return setup(setup, callerBundle);
     }
 
     /**
@@ -60,7 +75,7 @@ public final class LiferaySetup {
      */
     public static boolean setup(final InputStream inputStream) {
         Setup setup = MarshallUtil.unmarshall(inputStream);
-        return setup(setup);
+        return setup(setup, null);
     }
 
     /**
@@ -70,6 +85,17 @@ public final class LiferaySetup {
      * @return true if all was set up fine
      */
     public static boolean setup(final Setup setup) {
+        return setup(setup, null);
+    }
+
+    /**
+     * Main setup method that sets up the data configured with xml.
+     *
+     * @param setup Setup object, parsed from xml configuration
+     * @param callerBundle caller bundle to resolve its file resources during processing
+     * @return true if all was set up fine
+     */
+    public static boolean setup(final Setup setup, Bundle callerBundle) {
         if (setup == null) {
             throw new IllegalArgumentException(
                 "Setup object cannot be null, without Setup object I cannot set up any data."
@@ -93,8 +119,17 @@ public final class LiferaySetup {
                         LOG.error("Could not find company: {}", company);
                         continue;
                     }
-                    SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId);
+                    SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId, callerBundle);
                     executeSetupConfiguration(setup);
+
+                    // setup company settings
+                    if (setup.getCompanySettings() != null) {
+                        // setup service access policies
+                        final ServiceAccessPolicies serviceAccessPolicies = setup.getCompanySettings().getServiceAccessPolicies();
+                        if (serviceAccessPolicies != null) {
+                            SetupServiceAccessPolicies.setupServiceAccessPolicies(serviceAccessPolicies);
+                        }
+                    }
 
                     // iterate over group names or choose GUEST group for the company
                     if (company.getGroupName().isEmpty()) {
@@ -128,11 +163,7 @@ public final class LiferaySetup {
     private static void setupGroup(Setup setup, String runAsUserEmail, long companyId, String groupName)
         throws PortalException {
         Group group = GroupLocalServiceUtil.getGroup(companyId, groupName);
-        SetupConfigurationThreadLocal.configureThreadLocalContent(
-            runAsUserEmail,
-            PortalUtil.getDefaultCompanyId(),
-            group
-        );
+        SetupConfigurationThreadLocal.setRunInGroupId(group.getGroupId());
         setupPortalGroup(setup);
     }
 

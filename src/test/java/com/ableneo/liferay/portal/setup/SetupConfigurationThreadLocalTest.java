@@ -1,42 +1,50 @@
 package com.ableneo.liferay.portal.setup;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class SetupConfigurationThreadLocalTest {
-    // Liferay code is full of static methods. JMockit supports static method mocks.
-    // Mockit will not support static method mocking (read the discussions), PowerMock doesn't support junit5 yet.
-    @Mocked
-    PortalUtil portalUtil;
-
-    @Mocked
-    GroupLocalServiceUtil groupLocalServiceUtil;
-
-    @Mocked
+    private static MockedStatic<PortalUtil> portalUtilMockedStatic;
+    private static MockedStatic<GroupLocalServiceUtil> groupLocalServiceUtilMockedStatic;
+    @Mock
     Group group;
+
+    @BeforeAll
+    public static void initStaticMocks() {
+        portalUtilMockedStatic = Mockito.mockStatic(PortalUtil.class);
+        groupLocalServiceUtilMockedStatic = Mockito.mockStatic(GroupLocalServiceUtil.class);
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        portalUtilMockedStatic.close();
+        groupLocalServiceUtilMockedStatic.close();
+    }
 
     @Test
     void getRunInCompanyId() throws PortalException {
         Long groupId = 888l;
         final long companyId = 123l;
-        new Expectations(PortalUtil.class) {
-
-            {
-                portalUtil.getDefaultCompanyId();
-                result = companyId;
-                groupLocalServiceUtil.getGroup(withAny(1l), withAny("")); // any of provided type
-                result = group;
-                group.getGroupId();
-                result = groupId;
-            }
-        };
+        Mockito.when(PortalUtil.getDefaultCompanyId()).thenReturn(companyId);
+        Mockito.when(GroupLocalServiceUtil.getGroup(anyLong(), anyString())).thenReturn(group);
+        when(group.getGroupId()).thenReturn(groupId);
         assertEquals(companyId, PortalUtil.getDefaultCompanyId());
         assertEquals(groupId, SetupConfigurationThreadLocal.getRunInGroupId());
     }

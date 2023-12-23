@@ -5,20 +5,13 @@
         <company>
             <companyid>1</companyid>
         </company>
+        <company>
+            <companyid>2</companyid>
+        </company>
     </configuration>
-    <company-settings>
-        <service-access-policies>
-            <service-access-policy name="TEST">
-                <title locale="sk_SK" text="Test"/>
-                <allowed-service-signatures>
-                    com.liferay.headless.admin.user.internal.resource.v1_0.SiteResourceImpl#getSite
-                </allowed-service-signatures>
-            </service-access-policy>
-        </service-access-policies>
-    </company-settings>
 
     <roles>
-        <role name="Some Role"/>
+        <role name="Some Role"></role>
     </roles>
     <resource-permissions>
         <resource resource-id="some-portlet-id">

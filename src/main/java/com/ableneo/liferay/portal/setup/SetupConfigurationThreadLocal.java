@@ -21,6 +21,8 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+
+import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,11 @@ public final class SetupConfigurationThreadLocal {
         }
     );
 
+    private static final ThreadLocal<Bundle> _callerBundle = new CentralizedThreadLocal<>(
+        SetupConfigurationThreadLocal.class + "._callerBundle",
+        null
+    );
+
     private SetupConfigurationThreadLocal() {}
 
     public static Long getRunAsUserId() {
@@ -84,6 +91,14 @@ public final class SetupConfigurationThreadLocal {
         _runInGroupId.set(runInGroupId);
     }
 
+    public static Bundle getCallerBundle() {
+        return _callerBundle.get();
+    }
+
+    public static void setCallerBundle(Bundle callerBundle) {
+        _callerBundle.set(callerBundle);
+    }
+
     public static void cleanUp(
         String originalPrincipalName,
         PermissionChecker originalPermissionChecker,
@@ -92,6 +107,7 @@ public final class SetupConfigurationThreadLocal {
         _runInCompanyId.remove();
         _runAsUserId.remove();
         _runInGroupId.remove();
+        _callerBundle.remove();
 
         PrincipalThreadLocal.setName(originalPrincipalName);
         PermissionThreadLocal.setPermissionChecker(originalPermissionChecker);
@@ -112,7 +128,7 @@ public final class SetupConfigurationThreadLocal {
     static void configureThreadLocalContent(String runAsUserEmail, long companyId, Group group) throws PortalException {
         Objects.requireNonNull(group);
         configureGroupExecutionContext(group);
-        configureThreadLocalContent(runAsUserEmail, companyId);
+        configureThreadLocalContent(runAsUserEmail, companyId, (Bundle)null);
     }
 
     public static void configureGroupExecutionContext(Group group) {
@@ -131,15 +147,17 @@ public final class SetupConfigurationThreadLocal {
      * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
      *                         provided it is important to set up data as the user e.g. for easier cleanup
      */
-    static void configureThreadLocalContent(String runAsUserEmail, long companyId) throws PortalException {
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Bundle callerBundle) throws PortalException {
         if (Validator.isBlank(runAsUserEmail)) {
             setRunInCompanyId(companyId);
+            setCallerBundle(callerBundle);
             SetupConfigurationThreadLocal.setRandomAdminPermissionCheckerForThread();
             LOG.info("Using default administrator.");
         } else {
             User user = UserLocalServiceUtil.getUserByEmailAddress(companyId, runAsUserEmail);
             setRunAsUserId(user.getUserId());
             setRunInCompanyId(companyId);
+            setCallerBundle(callerBundle);
             PrincipalThreadLocal.setName(user.getUserId());
             PermissionChecker permissionChecker = PermissionCheckerFactoryUtil.create(user);
             PermissionThreadLocal.setPermissionChecker(permissionChecker);
@@ -183,4 +201,5 @@ public final class SetupConfigurationThreadLocal {
             throw new IllegalStateException("Cannot obtain Liferay role for role name: " + administratorRoleName, e);
         }
     }
+
 }
