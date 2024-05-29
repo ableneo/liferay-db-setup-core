@@ -1,5 +1,6 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
+import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
@@ -9,6 +10,9 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
+
+import java.sql.Date;
+import java.time.LocalDate;
 
 /**
  * This utility allows to manage documents of the documents and media library.
@@ -93,23 +97,25 @@ public final class DocumentUtil {
     ) {
         try {
             DLVersionNumberIncrease inc = DLVersionNumberIncrease.AUTOMATIC;
-            DLAppLocalServiceUtil.updateFileEntry(
-                userId,
-                fe.getFileEntryId(),
-                sourceFileName,
-                fe.getMimeType(),
-                fe.getTitle(),
-                fe.getDescription(),
+            DLAppLocalServiceUtil.updateFileEntry(userId, fe.getFileEntryId(), sourceFileName,
+                fe.getMimeType(), fe.getTitle(), parseToUrlTitle(fe.getTitle()), fe.getDescription(),
                 "update content",
-                inc,
-                content,
-                new ServiceContext()
-            );
+                DLVersionNumberIncrease.MINOR,
+                content, null, null, new ServiceContext());
         } catch (Exception e) {
             LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
     }
 
+    private static String parseToUrlTitle(String title) {
+        // Remove special characters and convert spaces to hyphens
+        String urlTitle = title.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll("\\s+", "-");
+
+        // Make the URL lowercase
+        urlTitle = urlTitle.toLowerCase();
+
+        return urlTitle;
+    }
     /**
      * Moves the given file entry to a folder with a given id.
      *
@@ -161,18 +167,29 @@ public final class DocumentUtil {
         }
         if (fileEntry == null) {
             try {
+
+                Date expDate = Date.valueOf(LocalDate.now().plusYears(4L));
+                Date reviewDate = Date.valueOf(LocalDate.now());
+                ServiceContext serviceContext = new ServiceContext();
+                serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
+                serviceContext.setScopeGroupId(groupId);
+
                 fileEntry =
                     DLAppLocalServiceUtil.addFileEntry(
+                        null,
                         userId,
                         repoId,
                         folderId,
                         fname,
                         mtype,
                         title,
+                        parseToUrlTitle(title),
                         title,
                         "Ableneo import",
                         content,
-                        new ServiceContext()
+                        expDate,
+                        reviewDate,
+                        serviceContext
                     );
             } catch (PortalException e) {
                 LOG.error(String.format("Error while trying to add file entry: %1$s", title), e);

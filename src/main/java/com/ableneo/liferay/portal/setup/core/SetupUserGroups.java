@@ -8,18 +8,24 @@ import com.ableneo.liferay.portal.setup.domain.UserAsMember;
 import com.ableneo.liferay.portal.setup.domain.UserGroup;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.service.*;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Objects;
 
 public class SetupUserGroups {
-    private static final Log LOG = LogFactoryUtil.getLog(SetupUserGroups.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupUserGroups.class);
 
-    private SetupUserGroups() {}
+    private SetupUserGroups() {
+    }
 
     public static void setupUserGroups(final List<UserGroup> userGroups) {
         final long userId = SetupConfigurationThreadLocal.getRunAsUserId();
@@ -85,7 +91,11 @@ public class SetupUserGroups {
                 continue;
             }
 
-            UserGroupLocalServiceUtil.addUserUserGroup(user.getUserId(), liferayUserGroup.getUserGroupId());
+            try {
+                UserGroupLocalServiceUtil.addUserUserGroup(user.getUserId(), liferayUserGroup.getUserGroupId());
+            } catch (PortalException e) {
+                LOG.warn("Failed to setup user {} as member of userGroup {}", user.getScreenName(), liferayUserGroup.getName(), e);
+            }
             LOG.info(
                 String.format(
                     "User %1$s successfully added as a member to UserGroup %2$s",
@@ -110,12 +120,12 @@ public class SetupUserGroups {
         for (CustomFieldSetting cfs : customFieldSettings) {
             String resolverHint =
                 "Custom value for userGroup " +
-                userGroup.getName() +
-                ", " +
-                " Key " +
-                cfs.getKey() +
-                ", value " +
-                cfs.getValue();
+                    userGroup.getName() +
+                    ", " +
+                    " Key " +
+                    cfs.getKey() +
+                    ", value " +
+                    cfs.getValue();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             CustomFieldSettingUtil.setExpandoValue(
                 resolverHint,

@@ -1,1 +1,4 @@
+Import-Package: \
+  !com.liferay.portal.kernel.test.portlet.*,\
+  *;resolution:=optional
 -exportcontents: com.ableneo.*

@@ -89,6 +89,7 @@ public final class FolderUtil {
             if (folder == null) {
                 folder =
                     DLAppLocalServiceUtil.addFolder(
+                        null,
                         SetupConfigurationThreadLocal.getRunAsUserId(),
                         repoId,
                         pFolderId,

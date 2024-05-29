@@ -1,0 +1,61 @@
+{
+    "definitionSchemaVersion": "2.0",
+    "availableLanguageIds": [
+        "sk_SK"
+    ],
+    "successPage": {
+        "body": {},
+        "title": {},
+        "enabled": false
+    },
+    "defaultLanguageId": "sk_SK",
+    "fields": [
+        {
+            "labelAtStructureLevel": true,
+            "predefinedValue": {
+                "sk_SK": ""
+            },
+            "tooltip": {
+                "sk_SK": ""
+            },
+            "requireConfirmation": false,
+            "type": "text",
+            "showLabel": true,
+            "required": true,
+            "displayStyle": "singleline",
+            "requiredErrorMessage": {
+                "sk_SK": ""
+            },
+            "objectFieldName": "",
+            "repeatable": false,
+            "nativeField": false,
+            "confirmationLabel": {
+                "sk_SK": ""
+            },
+            "fieldReference": "test",
+            "tip": {
+                "sk_SK": ""
+            },
+            "placeholder": {
+                "sk_SK": ""
+            },
+            "direction": [
+                "vertical"
+            ],
+            "confirmationErrorMessage": {
+                "sk_SK": ""
+            },
+            "hideField": false,
+            "dataType": "string",
+            "readOnly": false,
+            "label": {
+                "sk_SK": "Test"
+            },
+            "indexType": "keyword",
+            "visibilityExpression": "",
+            "fieldNamespace": "",
+            "name": "Text02825958",
+            "localizable": true
+        }
+    ]
+}
