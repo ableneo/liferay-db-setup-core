@@ -18,7 +18,6 @@
                 <!-- specify the email address of user, which will be used for performing
                     all operations within setup hook -->
                 <xs:element ref="configuration" minOccurs="1" maxOccurs="1"/>
-                <xs:element ref="portal" minOccurs="0"/>
                 <xs:element name="company-settings" type="CompanySettings" minOccurs="0" maxOccurs="1"/>
                 <xs:element ref="roles" minOccurs="0"/>
                 <xs:element ref="user-groups" minOccurs="0"/>
@@ -132,20 +131,6 @@
                 specific company. When empty: random user that has Administrator role within a company will be used.
             </xs:documentation>
         </xs:annotation>
-    </xs:element>
-
-    <xs:element name="portal">
-        <xs:annotation>
-            <xs:documentation>
-                Used to define portal properties
-            </xs:documentation>
-        </xs:annotation>
-        <xs:complexType>
-            <xs:sequence>
-                <xs:element name="portalProperties" type="PropertyKeyValueType" minOccurs="0"
-                            maxOccurs="unbounded"></xs:element>
-            </xs:sequence>
-        </xs:complexType>
     </xs:element>
 
     <xs:element name="company">
@@ -305,9 +290,12 @@
 
             </xs:documentation>
         </xs:annotation>
-        <xs:complexType>
-            <xs:attribute name="key" type="xs:string" use="required"/>
-            <xs:attribute name="value" type="xs:string" use="required"/>
+        <xs:complexType mixed="true">
+            <xs:simpleContent>
+                <xs:extension base="xs:string"> <!-- Base type is string to allow text content -->
+                    <xs:attribute name="key" type="xs:string" use="required"/> <!-- Key attribute is required -->
+                </xs:extension>
+            </xs:simpleContent>
         </xs:complexType>
     </xs:element>
 
@@ -317,13 +305,16 @@
                 <xs:element minOccurs="0" maxOccurs="1" ref="define-permissions"/>
             </xs:sequence>
             <xs:attribute name="name" use="required" type="xs:string"/>
-            <xs:attribute name="type" use="optional" default="portal">
+            <xs:attribute name="type" use="optional" default="regular">
                 <xs:simpleType>
                     <xs:restriction base="xs:string">
                         <xs:enumeration value="regular"/>
-                        <xs:enumeration value="portal"/>
                         <xs:enumeration value="site"/>
                         <xs:enumeration value="organization"/>
+                        <xs:enumeration value="provider"/>
+                        <xs:enumeration value="depot"/>
+                        <xs:enumeration value="account"/>
+                        <xs:enumeration value="publications"/>
                     </xs:restriction>
                 </xs:simpleType>
             </xs:attribute>
@@ -1006,7 +997,8 @@
             <xs:element maxOccurs="unbounded" name="page" type="PageType"/>
         </xs:sequence>
         <xs:attribute name="delete-existing-pages" default="false" type="xs:boolean"/>
-        <xs:attribute name="virtual-host" type="xs:string"/>
+        <xs:attribute name="virtual-host" type="xs:string" use="optional"/>
+        <xs:attribute name="language-id" type="xs:string" use="required"/>
         <xs:attribute name="default-layout" type="xs:string">
             <xs:annotation>
                 <xs:documentation>ID of default layout template for this public page set. Note that if the layout

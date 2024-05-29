@@ -18,7 +18,7 @@ with import <nixpkgs> { overlays =
     [( self: super:
     {
         maven = super.maven.override {
-            jdk = self.adoptopenjdk-hotspot-bin-8; # use jdk8 with maven
+            jdk = self.jdk11; # use jdk11 with maven
         };
     }
     )];
@@ -26,7 +26,7 @@ with import <nixpkgs> { overlays =
 
 mkShell {
     buildInputs = [
-        adoptopenjdk-hotspot-bin-8
+        jdk11
         maven
         gitAndTools.gitFull
         bash

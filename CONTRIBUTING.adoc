@@ -12,8 +12,8 @@
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 . Download sources.
-. Install JDK 1.8
-. Install Maven 3.6.3 or higher.
+. Install JDK 11
+. Install Maven 3.8.1 or higher.
 . Run: `mvn clean install`
 
 === Automated local build environment setup with nix

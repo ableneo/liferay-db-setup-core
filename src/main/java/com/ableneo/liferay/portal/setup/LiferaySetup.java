@@ -4,7 +4,6 @@ import com.ableneo.liferay.portal.setup.core.SetupCustomFields;
 import com.ableneo.liferay.portal.setup.core.SetupOrganizations;
 import com.ableneo.liferay.portal.setup.core.SetupPages;
 import com.ableneo.liferay.portal.setup.core.SetupPermissions;
-import com.ableneo.liferay.portal.setup.core.SetupPortal;
 import com.ableneo.liferay.portal.setup.core.SetupRoles;
 import com.ableneo.liferay.portal.setup.core.SetupServiceAccessPolicies;
 import com.ableneo.liferay.portal.setup.core.SetupSites;
@@ -74,7 +73,7 @@ public final class LiferaySetup {
      * @return if setup was successfull
      */
     public static boolean setup(final InputStream inputStream) {
-        Setup setup = MarshallUtil.unmarshall(inputStream);
+        final Setup setup = MarshallUtil.unmarshall(inputStream);
         return setup(setup, null);
     }
 
@@ -119,33 +118,16 @@ public final class LiferaySetup {
                         LOG.error("Could not find company: {}", company);
                         continue;
                     }
-                    SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId, callerBundle);
-                    executeSetupConfiguration(setup);
-
-                    // setup company settings
-                    if (setup.getCompanySettings() != null) {
-                        // setup service access policies
-                        final ServiceAccessPolicies serviceAccessPolicies = setup.getCompanySettings().getServiceAccessPolicies();
-                        if (serviceAccessPolicies != null) {
-                            SetupServiceAccessPolicies.setupServiceAccessPolicies(serviceAccessPolicies);
+                    if (company.getGroupName() == null || company.getGroupName().isEmpty()) {
+                        setupCompany(setup, callerBundle, companyId, null, runAsUserEmail);
+                    } else {
+                        for (String groupName : company.getGroupName()) {
+                            setupCompany(setup, callerBundle, companyId, groupName, runAsUserEmail);
                         }
-                    }
-
-                    // iterate over group names or choose GUEST group for the company
-                    if (company.getGroupName().isEmpty()) {
-                        company.getGroupName().add(GroupConstants.GUEST);
-                    }
-                    for (String groupName : company.getGroupName()) {
-                        setupGroup(setup, runAsUserEmail, companyId, groupName);
                     }
                 }
             } else {
-                setupGroup(
-                    setup,
-                    runAsUserEmail,
-                    SetupConfigurationThreadLocal.getRunInCompanyId(),
-                    GroupConstants.GUEST
-                );
+                setupCompany(setup, callerBundle, SetupConfigurationThreadLocal.getRunInCompanyId(), null, runAsUserEmail);
             }
         } catch (PortalException | RuntimeException e) {
             LOG.error("An error occured while executing the portal setup", e);
@@ -160,7 +142,28 @@ public final class LiferaySetup {
         return true;
     }
 
-    private static void setupGroup(Setup setup, String runAsUserEmail, long companyId, String groupName)
+    private static void setupCompany(Setup setup, Bundle callerBundle, long companyId, String groupName, String runAsUserEmail) throws PortalException {
+        SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId, callerBundle);
+        executeSetupConfiguration(setup);
+
+        // setup company settings
+        if (setup.getCompanySettings() != null) {
+            // setup service access policies
+            final ServiceAccessPolicies serviceAccessPolicies = setup.getCompanySettings().getServiceAccessPolicies();
+            if (serviceAccessPolicies != null) {
+                SetupServiceAccessPolicies.setupServiceAccessPolicies(serviceAccessPolicies);
+            }
+        }
+
+        // iterate setup chosen group or choose GUEST group for the company
+        if (groupName == null || groupName.isEmpty()) {
+            setupGroup(setup, companyId, GroupConstants.GUEST);
+        } else {
+            setupGroup(setup, companyId, groupName);
+        }
+    }
+
+    private static void setupGroup(Setup setup, long companyId, String groupName)
         throws PortalException {
         Group group = GroupLocalServiceUtil.getGroup(companyId, groupName);
         SetupConfigurationThreadLocal.setRunInGroupId(group.getGroupId());
@@ -173,18 +176,20 @@ public final class LiferaySetup {
      * @param setup Setup object, parsed from xml configuration
      */
     private static void setupPortalGroup(Setup setup) {
+        if (setup.getPageTemplates() != null) {
+            SetupPages.setupPageTemplates(setup.getPageTemplates());
+        }
+        if (setup.getRoles() != null) {
+            LOG.info("Setting up {} roles", setup.getRoles().getRole().size());
+            SetupRoles.setupRoles(setup.getRoles().getRole());
+        }
         if (setup.getUsers() != null) {
             LOG.info("Setting up {} users", setup.getUsers().getUser().size());
             SetupUsers.setupUsers(setup.getUsers().getUser());
         }
-
-        if (setup.getPageTemplates() != null) {
-            SetupPages.setupPageTemplates(setup.getPageTemplates());
-        }
-
-        if (setup.getRoles() != null) {
-            LOG.info("Setting up {} roles", setup.getRoles().getRole().size());
-            SetupRoles.setupRoles(setup.getRoles().getRole());
+        if (setup.getUserGroups() != null) {
+            LOG.info("Setting up {} User Groups", setup.getUserGroups().getUserGroup().size());
+            SetupUserGroups.setupUserGroups(setup.getUserGroups().getUserGroup());
         }
 
         LOG.info("Setup of portal groups finished");
@@ -212,10 +217,6 @@ public final class LiferaySetup {
             LOG.info("Deleting {} object categories", setup.getDeleteLiferayObjects().getObjectsToBeDeleted().size());
             deleteObjects(setup.getDeleteLiferayObjects().getObjectsToBeDeleted());
         }
-        if (setup.getPortal() != null) {
-            LOG.info("Setting up Portal");
-            SetupPortal.setupPortal(setup.getPortal());
-        }
         if (setup.getCustomFields() != null) {
             LOG.info("Setting up {} custom fields", setup.getCustomFields().getField().size());
             SetupCustomFields.setupExpandoFields(setup.getCustomFields().getField());
@@ -223,10 +224,6 @@ public final class LiferaySetup {
         if (setup.getOrganizations() != null) {
             LOG.info("Setting up {} organizations", setup.getOrganizations().getOrganization().size());
             SetupOrganizations.setupOrganizations(setup.getOrganizations().getOrganization(), null, null);
-        }
-        if (setup.getUserGroups() != null) {
-            LOG.info("Setting up {} User Groups", setup.getUserGroups().getUserGroup().size());
-            SetupUserGroups.setupUserGroups(setup.getUserGroups().getUserGroup());
         }
         if (setup.getResourcePermissions() != null) {
             LOG.info("Setting up {} resource permissions", setup.getResourcePermissions().getResource().size());

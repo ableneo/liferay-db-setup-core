@@ -38,9 +38,8 @@ import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -53,6 +52,14 @@ import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.xml.Document;
+import com.liferay.portal.kernel.xml.Element;
+import com.liferay.portal.xml.ElementImpl;
+import org.dom4j.tree.DefaultText;
+import org.dom4j.util.IndexedElement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,7 +71,7 @@ import java.util.Map;
  * Created by mapa, guno..
  */
 public final class SetupArticles {
-    private static final Log LOG = LogFactoryUtil.getLog(SetupArticles.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupArticles.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
     private static final HashMap<String, List<String>> DEFAULT_DDM_PERMISSIONS;
     private static final int ARTICLE_PUBLISH_YEAR = 2008;
@@ -109,7 +116,8 @@ public final class SetupArticles {
         DEFAULT_DDM_PERMISSIONS.put(RoleConstants.SITE_MEMBER, actionsViewer);
     }
 
-    private SetupArticles() {}
+    private SetupArticles() {
+    }
 
     public static void setupSiteStructuresAndTemplates(final Site site, long groupId) throws PortalException {
         List<StructureType> articleStructures = site.getArticleStructure();
@@ -126,7 +134,7 @@ public final class SetupArticles {
         if (ddlStructures != null && false == ddlStructures.isEmpty()) {
             long classNameId = ClassNameLocalServiceUtil.getClassNameId(DDLRecordSet.class);
             for (StructureType structure : ddlStructures) {
-                LOG.info(String.format("Adding DDL structure %1$s", structure.getName()));
+                LOG.info("Adding DDL structure {}", structure.getName());
                 addDDMStructure(structure, groupId, classNameId);
             }
         }
@@ -137,7 +145,7 @@ public final class SetupArticles {
                 try {
                     addDDMTemplate(template, groupId);
                 } catch (TemplateDuplicateTemplateKeyException e) {
-                    LOG.error(e);
+                    LOG.error("Failed to add DDM template with key {}", template.getKey(), e);
                 }
             }
         }
@@ -177,18 +185,17 @@ public final class SetupArticles {
 
     public static void addDDMStructure(final StructureType structure, final long groupId, final long classNameId)
         throws PortalException {
-        LOG.info(String.format("Adding Article structure %1$s", structure.getName()));
+        LOG.info("Adding Article structure {}", structure.getName());
         Map<Locale, String> nameMap = new HashMap<>();
         Locale siteDefaultLocale = null;
         try {
             siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
         } catch (PortalException e) {
-            LOG.error(e);
+            LOG.error("Failed to get site default locale for groupId {}", groupId, e);
         }
         String name = getStructureNameOrKey(structure);
         // when default site locale is not 'en_us', then LocaleUtil.getSiteDefault still returns en_us.. we are not IN the site yet..
         // so an exception follows: Name is null (for en_us locale). so:
-        nameMap.put(LocaleUtil.US, name);
         nameMap.put(siteDefaultLocale, name);
         Map<Locale, String> descMap = new HashMap<>();
 
@@ -236,7 +243,7 @@ public final class SetupArticles {
         if (ddmStructure != null) {
             LOG.info("Structure already exists and will be overwritten.");
             if (structure.getParent() != null && !structure.getParent().isEmpty()) {
-                LOG.info(String.format("Setting up parent structure: %1$s", structure.getName()));
+                LOG.info("Setting up parent structure: {}", structure.getName());
                 DDMStructure parentStructure = DDMStructureLocalServiceUtil.fetchStructure(
                     groupId,
                     classNameId,
@@ -246,7 +253,7 @@ public final class SetupArticles {
                 if (parentStructure != null) {
                     ddmStructure.setParentStructureId(parentStructure.getStructureId());
                 } else {
-                    LOG.info(String.format("Parent structure not found: %1$s", structure.getName()));
+                    LOG.info("Parent structure not found: {}", structure.getName());
                 }
             }
 
@@ -260,7 +267,7 @@ public final class SetupArticles {
                 ddmFormLayout,
                 new ServiceContext()
             );
-            LOG.info(String.format("Template successfully updated: %1$s", structure.getName()));
+            LOG.info("Template successfully updated: {}", structure.getName());
 
             SetupPermissions.updatePermission(
                 String.format("Structure %1$s", structure.getKey()),
@@ -297,7 +304,7 @@ public final class SetupArticles {
             structure.getRolePermissions(),
             DEFAULT_DDM_PERMISSIONS
         );
-        LOG.info(String.format("Added Article structure: %1$s", newStructure.getName()));
+        LOG.info("Added Article structure: {}", structure.getName());
     }
 
     private static String getStructureNameOrKey(final StructureType structure) {
@@ -466,18 +473,17 @@ public final class SetupArticles {
         LOG.info(String.format("Added ADT: %1$s", newTemplate.getName()));
     }
 
-    public static void getJournalArticleByPath(String folder, String file) {}
+    public static void getJournalArticleByPath(String folder, String file) {
+    }
 
     public static long getCreateFolderId(String folder, long groupId, RolePermissions roles) {
         long folderId = 0L;
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
-        if (folder != null && !"".equals(folder)) {
+        if (folder != null && !folder.isEmpty()) {
             JournalFolder jf = WebFolderUtil.findWebFolder(companyId, groupId, runAsUserId, folder, "", true, roles);
             if (jf == null) {
-                LOG.warn(
-                    "Specified webfolder " + folder + " of not found! Will put article into web content root folder!"
-                );
+                LOG.warn("Specified webfolder {} of not found! Will put article into web content root folder!", folder);
             } else {
                 folderId = jf.getFolderId();
             }
@@ -486,7 +492,7 @@ public final class SetupArticles {
     }
 
     public static void addJournalArticle(final Article article, final long groupId) {
-        LOG.info(String.format("Adding Journal Article %1$s", article.getTitle()));
+        LOG.info("Adding Journal Article {}", article.getTitle());
 
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
@@ -496,12 +502,9 @@ public final class SetupArticles {
         try {
             content = ResourcesUtil.getFileContent(article.getPath());
             content = ResolverUtil.lookupAll(groupId, companyId, content, article.getPath());
-            LOG.info(
-                String.format(
-                    " - Article File content for article ID: %1$s : path:%2$s",
+            LOG.info(" - Article File content for article ID: {} : path: {}",
                     article.getArticleId(),
                     article.getPath()
-                )
             );
         } catch (IOException e) {
             LOG.error(String.format("Error Reading Article File content for article ID: %1$s", article.getArticleId()));
@@ -544,129 +547,122 @@ public final class SetupArticles {
                 getJournalArticle(article.getArticleId(), folderId, groupId, article.getArticleFolderPath());
         }
 
-        try {
-            if (journalArticle == null) {
-                try {
-                    journalArticle =
-                        JournalArticleLocalServiceUtil.addArticle(
-                            runAsUserId,
-                            groupId,
-                            folderId,
-                            0,
-                            0,
-                            article.getArticleId(),
-                            generatedId,
-                            JournalArticleConstants.VERSION_DEFAULT,
-                            titleMap,
-                            descriptionMap,
-                            content,
-                            article.getArticleStructureKey(),
-                            article.getArticleTemplateKey(),
-                            StringPool.BLANK,
-                            1,
-                            1,
-                            ARTICLE_PUBLISH_YEAR,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            true,
-                            0,
-                            0,
-                            0,
-                            0,
-                            0,
-                            true,
-                            true,
-                            false,
-                            StringPool.BLANK,
-                            null,
-                            null,
-                            StringPool.BLANK,
-                            serviceContext
-                        );
+        if (journalArticle == null) {
+            try {
+                journalArticle =
+                    JournalArticleLocalServiceUtil.addArticle(
+                        null,
+                        runAsUserId,
+                        groupId,
+                        folderId,
+                        0,
+                        0,
+                        article.getArticleId(),
+                        generatedId,
+                        JournalArticleConstants.VERSION_DEFAULT,
+                        titleMap,
+                        descriptionMap,
+                        null,
+                        content,
+                        getDdmStructureId(article.getArticleStructureKey()),
+                        article.getArticleTemplateKey(),
+                        StringPool.BLANK,
+                        1,
+                        1,
+                        ARTICLE_PUBLISH_YEAR,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        true,
+                        0,
+                        0,
+                        0,
+                        0,
+                        0,
+                        true,
+                        true,
+                        false,
+                        StringPool.BLANK,
+                        null,
+                        null,
+                        StringPool.BLANK,
+                        serviceContext
+                    );
 
-                    LOG.info(
-                        String.format(
-                            "Added JournalArticle %1$s with ID: %2$s",
-                            journalArticle.getTitle(),
-                            journalArticle.getArticleId()
-                        )
-                    );
-                    Indexer bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
-                    if (bi != null) {
-                        bi.reindex(journalArticle);
-                    }
-                } catch (PortalException e) {
-                    LOG.error(
-                        String.format("Error while trying to add Article with Title: %1$s", article.getTitle()),
-                        e
-                    );
-                }
-            } else {
-                try {
-                    LOG.info(
-                        "Article " +
-                        article.getTitle() +
-                        " with article ID: " +
-                        article.getArticleId() +
-                        " already exists. Will be overwritten."
-                    );
-                    journalArticle.setTitleMap(titleMap);
-                    journalArticle.setContent(content);
-                    journalArticle.setDescriptionMap(descriptionMap);
-
-                    JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
-
-                    // if the folder changed, move it...
-                    if (journalArticle.getFolderId() != folderId) {
-                        JournalArticleLocalServiceUtil.moveArticle(
-                            groupId,
-                            journalArticle.getArticleId(),
-                            folderId,
-                            ServiceContextThreadLocal.getServiceContext()
-                        );
-                    }
-                    LOG.info(String.format("Updated JournalArticle: %1$s", journalArticle.getTitle()));
-                } catch (PortalException e) {
-                    LOG.error(
-                        String.format("Error while trying to update Article with Title: %1$s", article.getTitle()),
-                        e
-                    );
-                }
-            }
-            if (journalArticle != null) {
-                TaggingUtil.associateTagsAndCategories(groupId, article, journalArticle);
-                processRelatedAssets(article, journalArticle, runAsUserId, groupId, companyId);
-                SetupPermissions.updatePermission(
-                    String.format("Article %1$s", journalArticle.getArticleId()),
-                    companyId,
-                    journalArticle.getResourcePrimKey(),
-                    JournalArticle.class,
-                    article.getRolePermissions(),
-                    DEFAULT_PERMISSIONS
+                LOG.info("Added JournalArticle {} with ID: {}",
+                        journalArticle.getTitle(),
+                        journalArticle.getArticleId()
                 );
-                article.setArticleId(String.valueOf(journalArticle.getId()));
-            } else {
+                Indexer<JournalArticle> bi = IndexerRegistryUtil.getIndexer(JournalArticle.class);
+                if (bi != null) {
+                    bi.reindex(journalArticle);
+                }
+            } catch (PortalException e) {
                 LOG.error(
-                    String.format(
-                        "Error while trying to add/update Article-Permission with Title: %1$s; see previous error.",
-                        article.getTitle()
-                    )
+                    String.format("Error while trying to add Article with Title: %1$s", article.getTitle()),
+                    e
                 );
             }
-        } catch (PortalException e) {
+        } else {
+            try {
+                LOG.info("Article {} with article ID: {} already exists. Will be overwritten.",
+                    article.getTitle(),
+                    article.getArticleId()
+                );
+
+                Document document = (Document) new DocumentImpl();
+                org.dom4j.Element domElement = new IndexedElement("content");
+                domElement.add(new DefaultText(content));
+                Element element = new ElementImpl(domElement);
+                document.add(element);
+                journalArticle.setDocument(document);
+                journalArticle.setDocument(document);
+                journalArticle.setTitleMap(titleMap);
+                journalArticle.setDescriptionMap(descriptionMap);
+
+                JournalArticleLocalServiceUtil.updateJournalArticle(journalArticle);
+
+                // if the folder changed, move it...
+                if (journalArticle.getFolderId() != folderId) {
+                    JournalArticleLocalServiceUtil.moveArticle(
+                        groupId,
+                        journalArticle.getArticleId(),
+                        folderId,
+                        ServiceContextThreadLocal.getServiceContext()
+                    );
+                }
+                LOG.info("Updated JournalArticle: {}", journalArticle.getTitle());
+            } catch (PortalException e) {
+                LOG.error( "Error while trying to update Article with Title: {}", article.getTitle(), e);
+            }
+        }
+        if (journalArticle != null) {
+            TaggingUtil.associateTagsAndCategories(groupId, article, journalArticle);
+            processRelatedAssets(article, journalArticle, runAsUserId, groupId, companyId);
+            SetupPermissions.updatePermission(
+                String.format("Article %1$s", journalArticle.getArticleId()),
+                companyId,
+                journalArticle.getResourcePrimKey(),
+                JournalArticle.class,
+                article.getRolePermissions(),
+                DEFAULT_PERMISSIONS
+            );
+            article.setArticleId(String.valueOf(journalArticle.getId()));
+        } else {
             LOG.error(
-                String.format(
-                    "Error while trying to add/update Article-Permission with Title: %1$s",
-                    article.getTitle()
-                ),
-                e
+                "Error while trying to add/update Article-Permission with Title: {}; see previous error.",
+                article.getTitle()
             );
         }
+    }
+
+    private static long getDdmStructureId(String articleStructureKey) {
+        final DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(SetupConfigurationThreadLocal.getRunInGroupId(), ClassNameLocalServiceUtil.getClassNameId(JournalArticle.class), articleStructureKey);
+        return ddmStructure.getStructureId();
     }
 
     public static JournalArticle getJournalArticle(
@@ -676,31 +672,19 @@ public final class SetupArticles {
         String folderPathForTheLog
     ) {
         JournalArticle journalArticle = null;
-        //    	String articleId = articleId;
-        //        try {
-        //            journalArticle = JournalArticleLocalServiceUtil.fetchLatestArticle(groupId, articleId,
-        //                    WorkflowConstants.STATUS_APPROVED);
-        //        } catch (SystemException e) {
-        //            LOG.error(String.format("Error while trying to find article with ID: %1$s", articleId), e);
-        //        }
 
         try {
             List<JournalArticle> articlesInFolder = JournalArticleLocalServiceUtil.getArticles(groupId, folderId);
             if (articlesInFolder == null || articlesInFolder.isEmpty()) {
-                LOG.warn(
-                    String.format("No such article : %1$s / %2$s (%3$s)", folderPathForTheLog, articleId, folderId)
-                );
+                LOG.warn("No such article : {} / {} ({})", folderPathForTheLog, articleId, folderId);
                 return null;
             }
 
-            List<JournalArticle> withSameArticleId = new ArrayList<JournalArticle>();
+            List<JournalArticle> withSameArticleId = new ArrayList<>();
             for (JournalArticle art : articlesInFolder) {
                 LOG.info(" - " + folderPathForTheLog + "/" + art.getArticleId());
                 if (articleId.equalsIgnoreCase(art.getArticleId())) { // liferay inside: uses 'ignore-case'
-                    /*if (art.getPrimaryKey() == journalArticle.getPrimaryKey()) {
-        				LOG.info(String.format(" - found article [%1$s] which is the latest [%1$s]", articleId));
-        				withSameArticleId.add(0, art);
-        			} else */if (art.getStatus() == WorkflowConstants.STATUS_APPROVED) {
+                    if (art.getStatus() == WorkflowConstants.STATUS_APPROVED) {
                         LOG.info(String.format(" - found article [%1$s] with same name [%1$s]", articleId));
                         withSameArticleId.add(art);
                     } else {
@@ -711,7 +695,7 @@ public final class SetupArticles {
                 }
             }
 
-            if (false == withSameArticleId.isEmpty()) {
+            if (!withSameArticleId.isEmpty()) {
                 if (withSameArticleId.size() == 1) {
                     LOG.info(
                         String.format(
@@ -739,8 +723,8 @@ public final class SetupArticles {
                                 journalArticle = ja;
                             } else {
                                 if (
-                                    ja.getLastPublishDate() != null &&
-                                    ja.getLastPublishDate().after(journalArticle.getLastPublishDate())
+                                    ja.getLastPublishDate() != null
+                                        && ja.getLastPublishDate().after(journalArticle.getLastPublishDate())
                                 ) {
                                     journalArticle = ja;
                                 }
@@ -867,12 +851,12 @@ public final class SetupArticles {
                     String clazzPrimKey = r.getAssetClassPrimaryKey();
                     String resolverHint =
                         "Related asset for article " +
-                        ja.getArticleId() +
-                        " clazz " +
-                        clazz +
-                        ", " +
-                        "primary key " +
-                        clazzPrimKey;
+                            ja.getArticleId() +
+                            " clazz " +
+                            clazz +
+                            ", " +
+                            "primary key " +
+                            clazzPrimKey;
                     clazzPrimKey = ResolverUtil.lookupAll(groupId, companyId, clazzPrimKey, resolverHint);
 
                     long id = 0;
@@ -894,11 +878,11 @@ public final class SetupArticles {
                     } catch (PortalException | SystemException e) {
                         LOG.error(
                             "Problem resolving related asset of article " +
-                            ja.getArticleId() +
-                            " with clazz " +
-                            clazz +
-                            " primary key " +
-                            clazzPrimKey,
+                                ja.getArticleId() +
+                                " with clazz " +
+                                clazz +
+                                " primary key " +
+                                clazzPrimKey,
                             e
                         );
                     }

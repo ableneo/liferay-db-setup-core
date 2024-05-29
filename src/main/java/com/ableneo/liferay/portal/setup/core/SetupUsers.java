@@ -13,6 +13,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
@@ -117,6 +118,7 @@ public final class SetupUsers {
         long[] userGroupIds = null;
         boolean sendEmail = false;
         ServiceContext serviceContext = new ServiceContext();
+        int type = UserConstants.TYPE_REGULAR;
 
         try {
             liferayUser =
@@ -129,8 +131,6 @@ public final class SetupUsers {
                     autoScreenName,
                     setupUser.getScreenName(),
                     emailAddress,
-                    facebookId,
-                    openId,
                     locale,
                     setupUser.getFirstName(),
                     middleName,
@@ -142,6 +142,7 @@ public final class SetupUsers {
                     birthdayDay,
                     birthdayYear,
                     jobTitle,
+                    type,
                     groupIds,
                     organizationIds,
                     roleIds,

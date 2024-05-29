@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+    <configuration>
+        <company>
+            <companywebid>liferay.com</companywebid>
+        </company>
+    </configuration>
+   <company-settings>
+       <service-access-policies>
+           <service-access-policy name="EXAMPLE_POLICY">
+               <title locale="sk_SK" text="Grant access to someMethod for Guest"/>
+               <allowed-service-signatures>
+                   com.ableneo.foobar.rest.api.internal.resource.v1_0.FooBarResourceImpl
+               </allowed-service-signatures>
+           </service-access-policy>
+       </service-access-policies>
+   </company-settings>
+    <roles>
+        <role name="ExampleRole"></role>
+        <role name="ExampleSiteRole" type="site" site="Guest"></role>
+    </roles>
+    <user-groups>
+        <user-group name="Example User Group">
+            <role name="ExampleRole"></role>
+            <user-as-member screen-name="example">
+            </user-as-member>
+        </user-group>
+    </user-groups>
+    <users>
+        <user screen-name="example" email-address="example@liferay.com" password="example" first-name="Example First Name"
+              last-name="Example Last Name">
+            <role name="Administrator"></role>
+        </user>
+    </users>
+    <sites>
+        <site site-friendly-url="/guest">
+            <public-pages language-id="sk">
+                <page name="main" friendly-url="/main" delete-existing-pages="true">
+                    <page-portlet portlet-id="" column="column-1" column-position="1">
+                        <portlet-preference key="site">int8</portlet-preference>
+                    </page-portlet>
+                    <role-permissions clear-permissions="true">
+                        <role-permission role-name="Owner">
+                            <permission-action action-name="VIEW"/>
+                        </role-permission>
+                        <role-permission role-name="ExampleRole">
+                            <permission-action action-name="VIEW"/>
+                        </role-permission>
+                    </role-permissions>
+                </page>
+            </public-pages>
+            <article-structure key="test-article"
+                               path="test-article-structure.json"
+                               name="test-article"/>
+            <article-template key="test-article-template"
+                              name="test-article-template"
+                              path="test-article-template.ftl"
+                              article-structure-key="test-article"
+                              cacheable="true"/>
+            <name>Guest</name>
+        </site>
+    </sites>
+</setup>

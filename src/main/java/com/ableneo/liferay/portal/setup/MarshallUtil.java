@@ -3,7 +3,6 @@ package com.ableneo.liferay.portal.setup;
 import com.ableneo.liferay.portal.setup.domain.ObjectFactory;
 import com.ableneo.liferay.portal.setup.domain.Setup;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
@@ -80,7 +79,7 @@ public final class MarshallUtil {
             final Unmarshaller unmarshaller = jc.createUnmarshaller();
             unmarshaller.setSchema(schema);
             return unmarshaller;
-        } catch (JAXBException e) {
+        } catch (Exception e) {
             LOG.error("db-setup-core library is broken in unexpected way. Please fix the library.", e);
         }
         return null;
