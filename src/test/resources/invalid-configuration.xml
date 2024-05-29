@@ -8,7 +8,7 @@
     </configuration>
 
     <roles>
-        <role name="Some Role" testing="true"></role>
+        <role name="Some Role" unspecified-attribute-test="true"></role>
     </roles>
     <resource-permissions>
         <resource resource-id="some-portlet">

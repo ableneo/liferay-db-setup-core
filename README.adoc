@@ -1,17 +1,107 @@
 = Liferay Portal DB setup core
-:liferay-version: 7.3.6
-:current-db-setup-core-version: 7.3.605
+:liferay-version: 7.4.3.86
+:current-db-setup-core-version: 7.4.386.0
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
 image:https://github.com/ableneo/liferay-db-setup-core/actions/workflows/build.yml/badge.svg[Build workflow status,link=https://github.com/ableneo/liferay-db-setup-core/actions/workflows/build.yml]
-image:https://sonarcloud.io/api/project_badges/measure?project=liferay-db-setup-core-2_x&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=liferay-db-setup-core-2_x]
+image:https://sonarcloud.io/api/project_badges/measure?project=ableneo_liferay-db-setup-core&metric=alert_status[Quality Gate Status,link=https://sonarcloud.io/dashboard?id=ableneo_liferay-db-setup-core]
 
-Library that allows to setup a number of https://github.com/liferay[Liferay] artifacts in the DB. It uses xml and https://docs.liferay.com/portal/7.0/javadocs/portal-kernel[Liferay APIs] to add all configured artifacts.
+Library that allows to automate https://github.com/liferay[Liferay] data setup. It uses XML configuration input to add the data.
+
+== Liferay Portal version compatibility
+
+|===
+|Liferay Portal version|DB setup core version
+
+|{liferay-version} |{current-db-setup-core-version} link:https://github.com/ableneo/liferay-db-setup-core/tree/master[source]
+|7.3.6 | 7.3.605 link:https://central.sonatype.com/artifact/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/7.3.605[jar] link:https://github.com/ableneo/liferay-db-setup-core/tree/7.3.6[source]
+|7.3.5 | 7.3.5 link:https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[source]
+|7.1.2 | link:https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[source]
+|6.2.5 | link:https://github.com/ableneo/liferay-db-setup-core/tree/1.x[source]
+
+|===
+
 
 == Usage
 
-We recommend using Liferay's link:https://learn.liferay.com/dxp/latest/en/building-applications/data-frameworks/upgrade-processes.html[upgrade process] or control panel portlet to apply declared database changes.
+. Install the `com.ableneo.liferay.db.setup.core-{current-db-setup-core-version}.jar` bundle in `${liferay.home}/osgi/modules`
+. Prepare your own bundle that uses the library as a `provided`/`compileOnly` dependency. For example:
++
+.build.gradle
+[subs=attributes+]
+```groovy
+dependencies {
+    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:{current-db-setup-core-version}'
+}
+```
++
+.pom.xml
+[subs=attributes+]
+```xml
+<dependency>
+    <groupId>com.ableneo.liferay</groupId>
+    <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
+    <version>{current-db-setup-core-version}</version>
+    <scope>provided</scope>
+</dependency>
+```
+
+. Prepare xml data configuration. Documentation sits directly in the link:src/main/resources/setup_definition.xsd[setup_definition.xsd] file.
++
+.Example documentation
+image:doc/xsd-inline-documentation.png[]
++
+.Example configuration: setup.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+    <configuration> 
+        <!-- uses random administrator account for the setup in the company, run-as-user-email tag allows to specify particular admin account to be used for the setup -->
+        <company> 
+            <companyid>20101</companyid> <!-- companywebid can be used alternatively -->
+        </company>
+    </configuration>
+    <sites>
+        <site> <!-- Guest by default -->
+            <vocabulary name="Some categories" uuid="602f55b6-6021-455e-8d6d-696cc25daa91">
+                <title-translation locale="de_DE" text="Einige Kategorien"/>
+                <category name="Other categories" uuid="867b33df-2465-4a81-9945-88159c604589">
+                    <title-translation locale="de_DE" text="Andere Kategorien"/>
+                    <category name="New category" uuid="5fb4308e-bd21-4cf4-bdc5-3557508ffe4a">
+                        <title-translation locale="de_DE" text="Neue Kategorie"/>
+                    </category>
+                </category>
+            </vocabulary>
+        </site>
+    </sites>
+</setup>
+----
+. Load the XML setup file and run `setup` method on it:
++
+[source, java]
+----
+URL resource = Thread.currentThread().getContextClassLoader().getResource(path);
+InputStream setupFile = Objects.requireNonNull(resource, "XML Liferay DB setup file not found in classpath.").openStream();
+Setup setup = MarshallUtil.unmarshall(setupFile);
+boolean setupSuccess = LiferaySetup.setup(setup);
+----
+
+==== Example project
+
+Used primarily for integration testing but may be a good start for your application: link:./com.ableneo.liferay.portal.setup.example/[com.ableneo.liferay.portal.setup.example]
+
+=== How to bundle and execute DB changes for Liferay portal
+
+Bundling XML descriptors and code that will execute them in bundle separate to the 
+
+.Directory layout in bundle project
+
+.Usage in activator class
+[source, java]
+----
+----
 
 === Configuration header
 All data definitions in the setup XML file are applied according to the `configuration` header. The header defines:
@@ -194,82 +284,18 @@ Document's file itself is determined by `file-system-name` attribute which defin
 </sites>
 ----
 
-=== Setup guide
-
-. Install the `com.ableneo.liferay.db.setup.core-{current-db-setup-core-version}.jar` bundle in `${liferay.home}/osgi/modules`
-. Prepare your own bundle that uses the library as a `provided`/`compileOnly` dependency. For example:
-+
-.build.gradle
-[subs=attributes+]
-```groovy
-dependencies {
-    compileOnly 'com.ableneo.liferay:com.ableneo.liferay.db.setup.core:{current-db-setup-core-version}'
-}
-```
-+
-.pom.xml
-[subs=attributes+]
-```xml
-<dependency>
-    <groupId>com.ableneo.liferay</groupId>
-    <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
-    <version>{current-db-setup-core-version}</version>
-    <scope>provided</scope>
-</dependency>
-```
-
-. Prepare xml data configuration. Documentation sits directly in the link:src/main/resources/setup_definition.xsd[setup_definition.xsd] file.
-+
-.Example documentation
-image:doc/xsd-inline-documentation.png[]
-+
-.Example configuration: setup.xml
-[source,xml]
-----
-<?xml version="1.0" encoding="UTF-8" ?>
-<setup xmlns="http://www.ableneo.com/liferay/setup">
-    <configuration> 
-        <!-- uses random administrator account for the setup in the company, run-as-user-email tag allows to specify particular admin account to be used for the setup -->
-        <company> 
-            <companyid>20101</companyid> <!-- companywebid can be used alternatively -->
-        </company>
-    </configuration>
-    <sites>
-        <site> <!-- Guest by default -->
-            <vocabulary name="Some categories" uuid="602f55b6-6021-455e-8d6d-696cc25daa91">
-                <title-translation locale="de_DE" text="Einige Kategorien"/>
-                <category name="Other categories" uuid="867b33df-2465-4a81-9945-88159c604589">
-                    <title-translation locale="de_DE" text="Andere Kategorien"/>
-                    <category name="New category" uuid="5fb4308e-bd21-4cf4-bdc5-3557508ffe4a">
-                        <title-translation locale="de_DE" text="Neue Kategorie"/>
-                    </category>
-                </category>
-            </vocabulary>
-        </site>
-    </sites>
-</setup>
-----
-. Load the XML setup file and run `setup` method on it:
-+
-[source, java]
-----
-URL resource = Thread.currentThread().getContextClassLoader().getResource(path);
-InputStream setupFile = Objects.requireNonNull(resource, "XML Liferay DB setup file not found in classpath.").openStream();
-Setup setup = MarshallUtil.unmarshall(setupFile);
-boolean setupSuccess = LiferaySetup.setup(setup);
-----
-
-
 === Liferay Portal requirements
 
 The code is compatible with *Liferay Portal {liferay-version}*. Other versions that have been or are supported:
 
+. https://github.com/ableneo/liferay-db-setup-core/tree/7.3.6[Liferay Portal EE/CE 7.3.6]
 . https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[Liferay Portal EE/CE 7.3.5]
 . https://github.com/ableneo/liferay-db-setup-core/tree/b0d4e1d602015b704218c5511277bc87dc7eb9c7[Liferay Portal EE/CE 7.1.2]
 . https://github.com/ableneo/liferay-db-setup-core/tree/1.x[Liferay Portal EE/CE 6.2.5 and higher]
 
 == Roadmap
 
+* integration with link:https://liferay.dev/es/blogs/-/blogs/site-initializers-101[Site Initializers]
 * more tests
 * project integration with lundegaard fork: https://github.com/lundegaard/liferay-db-setup-core, until than changes and fixes from lundegaard fork will be ported to the library
 
@@ -289,6 +315,16 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 
 == Changelog
+
+=== Version 7.4.386.0
+
+==== Features & bug fixes
+* switched to JDK11
+* upgraded and tested all features in link:./com.ableneo.liferay.site.example/src/main/resources/setup-ableneo-site.xml[example setup] with Liferay Portal 7.4.3.86
+* attached two tests from lundegaard fork, credit goes to link:https://github.com/Jandys[Jakub Jandak], thank you!
+
+==== Refactorings & project changes
+* improved documentation
 
 === Version 7.3.605
 ==== Features & bug fixes

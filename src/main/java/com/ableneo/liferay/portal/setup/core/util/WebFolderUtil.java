@@ -98,6 +98,7 @@ public final class WebFolderUtil {
 
             folder =
                 JournalFolderLocalServiceUtil.addFolder(
+                    null,
                     userId,
                     groupId,
                     parentFolderId,

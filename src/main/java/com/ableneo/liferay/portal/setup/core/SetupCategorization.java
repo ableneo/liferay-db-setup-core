@@ -52,14 +52,14 @@ public final class SetupCategorization {
     public static void setupVocabularies(final Iterable<Vocabulary> vocabularies, final long groupId) {
         Locale siteDefaultLocale = LocaleUtil.getSiteDefault();
 
-        LOG.info(
-            "Vocabulary setup STARTUP. It may take long time. To see runtime details enable DEBUG logging on {} class.",
-            SetupCategorization.class.getName()
-        );
         StringBuilder statusLine = new StringBuilder();
 
         int index = 0;
         for (Vocabulary vocabulary : vocabularies) {
+            LOG.info(
+                "Vocabulary setup STARTUP. It may take long time. To see runtime details enable DEBUG logging on {} class.",
+                SetupCategorization.class.getName()
+            );
             setupVocabulary(vocabulary, groupId, siteDefaultLocale);
             if (index > 0) {
                 statusLine.append(", ");
@@ -67,7 +67,9 @@ public final class SetupCategorization {
             statusLine.append(vocabulary.getName());
             index++;
         }
-        LOG.info("Vocabulary setup DONE. Created/updated following vocabularies: {}", statusLine);
+        if (statusLine.length() != 0) {
+            LOG.info("Vocabulary setup DONE. Created/updated following vocabularies: {}", statusLine);
+        }
     }
 
     private static void setupVocabulary(final Vocabulary vocabulary, final long groupId, final Locale defaultLocale) {
@@ -348,6 +350,7 @@ public final class SetupCategorization {
             LOG.debug("Creating new category [{}]", category.getName());
             assetCategory =
                 AssetCategoryLocalServiceUtil.addCategory(
+                    null,
                     SetupConfigurationThreadLocal.getRunAsUserId(),
                     groupId,
                     parentCategoryId,

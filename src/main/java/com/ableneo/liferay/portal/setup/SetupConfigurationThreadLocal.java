@@ -134,7 +134,7 @@ public final class SetupConfigurationThreadLocal {
     public static void configureGroupExecutionContext(Group group) {
         Objects.requireNonNull(group);
         setRunInGroupId(group.getGroupId());
-        LocaleThreadLocal.setDefaultLocale(Locale.forLanguageTag(group.getDefaultLanguageId()));
+        LocaleThreadLocal.setDefaultLocale(Locale.forLanguageTag(group.getDefaultLanguageId().replace('_','-')));
     }
 
     /**

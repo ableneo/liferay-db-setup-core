@@ -70,6 +70,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import javax.portlet.ReadOnlyException;
 
 public final class SetupPages {
@@ -166,7 +167,8 @@ public final class SetupPages {
                 userid
             );
             if (publicPages.getVirtualHost() != null) {
-                LayoutSetLocalServiceUtil.updateVirtualHost(groupId, false, publicPages.getVirtualHost());
+                final TreeMap<String, String> hosts = buildVirtualHostNames(publicPages);
+                LayoutSetLocalServiceUtil.updateVirtualHosts(groupId, false, hosts);
             }
         }
 
@@ -190,11 +192,33 @@ public final class SetupPages {
                 userid
             );
             if (privatePages.getVirtualHost() != null) {
-                LayoutSetLocalServiceUtil.updateVirtualHost(groupId, true, privatePages.getVirtualHost());
+                final TreeMap<String, String> hosts = buildVirtualHostNames(privatePages);
+                LayoutSetLocalServiceUtil.updateVirtualHosts(groupId, true, hosts);
             }
         }
     }
 
+    private static TreeMap<String, String> buildVirtualHostNames(PagesType publicPages) {
+        String languageId = getLanguageId(publicPages.getLanguageId());
+        TreeMap<String, String> hosts = new TreeMap<>();
+        hosts.put(publicPages.getVirtualHost(), languageId);
+        return hosts;
+    }
+
+    /**
+     * Method returns languageId, or it returns default LanguageId if no language id
+     * is provided. By Jakub Jandak.
+     *
+     * @param languageId languageId defined by user (can be null)
+     * @return language Id
+     */
+    private static String getLanguageId(String languageId) {
+        if (languageId != null) {
+            return languageId;
+        } else {
+            return LocaleUtil.toLanguageId(LocaleUtil.getDefault());
+        }
+    }
     /**
      * Set the page templates up. As this is heavily based on page (layout).
      *
