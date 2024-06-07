@@ -8,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <version>7.4.386.0-SNAPSHOT</version>
+    <version>7.4.3860-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
@@ -96,14 +96,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
                 <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
 
             <plugin>
@@ -559,7 +551,7 @@
         <connection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</connection>
         <developerConnection>scm:git:git@github.com:ableneo/liferay-db-setup-core.git</developerConnection>
         <url>https://github.com/ableneo/liferay-db-setup-core</url>
-        <tag>7.3.602</tag>
+        <tag>7.4.386.0</tag>
     </scm>
 
     <licenses>
