@@ -9,7 +9,7 @@ if ( [ "$REPLY" == "yes" ] ) then
   eval `ssh-agent`
   ssh-add ~/.ssh/id_rsa
   ssh-add -l
-  mvn release:clean release:prepare release:perform -Dgoals='deploy' -e -P sonatype-oss-release
+  mvn clean deploy -e -P sonatype-oss-release
   ssh-add -D
 else
   echo 'Exit without deploy'
