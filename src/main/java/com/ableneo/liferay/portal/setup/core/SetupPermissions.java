@@ -41,7 +41,7 @@ public final class SetupPermissions {
                 String roleName = actionsPerRoleEntry.getKey();
                 try {
                     long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
-                    Role role = RoleLocalServiceUtil.getRole(companyId, roleName);
+                    com.liferay.portal.kernel.model.Role role = RoleLocalServiceUtil.getRole(companyId, roleName);
                     long roleId = role.getRoleId();
                     final Set<String> actionStrings = actionsPerRoleEntry.getValue();
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
