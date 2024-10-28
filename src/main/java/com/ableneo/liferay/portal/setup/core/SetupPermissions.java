@@ -11,10 +11,8 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.Resource;
-import com.liferay.portal.kernel.model.ResourceConstants;
-import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.*;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourceLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
@@ -43,7 +41,8 @@ public final class SetupPermissions {
                 String roleName = actionsPerRoleEntry.getKey();
                 try {
                     long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
-                    long roleId = RoleLocalServiceUtil.getRole(companyId, roleName).getRoleId();
+                    Role role = RoleLocalServiceUtil.getRole(companyId, roleName);
+                    long roleId = role.getRoleId();
                     final Set<String> actionStrings = actionsPerRoleEntry.getValue();
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
@@ -66,6 +65,16 @@ public final class SetupPermissions {
                         roleId,
                         actionIds
                     );
+                    if (role.getType() == RoleConstants.TYPE_SITE) {
+                        ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                            companyId,
+                            resource.getResourceId(),
+                            ResourceConstants.SCOPE_GROUP_TEMPLATE,
+                            String.valueOf(companyId),
+                            roleId,
+                            actionIds
+                        );
+                    }
                     LOG.info(String.format("Set permission for role: %1$s for action ids: %2$s", roleName, actionIds));
                 } catch (NestableException e) {
                     LOG.error(String.format("Could not set permission to resource :%1$s", resource.getResourceId()), e);
