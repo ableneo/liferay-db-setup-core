@@ -11,10 +11,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.Resource;
-import com.liferay.portal.kernel.model.ResourceConstants;
-import com.liferay.portal.kernel.model.ResourcePermission;
+import com.liferay.portal.kernel.model.*;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourceLocalServiceUtil;
@@ -49,30 +46,31 @@ public final class SetupPermissions {
                     final Set<String> actionStrings = actionsPerRoleEntry.getValue();
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
-                    /**
-                     * Individual permission is needed even though we set
-                     */
-                    ResourcePermissionLocalServiceUtil.setResourcePermissions(
-                        companyId,
-                        resource.getResourceId(),
-                        ResourceConstants.SCOPE_INDIVIDUAL,
-                        String.valueOf(companyId),
-                        roleId,
-                        actionIds
-                    );
-                    ResourcePermissionLocalServiceUtil.setResourcePermissions(
-                        companyId,
-                        resource.getResourceId(),
-                        ResourceConstants.SCOPE_COMPANY,
-                        String.valueOf(companyId),
-                        roleId,
-                        actionIds
-                    );
-                    if (role.getType() == RoleConstants.TYPE_SITE) {
+                    if (role.getType() == RoleConstants.TYPE_SITE || role.getType() == RoleConstants.TYPE_ORGANIZATION) {
                         ResourcePermissionLocalServiceUtil.setResourcePermissions(
                             companyId,
                             resource.getResourceId(),
                             ResourceConstants.SCOPE_GROUP_TEMPLATE,
+                            String.valueOf(companyId),
+                            roleId,
+                            actionIds
+                        );
+                    } else {
+                        /**
+                         * Individual permission is needed even though we set
+                         */
+                        ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                            companyId,
+                            resource.getResourceId(),
+                            ResourceConstants.SCOPE_INDIVIDUAL,
+                            String.valueOf(companyId),
+                            roleId,
+                            actionIds
+                        );
+                        ResourcePermissionLocalServiceUtil.setResourcePermissions(
+                            companyId,
+                            resource.getResourceId(),
+                            ResourceConstants.SCOPE_COMPANY,
                             String.valueOf(companyId),
                             roleId,
                             actionIds
