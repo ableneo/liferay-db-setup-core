@@ -52,6 +52,6 @@ class SetupConfigurationThreadLocalTest {
     @Test
     void setRunInCompanyId() {
         SetupConfigurationThreadLocal.setRunAsUserId(1l);
-        assertEquals(new Long(1l), SetupConfigurationThreadLocal.getRunAsUserId());
+        assertEquals(Long.valueOf(1l), SetupConfigurationThreadLocal.getRunAsUserId());
     }
 }

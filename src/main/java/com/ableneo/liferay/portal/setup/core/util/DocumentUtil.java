@@ -101,7 +101,7 @@ public final class DocumentUtil {
                 fe.getMimeType(), fe.getTitle(), parseToUrlTitle(fe.getTitle()), fe.getDescription(),
                 "update content",
                 DLVersionNumberIncrease.MINOR,
-                content, null, null, new ServiceContext());
+                content, null, null, null, new ServiceContext());
         } catch (Exception e) {
             LOG.error(String.format("Can not update Liferay Document entry with ID:%1$s", fe.getFileEntryId()), e);
         }
@@ -169,7 +169,7 @@ public final class DocumentUtil {
             try {
 
                 Date expDate = Date.valueOf(LocalDate.now().plusYears(4L));
-                Date reviewDate = Date.valueOf(LocalDate.now());
+                Date todayDate = Date.valueOf(LocalDate.now());
                 ServiceContext serviceContext = new ServiceContext();
                 serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
                 serviceContext.setScopeGroupId(groupId);
@@ -187,8 +187,9 @@ public final class DocumentUtil {
                         title,
                         "Ableneo import",
                         content,
+                        todayDate,
                         expDate,
-                        reviewDate,
+                        todayDate,
                         serviceContext
                     );
             } catch (PortalException e) {

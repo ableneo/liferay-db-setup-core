@@ -13,10 +13,7 @@ import com.liferay.portal.kernel.model.ListTypeConstants;
 import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.OrganizationConstants;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
-import com.liferay.portal.kernel.service.OrganizationLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.service.*;
 import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import java.util.HashMap;
 import java.util.List;
@@ -64,13 +61,17 @@ public final class SetupOrganizations {
                     );
 
                     Organization newOrganization = OrganizationLocalServiceUtil.addOrganization(
+                        null,
                         SetupConfigurationThreadLocal.getRunAsUserId(),
                         OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID,
                         organization.getName(),
                         "organization",
                         0,
                         0,
-                        ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+                        ListTypeLocalServiceUtil.getListTypeId(
+                            companyId,
+                            ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
+                            ListTypeConstants.ORGANIZATION_STATUS),
                         "Created by setup module.",
                         false,
                         new ServiceContext()

@@ -79,7 +79,7 @@ public class SetupMenus {
         if (menu == null) {
             LOG.info(" i '" + name + "' create..");
             try {
-                menu = SiteNavigationMenuLocalServiceUtil.addSiteNavigationMenu(userId, groupId, name, serviceContext);
+                menu = SiteNavigationMenuLocalServiceUtil.addSiteNavigationMenu(null, userId, groupId, name, serviceContext);
                 LOG.info(" i '" + name + "' create OK");
             } catch (PortalException e) {
                 LOG.error("Could not create new menu '" + name + "'", e);
@@ -192,6 +192,7 @@ public class SetupMenus {
                 LOG.info("Inserting menu-item[" + newMenuItem.getName() + "]");
                 savedItem =
                     SiteNavigationMenuItemLocalServiceUtil.addSiteNavigationMenuItem(
+                        null,
                         userId,
                         groupId,
                         parentMenuId,

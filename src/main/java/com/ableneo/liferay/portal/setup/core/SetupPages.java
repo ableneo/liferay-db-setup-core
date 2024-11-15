@@ -499,6 +499,7 @@ public final class SetupPages {
         try {
             layout =
                 LayoutLocalServiceUtil.addLayout(
+                    null,
                     userId,
                     groupId,
                     false,
@@ -597,6 +598,7 @@ public final class SetupPages {
         friendlyURLMap.put(locale, currentPage.getFriendlyUrl());
 
         return LayoutLocalServiceUtil.addLayout(
+            null,
             SetupConfigurationThreadLocal.getRunAsUserId(),
             groupId,
             isPrivate,
