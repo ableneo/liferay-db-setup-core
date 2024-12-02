@@ -8,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <version>7.4.3863-SNAPSHOT</version>
+    <version>7.4.3125.0-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
@@ -100,8 +100,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <encoding>UTF-8</encoding>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>21</source>
+                    <target>21</target>
                 </configuration>
             </plugin>
 
@@ -263,7 +263,7 @@
                         <configuration>
                             <rules>
                                 <requireJavaVersion>
-                                    <version>11</version>
+                                    <version>21</version>
                                 </requireJavaVersion>
                                 <requireMavenVersion>
                                     <version>3.8.1</version>
@@ -490,6 +490,12 @@
             <id>abenitezsan</id>
             <name>Adolfo Carlos Benitez Sanchez</name>
             <url>https://github.com/abenitezsan</url>
+        </developer>
+        <developer>
+            <id>bimki</id>
+            <name>Bartłomiej Knabel</name>
+            <email>bartlomiej.knabel@coderylabs.com</email>
+            <url>https://github.com/bimki</url>
         </developer>
         <developer>
             <id>dmmrch</id>

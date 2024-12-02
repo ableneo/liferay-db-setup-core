@@ -192,15 +192,16 @@
                 <xs:element ref="membership" minOccurs="0"/>
                 <xs:element ref="site" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element ref="menu" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="name" type="xs:string"/>
                 <xs:element name="name-translation" type="TranslationType" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="site-preferences" type="SitePreferencesType" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="default" type="xs:boolean" default="false"/>
+            <xs:attribute name="global" type="xs:boolean" default="false"/>
             <xs:attribute name="strict-web-folder-definition" type="xs:boolean" default="false"/>
             <xs:attribute name="strict-document-folder-definition" type="xs:boolean" default="false"/>
             <xs:attribute name="maintain-site-hierarchy" type="xs:boolean" default="false"/>
-            <xs:attribute name="site-friendly-url" type="xs:string"/>
+            <xs:attribute name="site-friendly-url" type="xs:string" />
+            <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="membership-type" type="xs:int" default="2">
                 <xs:annotation>
                     <xs:documentation>Uses GroupConstants.TYPE_SITE_* values, default is 'restricted'==2

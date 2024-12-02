@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -30,6 +31,8 @@ import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.kernel.util.Validator;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,14 +67,18 @@ public class SetupSites {
         Group liferayGroup = null;
         long groupId = -1;
         if (site.isDefault()) {
-            liferayGroup = GroupLocalServiceUtil.getGroup(companyId, GroupConstants.GUEST);
+            liferayGroup = CompanyLocalServiceUtil.getCompany(companyId).getGroup();
             LOG.info(String.format("Setup: default site. Group ID: %1$s", groupId));
-        } else if (site.getName() == null) {
-            liferayGroup = GroupLocalServiceUtil.getCompanyGroup(companyId);
+        } else if (site.isGlobal()) {
+            liferayGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(companyId, GroupConstants.GLOBAL_FRIENDLY_URL);
             LOG.info(String.format("Setup: global site. Group ID: %1$s", groupId));
         } else {
             try {
-                liferayGroup = GroupLocalServiceUtil.getGroup(companyId, site.getName());
+                if (site.getName() != null) {
+                    liferayGroup = GroupLocalServiceUtil.getGroup(companyId, site.getName());
+                } if (site.getSiteFriendlyUrl() != null) {
+                    liferayGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(companyId, site.getSiteFriendlyUrl());
+                }
                 LOG.info(
                     String.format(
                         "Setup: Site %1$s already exists in system, not creating... (pk=%2$s,gid=%3$s)",
@@ -114,8 +121,10 @@ public class SetupSites {
                 );
             LOG.info(String.format("New site created."));
         } else {
-            LOG.info(String.format("Updating site: %1$s", site.getName()));
-            GroupLocalServiceUtil.updateFriendlyURL(liferayGroup.getGroupId(), site.getSiteFriendlyUrl());
+            if (!Validator.isBlank(site.getSiteFriendlyUrl())) {
+                LOG.info(String.format("Updating site: %1$s", site.getName()));
+                GroupLocalServiceUtil.updateFriendlyURL(liferayGroup.getGroupId(), site.getSiteFriendlyUrl());
+            }
         }
 
         groupId = liferayGroup.getGroupId();

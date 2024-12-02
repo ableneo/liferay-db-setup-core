@@ -1,6 +1,6 @@
 = Liferay Portal DB setup core
 :liferay-version: 7.4.3.125
-:current-db-setup-core-version: 7.4.3863
+:current-db-setup-core-version: 7.4.3125.0
 :TOC:
 
 image:https://maven-badges.herokuapp.com/maven-central/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/badge.svg?color=blue[Maven Central,link=https://search.maven.org/search?q=g:com.ableneo.liferay%20AND%20a:com.ableneo.liferay.db.setup.core]
@@ -136,6 +136,7 @@ All data definitions in the setup XML file are applied according to the `configu
         <companywebid>liferay.com</companywebid>
     </company>
   </configuration>
+</setup>
 ----
 === Features
 
@@ -147,6 +148,8 @@ If you develop new link:https://learn.liferay.com/dxp/latest/en/headless-deliver
 .Add new or update existing Service Access Policy by name
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <company-settings>
     <service-access-policies>
         <service-access-policy name="MY_ACCESS_POLICY" enabled="true" unauthenticated="true">
@@ -156,23 +159,29 @@ If you develop new link:https://learn.liferay.com/dxp/latest/en/headless-deliver
             </allowed-service-signatures>
         </service-access-policy>
     </service-access-policies>
-</company>
+</company-settings>
+</setup>
 ----
 <1> `allowed-service-signatures` provides the same functionality as link:https://learn.liferay.com/dxp/latest/en/installation-and-upgrades/securing-liferay/securing-web-services/setting-service-access-policies.html#creating-a-service-access-policy[_Advanced Mode_]
 
 .Delete existing Service Access Policy by name
 [source,xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <company-settings>
     <service-access-policies>
         <delete-service-access-policy name="WIZARD_GUEST_ACCESS"/>
     </service-access-policies>
 </company-settings>
+</setup>
 ----
 ==== Permissions
 Resource permissions.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <resource-permissions>
     <resource resource-id="my.custom.resource.string">
         <actionId name="SPECIAL_PERMISSION">
@@ -181,6 +190,7 @@ Resource permissions.
         </actionId>
     </resource>
 </resource-permissions>
+</setup>
 ----
 Resource permissions are set per company are verifiable with followin API call.
 [source, java]
@@ -196,6 +206,8 @@ permissionChecker.hasPermission(
 Portlet permissions.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <resource-permissions>
     <resource resource-id="myportlet_WAR_portlets">
         <actionId name="VIEW">
@@ -204,44 +216,62 @@ Portlet permissions.
         </actionId>
     </resource>
 </resource-permissions>
+</setup>
 ----
 ==== Roles
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <roles>
     <role name="Regular Role"/>
     <role name="Site Role" type="site"/>
-<roles>
+</roles>
+</setup>
 ----
 ==== Expando attribute
 Following snippet creates expando attribute `canonical-url` with permissions to view by guest user.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <custom-fields>
     <field name="canonical-url" type="string" class-name="com.liferay.portal.kernel.model.Layout">
         <role-permission role-name="Guest" permission="view"/>
     </field>
 </custom-fields>
+</setup>
 ----
-==== Site
-Site element must always have `site-friendly-url` attribute. Guest site is determined by `default` attribute with `true` value. All content like *pages*, *articles*, *documents* etc. is always created within a specific site.
+==== Site selection
+All content like *pages*, *articles*, *documents* etc. is always created within a specific site. You can create new or refer to existing site.  
+
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 <sites>
-    <site default="true" site-friendly-url="/guest">
+    <site default="true">
+        <!-- default company site -->
     </site>
-    <site default="false" site-friendly-url="/admin">
-        <name>Admin</name>
+    <site global="true">
+        <!-- global company site -->
+    </site>
+    <site default="false" site-friendly-url="/admin" name="Admin">
+        <!-- specific site -->
         <name-translation locale="en_US" text="Admin"/>
     </site>
 </sites>
+</setup>
 ----
 ==== Journal Article structure and template
 Files `new_structure.xml` and `new_structure_template.ftl` are deployed as a part of a module that is using the `db-setup-core` library and reside in it's classpath.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
 
-    <site site-friendly-url="/admin">
+<sites>
+    <site site-friendly-url="/admin" name="Admin">
       <article-structure key="NEW-STRUCTURE-KEY"
                          path="new_structure.xml"
                          name="New Structure"/>
@@ -250,15 +280,19 @@ Files `new_structure.xml` and `new_structure_template.ftl` are deployed as a par
                         path="new_structure_template.ftl"
                         article-structure-key="NEW-STRUCTURE-KEY" name="New Structure Template" cacheable="true"/>
 
-      <name>Admin</name>
     </site>
+</sites>
+</setup>
 ----
 ==== Articles
 File `artcle.xml` is deployed as a part of a module that is using the `db-setup-core` library and reside in it's classpath.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+
 <sites>
-    <site>
+    <site global="true">
         <article
             title="Article Title"
             path="article.xml"
@@ -269,19 +303,24 @@ File `artcle.xml` is deployed as a part of a module that is using the `db-setup-
         </article>
     </site>
 </sites>
+</setup>
 ----
 ==== Document
 Document's file itself is determined by `file-system-name` attribute which defines resource on classpath.
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+
 <sites>
-    <site>
+    <site name="Guest">
         <document file-system-name="image.svg"
                   document-folder-name="/Images"
                   document-filename="image.svg"
                   document-title="image.svg"/>
     </site>
 </sites>
+</setup>
 ----
 
 === Liferay Portal requirements
@@ -316,12 +355,14 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 == Changelog
 
-=== Version 7.4.3860
+=== Version 7.4.3125.0
 
 ==== Features & bug fixes
 * switched to JDK21
 * api compatible with Liferay 7.4.3.125
 * fixed category import (updating parent)
+* fixed working with global/default sites <<_site_selection>>
+* updated docs
 
 === Version 7.4.3860
 
@@ -365,10 +406,17 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 .Fixed configuration
 [source, xml]
 ----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+
     <resource-permissions>
         <resource resource-id="custom.resource.id-not.a.portlet.id">
             <actionId name="SOME_PERMISSION">
                 <role name="Some Portal Role"/>
+            </actionId>
+        </resource>
+    </resource-permissions>
+</setup>
 ----
 
 ==== Refactorings & project changes
