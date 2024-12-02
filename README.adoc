@@ -9,7 +9,7 @@ image:https://sonarcloud.io/api/project_badges/measure?project=ableneo_liferay-d
 
 Library that allows to automate https://github.com/liferay[Liferay] data setup. It uses XML configuration input to add the data.
 
-== Liferay Portal version compatibility
+== Compatibility matrix
 
 |===
 |Liferay Portal version|DB setup core version
