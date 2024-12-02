@@ -15,7 +15,7 @@ Library that allows to automate https://github.com/liferay[Liferay] data setup. 
 |Liferay Portal version|DB setup core version
 
 |{liferay-version} |{current-db-setup-core-version} link:https://github.com/ableneo/liferay-db-setup-core/tree/master[source]
-|7.3.86 | 7.4.3861 link:https://central.sonatype.com/artifact/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/7.4.3861[jar] link:https://github.com/ableneo/liferay-db-setup-core/tree/7.4.3861[source]
+|7.4.3.86 | 7.4.3861 link:https://central.sonatype.com/artifact/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/7.4.3861[jar] link:https://github.com/ableneo/liferay-db-setup-core/tree/7.4.3861[source]
 |7.3.6 | 7.3.605 link:https://central.sonatype.com/artifact/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/7.3.605[jar] link:https://github.com/ableneo/liferay-db-setup-core/tree/7.3.6[source]
 |7.3.6 | 7.3.605 link:https://central.sonatype.com/artifact/com.ableneo.liferay/com.ableneo.liferay.db.setup.core/7.3.605[jar] link:https://github.com/ableneo/liferay-db-setup-core/tree/7.3.6[source]
 |7.3.5 | 7.3.5 link:https://github.com/ableneo/liferay-db-setup-core/tree/7.3.5[source]
