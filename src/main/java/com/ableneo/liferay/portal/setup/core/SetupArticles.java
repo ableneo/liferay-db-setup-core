@@ -16,9 +16,9 @@ import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import com.ableneo.liferay.portal.setup.domain.Site;
 import com.ableneo.liferay.portal.setup.domain.StructureType;
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.asset.kernel.model.AssetLinkConstants;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
-import com.liferay.asset.kernel.service.AssetLinkLocalServiceUtil;
+import com.liferay.asset.link.constants.AssetLinkConstants;
+import com.liferay.asset.link.service.AssetLinkLocalServiceUtil;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
 import com.liferay.dynamic.data.lists.service.DDLRecordSetLocalServiceUtil;
 import com.liferay.dynamic.data.mapping.constants.DDMTemplateConstants;
@@ -383,6 +383,7 @@ public final class SetupArticles {
 
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
         DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(
+            null,
             runAsUserId,
             groupId,
             classNameId,
@@ -452,6 +453,7 @@ public final class SetupArticles {
         }
         long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
         DDMTemplate newTemplate = DDMTemplateLocalServiceUtil.addTemplate(
+            null,
             runAsUserId,
             groupId,
             classNameId,
@@ -586,7 +588,9 @@ public final class SetupArticles {
                         true,
                         true,
                         false,
-                        StringPool.BLANK,
+                        0,
+                        0,
+                        null,
                         null,
                         null,
                         StringPool.BLANK,

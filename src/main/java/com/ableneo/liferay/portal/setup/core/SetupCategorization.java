@@ -323,6 +323,10 @@ public final class SetupCategorization {
                 assetCategory.setUuid(category.getUuid());
                 update = true;
             }
+            if (assetCategory.getParentCategoryId() != parentCategoryId) {
+                assetCategory.setParentCategoryId(parentCategoryId);
+                update = true;
+            }
 
             try {
                 if (update) {

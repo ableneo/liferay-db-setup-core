@@ -8,7 +8,7 @@
         <version>9</version>
     </parent>
 
-    <version>7.4.3862-SNAPSHOT</version>
+    <version>7.4.3863-SNAPSHOT</version>
     <groupId>com.ableneo.liferay</groupId>
     <artifactId>com.ableneo.liferay.db.setup.core</artifactId>
     <description>Creates Liferay Portal data (permissions, roles, sites, pages etc.) from XML declaration.</description>
@@ -18,8 +18,8 @@
 
     <properties>
         <!--  7.4:  -->
-        <liferay.version>7.4.3.86</liferay.version>
-        <liferay.version.portal.api>${liferay.version}-ga86</liferay.version.portal.api>
+        <liferay.version>7.4.3.125</liferay.version>
+        <liferay.version.portal.api>${liferay.version}-ga125</liferay.version.portal.api>
         <junit.version>5.10.1</junit.version>
         <mockito.version>4.11.0</mockito.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,6 +27,7 @@
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
         <sonar.organization>ableneo</sonar.organization>
         <sonar.projectKey>ableneo_liferay-db-setup-core</sonar.projectKey>
+        <byte-buddy.version>1.14.17</byte-buddy.version>
     </properties>
 
     <build>
@@ -164,6 +165,11 @@
                         <version>${junit.version}</version>
                     </dependency>
                 </dependencies>
+                <configuration>
+                    <argLine>
+                        --add-opens java.base/java.lang.invoke=ALL-UNNAMED
+                    </argLine>
+                </configuration>
             </plugin>
 
             <plugin>
@@ -387,6 +393,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${byte-buddy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>${byte-buddy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
             <version>${mockito.version}</version>
@@ -397,6 +415,16 @@
             <artifactId>mockito-core</artifactId>
             <version>${mockito.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy-agent</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
