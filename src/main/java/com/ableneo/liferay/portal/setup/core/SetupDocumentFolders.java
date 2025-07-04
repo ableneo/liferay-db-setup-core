@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public final class SetupDocumentFolders {
+
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
     static {

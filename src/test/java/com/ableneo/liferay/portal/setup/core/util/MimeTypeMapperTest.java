@@ -42,5 +42,4 @@ public class MimeTypeMapperTest {
         String extension = instance.getExtension("text/css");
         Assertions.assertEquals(".css", extension);
     }
-
 }

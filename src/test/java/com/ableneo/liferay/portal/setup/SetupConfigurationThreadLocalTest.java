@@ -21,8 +21,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class SetupConfigurationThreadLocalTest {
+
     private static MockedStatic<PortalUtil> portalUtilMockedStatic;
     private static MockedStatic<GroupLocalServiceUtil> groupLocalServiceUtilMockedStatic;
+
     @Mock
     Group group;
 

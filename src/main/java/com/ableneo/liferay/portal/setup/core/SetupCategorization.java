@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author guno
  */
 public final class SetupCategorization {
+
     private static final Logger LOG = LoggerFactory.getLogger(SetupCategorization.class);
 
     private SetupCategorization() {}
@@ -88,8 +89,10 @@ public final class SetupCategorization {
         AssetVocabulary assetVocabulary = null;
 
         try {
-            assetVocabulary =
-                AssetVocabularyLocalServiceUtil.getAssetVocabularyByUuidAndGroupId(vocabulary.getUuid(), groupId);
+            assetVocabulary = AssetVocabularyLocalServiceUtil.getAssetVocabularyByUuidAndGroupId(
+                vocabulary.getUuid(),
+                groupId
+            );
         } catch (NoSuchVocabularyException e) {
             LOG.warn("Asset vocabulary: [{}] was not found", vocabulary.getName());
         } catch (PortalException e) {
@@ -98,11 +101,10 @@ public final class SetupCategorization {
 
         if (assetVocabulary == null) {
             try {
-                assetVocabulary =
-                    AssetVocabularyLocalServiceUtil.getGroupVocabulary(
-                        groupId,
-                        StringUtil.toLowerCase(vocabulary.getName().trim())
-                    );
+                assetVocabulary = AssetVocabularyLocalServiceUtil.getGroupVocabulary(
+                    groupId,
+                    StringUtil.toLowerCase(vocabulary.getName().trim())
+                );
             } catch (NoSuchVocabularyException e) {
                 LOG.warn("Asset vocabulary: [{}] was not found", vocabulary.getName());
             } catch (PortalException e) {
@@ -150,17 +152,16 @@ public final class SetupCategorization {
             serviceContext.setCompanyId(SetupConfigurationThreadLocal.getRunInCompanyId());
             serviceContext.setScopeGroupId(groupId);
             try {
-                assetVocabulary =
-                    AssetVocabularyLocalServiceUtil.addVocabulary(
-                        SetupConfigurationThreadLocal.getRunAsUserId(),
-                        groupId,
-                        vocabulary.getName(),
-                        vocabulary.getName(),
-                        titleMap,
-                        descMap,
-                        settings,
-                        serviceContext
-                    );
+                assetVocabulary = AssetVocabularyLocalServiceUtil.addVocabulary(
+                    SetupConfigurationThreadLocal.getRunAsUserId(),
+                    groupId,
+                    vocabulary.getName(),
+                    vocabulary.getName(),
+                    titleMap,
+                    descMap,
+                    settings,
+                    serviceContext
+                );
 
                 if (!Validator.isBlank(vocabulary.getUuid())) {
                     assetVocabulary.setUuid(vocabulary.getUuid());
@@ -208,8 +209,12 @@ public final class SetupCategorization {
             if (Objects.nonNull(type.getSubtypeStructureKey()) && !type.getSubtypeStructureKey().isEmpty()) {
                 // has subtype
                 try {
-                    subtypePK =
-                        ResolverUtil.getStructureId(type.getSubtypeStructureKey(), groupId, type.getClassName(), true);
+                    subtypePK = ResolverUtil.getStructureId(
+                        type.getSubtypeStructureKey(),
+                        groupId,
+                        type.getClassName(),
+                        true
+                    );
                 } catch (PortalException e) {
                     LOG.error("Class can not be be resolved for classname: {}", type.getClassName(), e);
                     continue;
@@ -299,8 +304,11 @@ public final class SetupCategorization {
         }
 
         if (assetCategory == null) {
-            assetCategory =
-                fetchAssetCategoryByName(titleMap.get(LocaleUtil.getSiteDefault()), parentCategoryId, vocabularyId);
+            assetCategory = fetchAssetCategoryByName(
+                titleMap.get(LocaleUtil.getSiteDefault()),
+                parentCategoryId,
+                vocabularyId
+            );
         }
 
         if (assetCategory != null) {
@@ -352,18 +360,17 @@ public final class SetupCategorization {
 
         try {
             LOG.debug("Creating new category [{}]", category.getName());
-            assetCategory =
-                AssetCategoryLocalServiceUtil.addCategory(
-                    null,
-                    SetupConfigurationThreadLocal.getRunAsUserId(),
-                    groupId,
-                    parentCategoryId,
-                    titleMap,
-                    descMap,
-                    vocabularyId,
-                    null,
-                    serviceContext
-                );
+            assetCategory = AssetCategoryLocalServiceUtil.addCategory(
+                null,
+                SetupConfigurationThreadLocal.getRunAsUserId(),
+                groupId,
+                parentCategoryId,
+                titleMap,
+                descMap,
+                vocabularyId,
+                null,
+                serviceContext
+            );
 
             if (!Validator.isBlank(category.getUuid())) {
                 assetCategory.setUuid(category.getUuid());
@@ -394,11 +401,10 @@ public final class SetupCategorization {
         for (PropertyKeyValueType propertyKeyValueType : property) {
             AssetCategoryProperty assetCategoryProperty = null;
             try {
-                assetCategoryProperty =
-                    AssetCategoryPropertyLocalServiceUtil.getCategoryProperty(
-                        assetCategory.getCategoryId(),
-                        propertyKeyValueType.getKey()
-                    );
+                assetCategoryProperty = AssetCategoryPropertyLocalServiceUtil.getCategoryProperty(
+                    assetCategory.getCategoryId(),
+                    propertyKeyValueType.getKey()
+                );
             } catch (PortalException e) {
                 LOG.debug(
                     "Failed to get asset category property for asset category {} with id {} with key {}",

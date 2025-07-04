@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 public final class SetupPermissions {
+
     private static final String[] PERMISSION_RO = { ActionKeys.VIEW };
     private static final String[] PERMISSION_RW = { ActionKeys.VIEW, ActionKeys.UPDATE };
     private static final Log LOG = LogFactoryUtil.getLog(SetupPermissions.class);
@@ -46,7 +47,9 @@ public final class SetupPermissions {
                     final Set<String> actionStrings = actionsPerRoleEntry.getValue();
                     final String[] actionIds = actionStrings.toArray(new String[actionStrings.size()]);
 
-                    if (role.getType() == RoleConstants.TYPE_SITE || role.getType() == RoleConstants.TYPE_ORGANIZATION) {
+                    if (
+                        role.getType() == RoleConstants.TYPE_SITE || role.getType() == RoleConstants.TYPE_ORGANIZATION
+                    ) {
                         ResourcePermissionLocalServiceUtil.setResourcePermissions(
                             companyId,
                             resource.getResourceId(),

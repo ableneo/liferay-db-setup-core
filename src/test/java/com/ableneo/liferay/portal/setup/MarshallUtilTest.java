@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class MarshallUtilTest extends ValidSetupTestMocks {
+
     private File validConfiguration;
     private File invalidConfiguration;
 

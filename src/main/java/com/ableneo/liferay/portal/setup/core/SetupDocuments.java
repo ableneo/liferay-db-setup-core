@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class SetupDocuments {
+
     private static final Logger LOG = LoggerFactory.getLogger(SetupDocuments.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS;
 
@@ -123,16 +124,15 @@ public final class SetupDocuments {
                     }
                     if (folder != null) {
                         LOG.info("{} is not found! It will be created! (c: {},grp: {}", documentName, company, groupId);
-                        fe =
-                            DocumentUtil.createDocument(
-                                groupId,
-                                folder.getFolderId(),
-                                documentName,
-                                documentTitle,
-                                userId,
-                                repoId,
-                                fileBytes
-                            );
+                        fe = DocumentUtil.createDocument(
+                            groupId,
+                            folder.getFolderId(),
+                            documentName,
+                            documentTitle,
+                            userId,
+                            repoId,
+                            fileBytes
+                        );
                     }
                 } else {
                     LOG.info(

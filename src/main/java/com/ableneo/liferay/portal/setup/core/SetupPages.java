@@ -74,6 +74,7 @@ import java.util.TreeMap;
 import javax.portlet.ReadOnlyException;
 
 public final class SetupPages {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupPages.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PUBLIC;
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PRIVATE;
@@ -219,6 +220,7 @@ public final class SetupPages {
             return LocaleUtil.toLanguageId(LocaleUtil.getDefault());
         }
     }
+
     /**
      * Set the page templates up. As this is heavily based on page (layout).
      *
@@ -230,9 +232,9 @@ public final class SetupPages {
                 String name = pageTemplate.getName();
                 if (name != null) {
                     LayoutPrototype lp;
-                    DynamicQuery dq = LayoutPrototypeLocalServiceUtil
-                        .dynamicQuery()
-                        .add(PropertyFactoryUtil.forName("name").like("%" + name + "%"));
+                    DynamicQuery dq = LayoutPrototypeLocalServiceUtil.dynamicQuery().add(
+                        PropertyFactoryUtil.forName("name").like("%" + name + "%")
+                    );
                     List<LayoutPrototype> listLayoutPrototype = LayoutPrototypeLocalServiceUtil.dynamicQuery(dq);
                     long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
                     long userid = SetupConfigurationThreadLocal.getRunAsUserId();
@@ -252,15 +254,14 @@ public final class SetupPages {
                             name,
                             String.format(" Page template  %1$s", name)
                         );
-                        lp =
-                            LayoutPrototypeLocalServiceUtil.addLayoutPrototype(
-                                userid,
-                                company,
-                                titleMap,
-                                nameMap,
-                                true,
-                                new ServiceContext()
-                            );
+                        lp = LayoutPrototypeLocalServiceUtil.addLayoutPrototype(
+                            userid,
+                            company,
+                            titleMap,
+                            nameMap,
+                            true,
+                            new ServiceContext()
+                        );
                     }
                     if (lp != null) {
                         Layout layout = lp.getLayout();
@@ -343,8 +344,7 @@ public final class SetupPages {
         final long parentLayoutId,
         final long company,
         final long userId
-    )
-        throws PortalException {
+    ) throws PortalException {
         for (PageType page : pages) {
             Layout layout = null;
             try {
@@ -411,8 +411,7 @@ public final class SetupPages {
         final long company,
         final long userId,
         final String pageTemplateName
-    )
-        throws PortalException {
+    ) throws PortalException {
         if (page.getTheme() != null) {
             setPageTheme(layout, page);
         }
@@ -497,21 +496,20 @@ public final class SetupPages {
         // add the layout
         Layout layout = null;
         try {
-            layout =
-                LayoutLocalServiceUtil.addLayout(
-                    null,
-                    userId,
-                    groupId,
-                    false,
-                    parentLayoutId,
-                    title,
-                    title,
-                    StringPool.BLANK,
-                    layoutType,
-                    hidden,
-                    friendlyURL,
-                    serviceContext
-                );
+            layout = LayoutLocalServiceUtil.addLayout(
+                null,
+                userId,
+                groupId,
+                false,
+                parentLayoutId,
+                title,
+                title,
+                StringPool.BLANK,
+                layoutType,
+                hidden,
+                friendlyURL,
+                serviceContext
+            );
 
             String linkToPageUrl = p.getLinkToUrl();
             // set the value of the "link to page"
@@ -580,8 +578,7 @@ public final class SetupPages {
         final PageType currentPage,
         final long parentLayoutId,
         final boolean isPrivate
-    )
-        throws PortalException {
+    ) throws PortalException {
         Map<Locale, String> titleMap = TranslationMapUtil.getTranslationMap(
             currentPage.getTitleTranslation(),
             groupId,
@@ -702,8 +699,7 @@ public final class SetupPages {
         AssetPublisherPortletType portlet,
         long company,
         long groupId
-    )
-        throws PortalException {
+    ) throws PortalException {
         if (isLinkPage(page)) {
             return;
         }
@@ -770,8 +766,7 @@ public final class SetupPages {
         final ArticleDisplayPortletType portlet,
         final long companyId,
         final long groupId
-    )
-        throws PortalException {
+    ) throws PortalException {
         if (isLinkPage(page)) {
             return;
         }
@@ -827,8 +822,7 @@ public final class SetupPages {
         MenuViewPortletType portlet,
         long companyId,
         long groupId
-    )
-        throws PortalException {
+    ) throws PortalException {
         if (isLinkPage(page)) {
             LOG.info(" ! SKIP-page is a link");
             return;
@@ -887,7 +881,7 @@ public final class SetupPages {
             List<DDMTemplate> tplsWithoutStruct = DDMTemplateLocalServiceUtil.getTemplates(classNameId);
             for (DDMTemplate tpl : tplsWithoutStruct) {
                 if (
-                    /*adtTemplate.equalsIgnoreCase(tpl.getName()) || */adtTemplate.equalsIgnoreCase(
+                    /*adtTemplate.equalsIgnoreCase(tpl.getName()) || */ adtTemplate.equalsIgnoreCase(
                         tpl.getTemplateKey()
                     ) &&
                     (groupId == 0L || groupId == tpl.getGroupId())
@@ -928,8 +922,7 @@ public final class SetupPages {
         final PagePortletType portlet,
         final long companyId,
         final long groupId
-    )
-        throws PortalException {
+    ) throws PortalException {
         if (isLinkPage(page)) {
             return;
         }
@@ -951,8 +944,7 @@ public final class SetupPages {
         final PagePortletType portlet,
         final long companyId,
         final long groupId
-    )
-        throws PortalException {
+    ) throws PortalException {
         long plid = layout.getPlid();
         long ownerId = PortletKeys.PREFS_OWNER_ID_DEFAULT;
         int ownerType = PortletKeys.PREFS_OWNER_TYPE_LAYOUT;
@@ -1297,6 +1289,7 @@ public final class SetupPages {
 
     // TODO: better implement it.. maybe later.
     private static class PortletWithRuntimeData extends PagePortletType {
+
         public long groupId;
         public long company;
         public Layout layout;

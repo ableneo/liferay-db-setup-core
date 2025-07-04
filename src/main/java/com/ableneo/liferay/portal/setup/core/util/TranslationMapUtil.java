@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class TranslationMapUtil {
+
     private static final Logger LOG = LoggerFactory.getLogger(TranslationMapUtil.class);
 
     private TranslationMapUtil() {}

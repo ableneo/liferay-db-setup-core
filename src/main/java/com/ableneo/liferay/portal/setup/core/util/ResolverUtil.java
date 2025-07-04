@@ -40,6 +40,7 @@ import java.util.List;
  * in the class.
  */
 public final class ResolverUtil {
+
     // CHECKSTYLE:OFF
     public static final int ID_TYPE_ID = 0;
     public static final int ID_TYPE_UUID = 1;
@@ -140,77 +141,71 @@ public final class ResolverUtil {
         // substitute references to groups/sites
         String retVal = ResolverUtil.lookupSiteIdWithName(resolverHint, value, company);
         // ID for article template
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                false,
-                "ART",
-                true,
-                JournalArticle.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            false,
+            "ART",
+            true,
+            JournalArticle.class
+        );
         // ID for article structure
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                false,
-                "ART",
-                false,
-                JournalArticle.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            false,
+            "ART",
+            false,
+            JournalArticle.class
+        );
         // UUID for article structure
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                true,
-                "ART",
-                false,
-                JournalArticle.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            true,
+            "ART",
+            false,
+            JournalArticle.class
+        );
         // UUID for article template
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                true,
-                "ART",
-                true,
-                JournalArticle.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            true,
+            "ART",
+            true,
+            JournalArticle.class
+        );
         // UUID for ADT
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                true,
-                "ADT",
-                true,
-                AssetEntry.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            true,
+            "ADT",
+            true,
+            AssetEntry.class
+        );
         // ID for ADT
-        retVal =
-            ResolverUtil.lookupStructureOrTemplateIdWithKey(
-                retVal,
-                resolverHint,
-                groupId,
-                company,
-                false,
-                "ADT",
-                true,
-                AssetEntry.class
-            );
+        retVal = ResolverUtil.lookupStructureOrTemplateIdWithKey(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            false,
+            "ADT",
+            true,
+            AssetEntry.class
+        );
 
         // Resolve categories
         retVal = ResolverUtil.substituteCategoryNameWithCategoryId(retVal, resolverHint, groupId, company);
@@ -222,14 +217,32 @@ public final class ResolverUtil {
         // Resource type id for articles
         retVal = ResolverUtil.lookupArticleWithArticleId(retVal, resolverHint, groupId, company, ID_TYPE_RESOURCE);
         // Substitute references to files by their URLs
-        retVal =
-            ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_FILE);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            groupId,
+            ID_TYPE_FILE
+        );
         // Substitute references to files by their id
-        retVal =
-            ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_ID);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            groupId,
+            ID_TYPE_ID
+        );
         // Substitute references to files by their UUID
-        retVal =
-            ResolverUtil.substituteFileReferencesWithURL(retVal, resolverHint, groupId, company, groupId, ID_TYPE_UUID);
+        retVal = ResolverUtil.substituteFileReferencesWithURL(
+            retVal,
+            resolverHint,
+            groupId,
+            company,
+            groupId,
+            ID_TYPE_UUID
+        );
         // Substitute class id references
         retVal = ResolverUtil.getClassIdByName(retVal, resolverHint);
         // Substitute private page friendly urls to layout ids
@@ -462,13 +475,11 @@ public final class ResolverUtil {
 
             for (int i = 1; i < categoryIds.length; i++) {
                 String categoryName = categoryIds[i];
-                category =
-                    AssetCategoryLocalServiceUtil
-                        .getChildCategories(category.getCategoryId())
-                        .stream()
-                        .filter(childrenCategory -> childrenCategory.getName().equals(categoryName))
-                        .findFirst()
-                        .orElseThrow(PortalException::new);
+                category = AssetCategoryLocalServiceUtil.getChildCategories(category.getCategoryId())
+                    .stream()
+                    .filter(childrenCategory -> childrenCategory.getName().equals(categoryName))
+                    .findFirst()
+                    .orElseThrow(PortalException::new);
             }
             return String.valueOf(category.getCategoryId());
         } catch (PortalException e) {
@@ -846,8 +857,9 @@ public final class ResolverUtil {
                         if (isTemplate) {
                             templateId = Long.toString(getTemplateId(name, siteGroupId, referredClass));
                         } else {
-                            templateId =
-                                Long.toString(getStructureId(name, siteGroupId, referredClass.getName(), false));
+                            templateId = Long.toString(
+                                getStructureId(name, siteGroupId, referredClass.getName(), false)
+                            );
                         }
                     }
                 } catch (PortalException | SystemException e) {
@@ -882,8 +894,7 @@ public final class ResolverUtil {
         final long groupId,
         final String className,
         boolean includeAncestorStructures
-    )
-        throws PortalException {
+    ) throws PortalException {
         long classNameId = ClassNameLocalServiceUtil.getClassNameId(className);
         DDMStructure structure = DDMStructureLocalServiceUtil.getStructure(
             groupId,
@@ -930,9 +941,9 @@ public final class ResolverUtil {
     }
 
     public static String getTemplateUUID(final String templateKey) {
-        DynamicQuery dq = DDMTemplateLocalServiceUtil
-            .dynamicQuery()
-            .add(PropertyFactoryUtil.forName("templateKey").eq(templateKey));
+        DynamicQuery dq = DDMTemplateLocalServiceUtil.dynamicQuery().add(
+            PropertyFactoryUtil.forName("templateKey").eq(templateKey)
+        );
         List<DDMTemplate> templateList = new ArrayList<>();
         String uuid = "NOT FOUND!!!!";
         try {

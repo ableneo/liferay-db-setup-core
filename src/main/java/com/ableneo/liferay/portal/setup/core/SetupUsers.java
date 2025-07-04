@@ -30,6 +30,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class SetupUsers {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupUsers.class);
     private static final int DEFAULT_BIRTHDAY_YEAR = 1970;
 
@@ -121,35 +122,34 @@ public final class SetupUsers {
         int type = UserConstants.TYPE_REGULAR;
 
         try {
-            liferayUser =
-                UserLocalServiceUtil.addUser(
-                    creatorUserId,
-                    SetupConfigurationThreadLocal.getRunInCompanyId(),
-                    autoPassword,
-                    password1,
-                    password2,
-                    autoScreenName,
-                    setupUser.getScreenName(),
-                    emailAddress,
-                    locale,
-                    setupUser.getFirstName(),
-                    middleName,
-                    setupUser.getLastName(),
-                    prefixId,
-                    suffixId,
-                    male,
-                    birthdayMonth,
-                    birthdayDay,
-                    birthdayYear,
-                    jobTitle,
-                    type,
-                    groupIds,
-                    organizationIds,
-                    roleIds,
-                    userGroupIds,
-                    sendEmail,
-                    serviceContext
-                );
+            liferayUser = UserLocalServiceUtil.addUser(
+                creatorUserId,
+                SetupConfigurationThreadLocal.getRunInCompanyId(),
+                autoPassword,
+                password1,
+                password2,
+                autoScreenName,
+                setupUser.getScreenName(),
+                emailAddress,
+                locale,
+                setupUser.getFirstName(),
+                middleName,
+                setupUser.getLastName(),
+                prefixId,
+                suffixId,
+                male,
+                birthdayMonth,
+                birthdayDay,
+                birthdayYear,
+                jobTitle,
+                type,
+                groupIds,
+                organizationIds,
+                roleIds,
+                userGroupIds,
+                sendEmail,
+                serviceContext
+            );
             LOG.info(String.format("User %1$s created", setupUser.getEmailAddress()));
         } catch (Exception ex) {
             LOG.error(String.format("Error by adding user %1$s", setupUser.getEmailAddress()), ex);

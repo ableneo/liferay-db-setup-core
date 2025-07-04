@@ -15,17 +15,16 @@ import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Objects;
-
 public class SetupUserGroups {
+
     private static final Logger LOG = LoggerFactory.getLogger(SetupUserGroups.class);
 
-    private SetupUserGroups() {
-    }
+    private SetupUserGroups() {}
 
     public static void setupUserGroups(final List<UserGroup> userGroups) {
         final long userId = SetupConfigurationThreadLocal.getRunAsUserId();
@@ -44,14 +43,13 @@ public class SetupUserGroups {
             }
             if (liferayUserGroupId == -1) {
                 try {
-                    liferayUserGroup =
-                        UserGroupLocalServiceUtil.addUserGroup(
-                            userId,
-                            companyId,
-                            userGroup.getName(),
-                            userGroup.getDescription(),
-                            new ServiceContext()
-                        );
+                    liferayUserGroup = UserGroupLocalServiceUtil.addUserGroup(
+                        userId,
+                        companyId,
+                        userGroup.getName(),
+                        userGroup.getDescription(),
+                        new ServiceContext()
+                    );
                 } catch (PortalException e) {
                     LOG.error(String.format("Can not create UserGroup with name: %1$s", userGroup.getName()), e);
                     continue;
@@ -94,7 +92,12 @@ public class SetupUserGroups {
             try {
                 UserGroupLocalServiceUtil.addUserUserGroup(user.getUserId(), liferayUserGroup.getUserGroupId());
             } catch (PortalException e) {
-                LOG.warn("Failed to setup user {} as member of userGroup {}", user.getScreenName(), liferayUserGroup.getName(), e);
+                LOG.warn(
+                    "Failed to setup user {} as member of userGroup {}",
+                    user.getScreenName(),
+                    liferayUserGroup.getName(),
+                    e
+                );
             }
             LOG.info(
                 String.format(
@@ -120,12 +123,12 @@ public class SetupUserGroups {
         for (CustomFieldSetting cfs : customFieldSettings) {
             String resolverHint =
                 "Custom value for userGroup " +
-                    userGroup.getName() +
-                    ", " +
-                    " Key " +
-                    cfs.getKey() +
-                    ", value " +
-                    cfs.getValue();
+                userGroup.getName() +
+                ", " +
+                " Key " +
+                cfs.getKey() +
+                ", value " +
+                cfs.getValue();
             long company = SetupConfigurationThreadLocal.getRunInCompanyId();
             CustomFieldSettingUtil.setExpandoValue(
                 resolverHint,

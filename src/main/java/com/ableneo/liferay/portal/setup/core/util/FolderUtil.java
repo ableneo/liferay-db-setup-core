@@ -14,6 +14,7 @@ import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 public final class FolderUtil {
+
     private static final Log LOG = LogFactoryUtil.getLog(FolderUtil.class);
 
     private FolderUtil() {}
@@ -87,16 +88,15 @@ public final class FolderUtil {
         try {
             folder = findFolder(groupId, pFolderId, folderName);
             if (folder == null) {
-                folder =
-                    DLAppLocalServiceUtil.addFolder(
-                        null,
-                        SetupConfigurationThreadLocal.getRunAsUserId(),
-                        repoId,
-                        pFolderId,
-                        folderName,
-                        folderName,
-                        new ServiceContext()
-                    );
+                folder = DLAppLocalServiceUtil.addFolder(
+                    null,
+                    SetupConfigurationThreadLocal.getRunAsUserId(),
+                    repoId,
+                    pFolderId,
+                    folderName,
+                    folderName,
+                    new ServiceContext()
+                );
             }
         } catch (SystemException | PortalException e) {
             LOG.error(e);

@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +44,7 @@ import java.util.Set;
  * Created by gustavnovotny on 28.08.17.
  */
 public class SetupSites {
+
     private static final String UNIPARAM_DEFAULT_SITE_ROLE_IDS = "defaultSiteRoleIds";
     private static final Log LOG = LogFactoryUtil.getLog(SetupSites.class);
 
@@ -53,8 +53,7 @@ public class SetupSites {
     public static void setupSites(
         final List<com.ableneo.liferay.portal.setup.domain.Site> siteList,
         final Group parentGroup
-    )
-        throws PortalException {
+    ) throws PortalException {
         long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
         for (com.ableneo.liferay.portal.setup.domain.Site site : siteList) {
             Group liferayGroup = setupSite(parentGroup, companyId, site);
@@ -76,7 +75,8 @@ public class SetupSites {
             try {
                 if (site.getName() != null) {
                     liferayGroup = GroupLocalServiceUtil.getGroup(companyId, site.getName());
-                } if (site.getSiteFriendlyUrl() != null) {
+                }
+                if (site.getSiteFriendlyUrl() != null) {
                     liferayGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(companyId, site.getSiteFriendlyUrl());
                 }
                 LOG.info(
@@ -97,28 +97,27 @@ public class SetupSites {
             LOG.info(String.format("Setup: Group (Site) %1$s does not exist in system, creating...", site.getName()));
             // ?? SiteUtil.addSiteGroup(context, this.siteCode, this.defaultName,
             // websiteParentGroup);
-            liferayGroup =
-                GroupLocalServiceUtil.addGroup(
-                    SetupConfigurationThreadLocal.getRunAsUserId(),
-                    GroupConstants.DEFAULT_PARENT_GROUP_ID,
-                    Group.class.getName(),
-                    0,
-                    0,
-                    TranslationMapUtil.getTranslationMap(
-                        site.getNameTranslation(),
-                        groupId,
-                        site.getName(),
-                        site.getName()
-                    ),
-                    null,
-                    site.getMembershipType(),
-                    true,
-                    GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
-                    site.getSiteFriendlyUrl(),
-                    true,
-                    true,
-                    serviceContext
-                );
+            liferayGroup = GroupLocalServiceUtil.addGroup(
+                SetupConfigurationThreadLocal.getRunAsUserId(),
+                GroupConstants.DEFAULT_PARENT_GROUP_ID,
+                Group.class.getName(),
+                0,
+                0,
+                TranslationMapUtil.getTranslationMap(
+                    site.getNameTranslation(),
+                    groupId,
+                    site.getName(),
+                    site.getName()
+                ),
+                null,
+                site.getMembershipType(),
+                true,
+                GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+                site.getSiteFriendlyUrl(),
+                true,
+                true,
+                serviceContext
+            );
             LOG.info(String.format("New site created."));
         } else {
             if (!Validator.isBlank(site.getSiteFriendlyUrl())) {

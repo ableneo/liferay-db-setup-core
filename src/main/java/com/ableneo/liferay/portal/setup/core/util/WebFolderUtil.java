@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class WebFolderUtil {
+
     private static final Log LOG = LogFactoryUtil.getLog(WebFolderUtil.class);
 
     private WebFolderUtil() {}
@@ -96,16 +97,15 @@ public final class WebFolderUtil {
             serviceContext.setScopeGroupId(groupId);
             serviceContext.setCompanyId(companyId);
 
-            folder =
-                JournalFolderLocalServiceUtil.addFolder(
-                    null,
-                    userId,
-                    groupId,
-                    parentFolderId,
-                    name,
-                    description,
-                    serviceContext
-                );
+            folder = JournalFolderLocalServiceUtil.addFolder(
+                null,
+                userId,
+                groupId,
+                parentFolderId,
+                name,
+                description,
+                serviceContext
+            );
         } catch (PortalException e) {
             LOG.error(e);
         }

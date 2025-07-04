@@ -21,12 +21,12 @@ import com.liferay.portal.kernel.util.Validator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class SetupConfigurationThreadLocal {
+
     private static final Logger LOG = LoggerFactory.getLogger(SetupConfigurationThreadLocal.class);
 
     private static final ThreadLocal<Long> _runAsUserId = new CentralizedThreadLocal<>(
@@ -50,9 +50,10 @@ public final class SetupConfigurationThreadLocal {
         SetupConfigurationThreadLocal.class + "._runInGroupId",
         () -> {
             try {
-                return GroupLocalServiceUtil
-                    .getGroup(PortalUtil.getDefaultCompanyId(), GroupConstants.GUEST)
-                    .getGroupId();
+                return GroupLocalServiceUtil.getGroup(
+                    PortalUtil.getDefaultCompanyId(),
+                    GroupConstants.GUEST
+                ).getGroupId();
             } catch (PortalException e) {
                 LOG.error("Failed to get Guest group id for default company", e);
             }
@@ -128,13 +129,13 @@ public final class SetupConfigurationThreadLocal {
     static void configureThreadLocalContent(String runAsUserEmail, long companyId, Group group) throws PortalException {
         Objects.requireNonNull(group);
         configureGroupExecutionContext(group);
-        configureThreadLocalContent(runAsUserEmail, companyId, (Bundle)null);
+        configureThreadLocalContent(runAsUserEmail, companyId, (Bundle) null);
     }
 
     public static void configureGroupExecutionContext(Group group) {
         Objects.requireNonNull(group);
         setRunInGroupId(group.getGroupId());
-        LocaleThreadLocal.setDefaultLocale(Locale.forLanguageTag(group.getDefaultLanguageId().replace('_','-')));
+        LocaleThreadLocal.setDefaultLocale(Locale.forLanguageTag(group.getDefaultLanguageId().replace('_', '-')));
     }
 
     /**
@@ -147,7 +148,8 @@ public final class SetupConfigurationThreadLocal {
      * @throws PortalException user was not found, breaks the setup execution, we presume that if user email was
      *                         provided it is important to set up data as the user e.g. for easier cleanup
      */
-    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Bundle callerBundle) throws PortalException {
+    static void configureThreadLocalContent(String runAsUserEmail, long companyId, Bundle callerBundle)
+        throws PortalException {
         if (Validator.isBlank(runAsUserEmail)) {
             setRunInCompanyId(companyId);
             setCallerBundle(callerBundle);
@@ -201,5 +203,4 @@ public final class SetupConfigurationThreadLocal {
             throw new IllegalStateException("Cannot obtain Liferay role for role name: " + administratorRoleName, e);
         }
     }
-
 }

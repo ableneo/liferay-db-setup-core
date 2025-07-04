@@ -13,7 +13,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class RolePermissionBuilder {
-    private static final Map<String, Map<String, Set<String>>> PRESETS = new HashMap<String, Map<String, Set<String>>>();
+
+    private static final Map<String, Map<String, Set<String>>> PRESETS = new HashMap<
+        String,
+        Map<String, Set<String>>
+    >();
 
     private Map<String, Set<String>> currentlyBuiltPermissions = new HashMap<String, Set<String>>();
 
