@@ -324,7 +324,7 @@ public final class SetupArticles {
         try {
             script = ResourcesUtil.getFileContent(template.getPath());
         } catch (Exception e) {
-            LOG.error("The template can not be added: {}", template.getName(), e);
+            LOG.error("The template {} can not be read from {}", template.getName(), template.getPath(), e);
             return;
         }
 
@@ -347,12 +347,7 @@ public final class SetupArticles {
             }
         }
 
-        DDMTemplate ddmTemplate = null;
-        try {
-            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, template.getKey());
-        } catch (SystemException e) {
-            LOG.error("The template can not be added: {}", template.getKey(), e);
-        }
+        final DDMTemplate ddmTemplate = getDdmTemplate(template.getName(), template.getKey(), groupId, classNameId);
 
         if (ddmTemplate != null) {
             LOG.info("Template already exists and will be overwritten.");
@@ -417,12 +412,7 @@ public final class SetupArticles {
 
         String language = template.getLanguage() == null ? TemplateConstants.LANG_TYPE_FTL : template.getLanguage();
 
-        DDMTemplate ddmTemplate = null;
-        try {
-            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, template.getTemplateKey());
-        } catch (SystemException e) {
-            LOG.error("The template can not be added: {}", template.getTemplateKey(), e);
-        }
+        final DDMTemplate ddmTemplate = getDdmTemplate(template.getName(), template.getTemplateKey(), groupId, classNameId);
 
         String script = ResourcesUtil.getFileContent(template.getPath());
 
@@ -461,6 +451,16 @@ public final class SetupArticles {
             new ServiceContext()
         );
         LOG.info("Added ADT: {}", newTemplate.getName());
+    }
+
+    private static DDMTemplate getDdmTemplate(String templateName, String templateKey, long groupId, long classNameId) {
+        DDMTemplate ddmTemplate = null;
+        try {
+            ddmTemplate = DDMTemplateLocalServiceUtil.fetchTemplate(groupId, classNameId, templateKey);
+        } catch (SystemException e) {
+            LOG.error("The template {} can not be fetched by key: {}", templateName, templateKey, e);
+        }
+        return ddmTemplate;
     }
 
     public static long getCreateFolderId(String folder, long groupId, RolePermissions roles) {
