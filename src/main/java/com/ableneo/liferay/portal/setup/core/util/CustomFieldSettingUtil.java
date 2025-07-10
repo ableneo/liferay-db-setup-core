@@ -16,6 +16,7 @@ import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
  * @author msi
  */
 public final class CustomFieldSettingUtil {
+
     private static final Log LOG = LogFactoryUtil.getLog(CustomFieldSettingUtil.class);
 
     private CustomFieldSettingUtil() {}

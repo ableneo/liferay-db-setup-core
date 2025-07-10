@@ -14,6 +14,7 @@ import java.net.URISyntaxException;
  * Created by mapa on 13.3.2015.
  */
 public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
+
     /**
      * Logger.
      */

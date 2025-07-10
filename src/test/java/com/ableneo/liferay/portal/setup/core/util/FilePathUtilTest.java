@@ -23,11 +23,11 @@
  */
 package com.ableneo.liferay.portal.setup.core.util;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.ableneo.liferay.portal.setup.core.util.FilePathUtil;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class FilePathUtilTest {
 

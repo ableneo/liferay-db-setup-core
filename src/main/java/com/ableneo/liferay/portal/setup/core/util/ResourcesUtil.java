@@ -2,12 +2,11 @@ package com.ableneo.liferay.portal.setup.core.util;
 
 import com.ableneo.liferay.portal.setup.SetupConfigurationThreadLocal;
 import com.liferay.portal.kernel.util.FileUtil;
-import org.osgi.framework.Bundle;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import org.osgi.framework.Bundle;
 
 /**
  * Created by ntrp on 5/15/17.
@@ -30,10 +29,23 @@ public class ResourcesUtil {
                     try {
                         fileStream = url.openStream();
                     } catch (IOException e) {
-                        throw new RuntimeException("Error loading file from bundle:" + callerBundle.getSymbolicName() + ", path:[" + path + "]", e);
+                        throw new RuntimeException(
+                            "Error loading file from bundle:" +
+                            callerBundle.getSymbolicName() +
+                            ", path:[" +
+                            path +
+                            "]",
+                            e
+                        );
                     }
                 } else {
-                    throw new RuntimeException("Can not load file from bundle:" + callerBundle.getSymbolicName() + ", does it exist? path:[" + path + "]");
+                    throw new RuntimeException(
+                        "Can not load file from bundle:" +
+                        callerBundle.getSymbolicName() +
+                        ", does it exist? path:[" +
+                        path +
+                        "]"
+                    );
                 }
             }
         }

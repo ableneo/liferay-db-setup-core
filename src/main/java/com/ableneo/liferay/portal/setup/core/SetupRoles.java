@@ -20,6 +20,7 @@ import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import java.util.*;
 
 public final class SetupRoles {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupRoles.class);
 
     public static final String SCOPE_INDIVIDUAL = "individual";
@@ -34,7 +35,13 @@ public final class SetupRoles {
             try {
                 long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
                 RoleLocalServiceUtil.getRole(companyId, role.getName());
-                LOG.info(String.format("Setup: Role %s already exists in company %s, not creating...", role.getName(), companyId));
+                LOG.info(
+                    String.format(
+                        "Setup: Role %s already exists in company %s, not creating...",
+                        role.getName(),
+                        companyId
+                    )
+                );
             } catch (NoSuchRoleException | ObjectNotFoundException e) {
                 addRole(role);
             } catch (SystemException | PortalException e) {
@@ -72,7 +79,9 @@ public final class SetupRoles {
                 null
             );
 
-            LOG.info(String.format("Setup: Role %s does not exist in company %s, adding...", role.getName(), companyId));
+            LOG.info(
+                String.format("Setup: Role %s does not exist in company %s, adding...", role.getName(), companyId)
+            );
         } catch (PortalException | SystemException e) {
             LOG.error("error while adding up roles", e);
         }
@@ -144,13 +153,12 @@ public final class SetupRoles {
                     long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
                     if (permission.getElementPrimaryKey() != null) {
                         long groupId = SetupConfigurationThreadLocal.getRunInGroupId();
-                        resourcePrimKey =
-                            ResolverUtil.lookupAll(
-                                groupId,
-                                companyId,
-                                permission.getElementPrimaryKey(),
-                                String.format("Role %1$s permission name %2$s", role.getName(), permissionName)
-                            );
+                        resourcePrimKey = ResolverUtil.lookupAll(
+                            groupId,
+                            companyId,
+                            permission.getElementPrimaryKey(),
+                            String.format("Role %1$s permission name %2$s", role.getName(), permissionName)
+                        );
                     }
                     String type = role.getType();
                     int scope = ResourceConstants.SCOPE_COMPANY;

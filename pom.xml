@@ -52,6 +52,33 @@
         </pluginManagement>
 
         <plugins>
+            <plugin>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactSet>
+                        <includes>
+                            <include>com.liferay:com.liferay.journal.web</include>
+                        </includes>
+                    </artifactSet>
+                    <filters>
+                        <filter>
+                            <artifact>com.liferay:com.liferay.journal.web</artifact>
+                            <includes>
+                                <include>**/DataDefinitionUtil.class</include>
+                            </includes>
+                        </filter>
+                    </filters>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -104,7 +131,6 @@
                     <target>21</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>license-maven-plugin</artifactId>
@@ -238,7 +264,7 @@
                 <artifactId>prettier-maven-plugin</artifactId>
                 <version>0.21</version>
                 <configuration>
-                    <prettierJavaVersion>2.5.0</prettierJavaVersion>
+                    <prettierJavaVersion>2.7.1</prettierJavaVersion>
                     <printWidth>120</printWidth>
                     <useTabs>false</useTabs>
                     <tabWidth>4</tabWidth>
@@ -272,6 +298,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <compilerArgs>--enable-preview</compilerArgs>
+                </configuration>
             </plugin>
 
         </plugins>
@@ -313,6 +348,11 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <dependency>
+            <groupId>com.liferay</groupId>
+            <artifactId>com.liferay.journal.web</artifactId>
+            <version>5.0.191</version>
+        </dependency>
         <!-- TODO remove debug deps start -->
         <dependency>
             <groupId>com.liferay</groupId>

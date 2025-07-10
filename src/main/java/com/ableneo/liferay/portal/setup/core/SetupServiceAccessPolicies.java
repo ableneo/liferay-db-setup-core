@@ -56,7 +56,8 @@ public class SetupServiceAccessPolicies {
             }
         });
 
-        final List<DeleteServiceAccessPolicy> deleteServiceAccessPolicyList = serviceAccessPolicies.getDeleteServiceAccessPolicy();
+        final List<DeleteServiceAccessPolicy> deleteServiceAccessPolicyList =
+            serviceAccessPolicies.getDeleteServiceAccessPolicy();
         deleteServiceAccessPolicyList.forEach(deleteServiceAccessPolicy -> {
             final SAPEntry sapEntry = getSapEntry(runInCompanyId, deleteServiceAccessPolicy.getName());
             if (sapEntry != null) {

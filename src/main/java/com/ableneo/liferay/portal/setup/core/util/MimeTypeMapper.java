@@ -7,6 +7,7 @@ import java.util.HashMap;
  * extensions. The tool is used as singleton.
  */
 public final class MimeTypeMapper {
+
     public static final String X_WORLD_X_3_DMF = "x-world/x-3dmf";
     private static final String APPLICATION_OCTET_STREAM = "application/octet-stream";
     private static final String TEXT_HTML = "text/html";
@@ -817,8 +818,6 @@ public final class MimeTypeMapper {
          * application/vnd.ms-powerpoint .pps application/vnd.ms-powerpoint .ppa
          * application/vnd.ms-powerpoint
          */
-
     }
     // CHECKSTYLE:ON
-
 }

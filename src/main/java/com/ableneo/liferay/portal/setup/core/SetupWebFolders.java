@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class SetupWebFolders {
+
     private static final Map<String, List<String>> DEFAULT_PERMISSIONS;
     public static final String RP_KEY = SetupWebFolders.class.getSimpleName() + "_DEFAULT_PERMISSIONS";
 

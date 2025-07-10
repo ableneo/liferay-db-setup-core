@@ -19,6 +19,7 @@ import java.util.UUID;
  * Created by gustavnovotny on 28.08.17.
  */
 public class SetupMenus {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupMenus.class);
 
     private SetupMenus() {}
@@ -79,7 +80,13 @@ public class SetupMenus {
         if (menu == null) {
             LOG.info(" i '" + name + "' create..");
             try {
-                menu = SiteNavigationMenuLocalServiceUtil.addSiteNavigationMenu(null, userId, groupId, name, serviceContext);
+                menu = SiteNavigationMenuLocalServiceUtil.addSiteNavigationMenu(
+                    null,
+                    userId,
+                    groupId,
+                    name,
+                    serviceContext
+                );
                 LOG.info(" i '" + name + "' create OK");
             } catch (PortalException e) {
                 LOG.error("Could not create new menu '" + name + "'", e);
@@ -190,17 +197,16 @@ public class SetupMenus {
             try {
                 serviceContext.setUuid(UUID.randomUUID().toString());
                 LOG.info("Inserting menu-item[" + newMenuItem.getName() + "]");
-                savedItem =
-                    SiteNavigationMenuItemLocalServiceUtil.addSiteNavigationMenuItem(
-                        null,
-                        userId,
-                        groupId,
-                        parentMenuId,
-                        parentMenuItem,
-                        type,
-                        /*order,*/typeSettings,
-                        serviceContext
-                    );
+                savedItem = SiteNavigationMenuItemLocalServiceUtil.addSiteNavigationMenuItem(
+                    null,
+                    userId,
+                    groupId,
+                    parentMenuId,
+                    parentMenuItem,
+                    type,
+                    /*order,*/ typeSettings,
+                    serviceContext
+                );
             } catch (PortalException e) {
                 LOG.error("Can not add menu item '" + newMenuItem.getName() + "' : ", e);
                 return null;

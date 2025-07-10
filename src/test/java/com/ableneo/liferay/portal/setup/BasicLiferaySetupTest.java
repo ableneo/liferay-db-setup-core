@@ -16,17 +16,32 @@ class BasicLiferaySetupTest extends ValidSetupTestMocks {
     @Test
     void testIfCompanyIsProcessed() throws FileNotFoundException, PortalException {
         assertTrue(LiferaySetup.setup(validConfiguration));
-        setupConfigurationThreadLocalMockedStatic.verify(() -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 1l, (Bundle) null), times(1));
-        setupConfigurationThreadLocalMockedStatic.verify(() -> SetupConfigurationThreadLocal.setRunInGroupId(20l), times(1));
+        setupConfigurationThreadLocalMockedStatic.verify(
+            () -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 1l, (Bundle) null),
+            times(1)
+        );
+        setupConfigurationThreadLocalMockedStatic.verify(
+            () -> SetupConfigurationThreadLocal.setRunInGroupId(20l),
+            times(1)
+        );
         setupConfigurationThreadLocalMockedStatic.clearInvocations();
     }
 
     @Test
     void testIfTwoCompaniesAreProcessed() throws FileNotFoundException, PortalException {
         assertTrue(LiferaySetup.setup(validConfigurationTwoCompanies));
-        setupConfigurationThreadLocalMockedStatic.verify(() -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 1l, (Bundle) null), times(1));
-        setupConfigurationThreadLocalMockedStatic.verify(() -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 2l, (Bundle) null), times(1));
-        setupConfigurationThreadLocalMockedStatic.verify(() -> SetupConfigurationThreadLocal.setRunInGroupId(20l), times(2));
+        setupConfigurationThreadLocalMockedStatic.verify(
+            () -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 1l, (Bundle) null),
+            times(1)
+        );
+        setupConfigurationThreadLocalMockedStatic.verify(
+            () -> SetupConfigurationThreadLocal.configureThreadLocalContent("test@liferay.com", 2l, (Bundle) null),
+            times(1)
+        );
+        setupConfigurationThreadLocalMockedStatic.verify(
+            () -> SetupConfigurationThreadLocal.setRunInGroupId(20l),
+            times(2)
+        );
         setupConfigurationThreadLocalMockedStatic.clearInvocations();
     }
 }

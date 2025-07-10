@@ -20,6 +20,7 @@ import java.text.DateFormat;
 import java.util.*;
 
 public final class SetupCustomFields {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupCustomFields.class);
 
     private SetupCustomFields() {}

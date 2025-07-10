@@ -21,6 +21,7 @@ import java.util.Locale;
 import java.util.Map;
 
 public final class SetupOrganizations {
+
     private static final Log LOG = LogFactoryUtil.getLog(SetupOrganizations.class);
 
     private SetupOrganizations() {}
@@ -71,7 +72,8 @@ public final class SetupOrganizations {
                         ListTypeLocalServiceUtil.getListTypeId(
                             companyId,
                             ListTypeConstants.ORGANIZATION_STATUS_DEFAULT,
-                            ListTypeConstants.ORGANIZATION_STATUS),
+                            ListTypeConstants.ORGANIZATION_STATUS
+                        ),
                         "Created by setup module.",
                         false,
                         new ServiceContext()
@@ -202,9 +204,8 @@ public final class SetupOrganizations {
     ) {
         switch (deleteMethod) {
             case "excludeListed":
-                Map<String, com.ableneo.liferay.portal.setup.domain.Organization> toBeDeletedOrganisations = convertOrganisationListToHashMap(
-                    organizations
-                );
+                Map<String, com.ableneo.liferay.portal.setup.domain.Organization> toBeDeletedOrganisations =
+                    convertOrganisationListToHashMap(organizations);
                 try {
                     for (Organization organisation : OrganizationLocalServiceUtil.getOrganizations(-1, -1)) {
                         if (!toBeDeletedOrganisations.containsKey(organisation.getName())) {

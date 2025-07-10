@@ -32,12 +32,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
-
 import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class LiferaySetup {
+
     private static final Logger LOG = LoggerFactory.getLogger(LiferaySetup.class);
 
     private LiferaySetup() {}
@@ -127,7 +127,13 @@ public final class LiferaySetup {
                     }
                 }
             } else {
-                setupCompany(setup, callerBundle, SetupConfigurationThreadLocal.getRunInCompanyId(), null, runAsUserEmail);
+                setupCompany(
+                    setup,
+                    callerBundle,
+                    SetupConfigurationThreadLocal.getRunInCompanyId(),
+                    null,
+                    runAsUserEmail
+                );
             }
         } catch (PortalException | RuntimeException e) {
             LOG.error("An error occured while executing the portal setup", e);
@@ -142,7 +148,13 @@ public final class LiferaySetup {
         return true;
     }
 
-    private static void setupCompany(Setup setup, Bundle callerBundle, long companyId, String groupName, String runAsUserEmail) throws PortalException {
+    private static void setupCompany(
+        Setup setup,
+        Bundle callerBundle,
+        long companyId,
+        String groupName,
+        String runAsUserEmail
+    ) throws PortalException {
         SetupConfigurationThreadLocal.configureThreadLocalContent(runAsUserEmail, companyId, callerBundle);
         executeSetupConfiguration(setup);
 
@@ -163,8 +175,7 @@ public final class LiferaySetup {
         }
     }
 
-    private static void setupGroup(Setup setup, long companyId, String groupName)
-        throws PortalException {
+    private static void setupGroup(Setup setup, long companyId, String groupName) throws PortalException {
         Group group = GroupLocalServiceUtil.getGroup(companyId, groupName);
         SetupConfigurationThreadLocal.setRunInGroupId(group.getGroupId());
         setupPortalGroup(setup);

@@ -13,12 +13,12 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Validator;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-
 public final class TaggingUtil {
+
     private static final Logger LOG = LoggerFactory.getLogger(TaggingUtil.class);
 
     private TaggingUtil() {}
@@ -33,14 +33,8 @@ public final class TaggingUtil {
         long[] categoryIds = article
             .getCategory()
             .stream()
-            .map(
-                category ->
-                    ResolverUtil.lookupAll(
-                        groupId,
-                        journalArticle.getCompanyId(),
-                        category.getUuid(),
-                        article.getPath()
-                    )
+            .map(category ->
+                ResolverUtil.lookupAll(groupId, journalArticle.getCompanyId(), category.getUuid(), article.getPath())
             )
             .filter(Validator::isNumber)
             .mapToLong(Long::parseLong)
@@ -60,8 +54,13 @@ public final class TaggingUtil {
                 tagNames
             );
         } catch (PortalException e) {
-            LOG.warn("Unable to associate tags ({}) and categories ({}) with article: {}", tagNames, categoryIds, article.getTitle(), e);
+            LOG.warn(
+                "Unable to associate tags ({}) and categories ({}) with article: {}",
+                tagNames,
+                categoryIds,
+                article.getTitle(),
+                e
+            );
         }
     }
-
 }

@@ -37,14 +37,19 @@ public abstract class ValidSetupTestMocks {
     public static MockedStatic<LocaleUtil> localeUtilMockedStatic;
     public static MockedStatic<SetupServiceAccessPolicies> setupServiceAccessPoliciesMockedStatic;
     public static MockedStatic<SetupConfigurationThreadLocal> setupConfigurationThreadLocalMockedStatic;
+
     @Mock
     public User liferayUser;
+
     @Mock(lenient = true)
     public Group liferayGroup;
+
     @Mock
     public PermissionChecker permissionChecker;
+
     @Mock
     public PermissionCheckerFactory permissionCheckerFactory;
+
     public File validConfiguration;
     public File invalidConfiguration;
     public File validConfigurationTwoCompanies;
@@ -82,8 +87,9 @@ public abstract class ValidSetupTestMocks {
         try {
             validConfiguration = new File(MarshallUtilTest.class.getResource("/valid-configuration.xml").toURI());
             invalidConfiguration = new File(MarshallUtilTest.class.getResource("/invalid-configuration.xml").toURI());
-            validConfigurationTwoCompanies =
-                new File(MarshallUtilTest.class.getResource("/valid-configuration-two-companies.xml").toURI());
+            validConfigurationTwoCompanies = new File(
+                MarshallUtilTest.class.getResource("/valid-configuration-two-companies.xml").toURI()
+            );
         } catch (URISyntaxException e) {
             LOGGER.error("Failed to parse configuration file", e);
         }
