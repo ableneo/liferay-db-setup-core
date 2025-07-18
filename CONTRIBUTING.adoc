@@ -12,7 +12,7 @@
 We didn't publish binary yet so you'll need to build the jar yourself. Here are the steps to do it:
 
 . Download sources.
-. Install JDK 11
+. Install JDK 21
 . Install Maven 3.8.1 or higher.
 . Run: `mvn clean install`
 

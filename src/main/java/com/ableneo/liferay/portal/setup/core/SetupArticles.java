@@ -20,7 +20,6 @@ import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.service.AssetEntryLocalServiceUtil;
 import com.liferay.asset.link.constants.AssetLinkConstants;
 import com.liferay.asset.link.service.AssetLinkLocalServiceUtil;
-import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.dynamic.data.lists.model.DDLRecordSet;
@@ -49,6 +48,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.template.TemplateConstants;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.LocalizationUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -187,106 +187,60 @@ public final class SetupArticles {
 
     public static void addDDMStructure(final StructureType structure, final long groupId, final long classNameId)
         throws PortalException {
-        LOG.info("Adding Article structure {}", structure.getName());
-        Map<Locale, String> nameMap = new HashMap<>();
-        Locale siteDefaultLocale = null;
-        try {
-            siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
-        } catch (PortalException e) {
-            LOG.error("Failed to get site default locale for groupId {}", groupId, e);
-        }
-        String name = getStructureNameOrKey(structure);
-        // when default site locale is not 'en_us', then LocaleUtil.getSiteDefault still returns en_us.. we are not IN the site yet..
-        // so an exception follows: Name is null (for en_us locale). so:
-        nameMap.put(siteDefaultLocale, name);
-        Map<Locale, String> descMap = new HashMap<>();
+        final Locale siteDefaultLocale = PortalUtil.getSiteDefaultLocale(groupId);
 
         String content = null;
-        DataDefinition dataDefinition = null;
         try {
             content = ResourcesUtil.getFileContent(structure.getPath());
-            dataDefinition = DataDefinition.toDTO(content);
+            DataDefinition dataDefinition = DataDefinition.toDTO(content);
+
+            dataDefinition.setName(() ->
+                HashMapBuilder.<String, Object>put(String.valueOf(siteDefaultLocale), structure.getName()).build()
+            );
+
+            DataDefinitionResource.Builder dataDefinitionResourcedBuilder = getDataDefinitionResourceFactory().create();
+
+            DataDefinitionResource dataDefinitionResource = dataDefinitionResourcedBuilder
+                .user(UserLocalServiceUtil.getUser(SetupConfigurationThreadLocal.getRunAsUserId()))
+                .build();
+
+            DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(
+                groupId,
+                classNameId,
+                structure.getKey()
+            );
+
+            if (ddmStructure == null) {
+                LOG.info("Adding article structure {}", structure.getName());
+                DataDefinitionUtil.updateDataDefinitionFields(dataDefinition, null);
+                dataDefinition = dataDefinitionResource.postSiteDataDefinitionByContentType(
+                    groupId,
+                    "journal",
+                    dataDefinition
+                );
+            } else {
+                LOG.info("Updating article structure {}", structure.getName());
+                DataDefinitionUtil.updateDataDefinitionFields(dataDefinition, ddmStructure);
+                dataDefinition.setId(ddmStructure.getStructureId());
+                dataDefinition = dataDefinitionResource.putDataDefinition(dataDefinition.getId(), dataDefinition);
+            }
+            SetupPermissions.updatePermission(
+                String.format("Structure %s", structure.getKey()),
+                SetupConfigurationThreadLocal.getRunInCompanyId(),
+                dataDefinition.getId(),
+                DDMStructure.class.getName() + "-" + JournalArticle.class.getName(),
+                structure.getRolePermissions(),
+                DEFAULT_DDM_PERMISSIONS
+            );
         } catch (IOException e) {
             LOG.error("The structure can not be added: {}", structure.getName(), e);
-            return;
         } catch (Exception e) {
             LOG.error(
                 "Other error while trying to get content of the structure file. Possibly wrong filesystem path ({})?",
                 structure.getPath(),
                 e
             );
-            return;
         }
-
-        DDMStructure ddmStructure = DDMStructureLocalServiceUtil.fetchStructure(
-            groupId,
-            classNameId,
-            structure.getKey()
-        );
-
-        long runAsUserId = SetupConfigurationThreadLocal.getRunAsUserId();
-        long companyId = SetupConfigurationThreadLocal.getRunInCompanyId();
-
-        DataDefinitionResource.Builder dataDefinitionResourcedBuilder = getDataDefinitionResourceFactory().create();
-
-        DataDefinitionResource dataDefinitionResource = dataDefinitionResourcedBuilder
-            .user(UserLocalServiceUtil.getUser(runAsUserId))
-            .build();
-
-        if (ddmStructure == null) {
-            ddmStructure = DDMStructureLocalServiceUtil.createDDMStructure(
-                CounterLocalServiceUtil.increment(DDMStructure.class.getName())
-            );
-            ddmStructure.setGroupId(groupId);
-            ddmStructure.setCompanyId(companyId);
-            ddmStructure.setClassNameId(classNameId);
-            ddmStructure.setStructureKey(structure.getKey());
-            ddmStructure = DDMStructureLocalServiceUtil.addDDMStructure(ddmStructure);
-        }
-
-        final long dataDefinitionId = ddmStructure.getStructureId();
-
-        Locale contentDefaultLocale = ddmStructure.getDDMForm().getDefaultLocale();
-        if (!contentDefaultLocale.equals(siteDefaultLocale)) {
-            nameMap.put(contentDefaultLocale, name);
-        }
-
-        LOG.info("Structure already exists and will be overwritten.");
-        if (structure.getParent() != null && !structure.getParent().isEmpty()) {
-            LOG.info("Setting up parent structure: {}", structure.getName());
-            DDMStructure parentStructure = DDMStructureLocalServiceUtil.fetchStructure(
-                groupId,
-                classNameId,
-                structure.getParent(),
-                true
-            );
-            if (parentStructure != null) {
-                ddmStructure.setParentStructureId(parentStructure.getStructureId());
-            } else {
-                LOG.info("Parent structure not found: {}", structure.getName());
-            }
-        }
-
-        try {
-            DataDefinitionUtil.updateDataDefinitionFields(dataDefinition, ddmStructure);
-
-            dataDefinitionResource.putDataDefinition(dataDefinitionId, dataDefinition);
-        } catch (Exception e) {
-            throw new PortalException(e);
-        }
-
-        LOG.info("Template successfully updated: {}", structure.getName());
-
-        SetupPermissions.updatePermission(
-            String.format("Structure %1$s", structure.getKey()),
-            companyId,
-            dataDefinitionId,
-            DDMStructure.class.getName() + "-" + JournalArticle.class.getName(),
-            structure.getRolePermissions(),
-            DEFAULT_DDM_PERMISSIONS
-        );
-
-        return;
     }
 
     private static DataDefinitionResource.Factory getDataDefinitionResourceFactory() {
@@ -412,7 +366,12 @@ public final class SetupArticles {
 
         String language = template.getLanguage() == null ? TemplateConstants.LANG_TYPE_FTL : template.getLanguage();
 
-        final DDMTemplate ddmTemplate = getDdmTemplate(template.getName(), template.getTemplateKey(), groupId, classNameId);
+        final DDMTemplate ddmTemplate = getDdmTemplate(
+            template.getName(),
+            template.getTemplateKey(),
+            groupId,
+            classNameId
+        );
 
         String script = ResourcesUtil.getFileContent(template.getPath());
 
@@ -681,13 +640,15 @@ public final class SetupArticles {
                 if (articleId.equalsIgnoreCase(art.getArticleId())) {
                     // liferay inside: uses 'ignore-case'
                     if (art.getStatus() == WorkflowConstants.STATUS_APPROVED) {
-                        LOG.info("Found article with ID: {} and directory: {} ({})", articleId, folderPathForTheLog, folderId);
+                        LOG.info(
+                            "Found article with ID: {} and directory: {} ({})",
+                            articleId,
+                            folderPathForTheLog,
+                            folderId
+                        );
                         withSameArticleId.add(art);
                     } else {
-                        LOG.info(
-                            "Found article which is not 'approved' [{}], leave-alone",
-                            articleId
-                        );
+                        LOG.info("Found article which is not 'approved' [], leave-alone", articleId);
                     }
                 }
             }
