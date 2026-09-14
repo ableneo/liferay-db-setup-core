@@ -1,6 +1,7 @@
 package com.ableneo.liferay.portal.setup.core;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -19,6 +20,10 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +39,7 @@ class SetupPagesTest extends ValidSetupTestMocks {
     private static final long GROUP_ID = 20L;
     private static final long PLID = 100L;
     private static final long SECOND_PLID = 101L;
+    private static final long THIRD_PLID = 102L;
 
     private MockedStatic<LayoutLocalServiceUtil> layoutLocalServiceUtilMockedStatic;
 
@@ -43,6 +49,9 @@ class SetupPagesTest extends ValidSetupTestMocks {
     @Mock(lenient = true)
     private Layout secondLayout;
 
+    @Mock(lenient = true)
+    private Layout thirdLayout;
+
     @BeforeEach
     void setUpLayoutMocks() throws PortalException {
         layoutLocalServiceUtilMockedStatic = Mockito.mockStatic(LayoutLocalServiceUtil.class);
@@ -50,6 +59,8 @@ class SetupPagesTest extends ValidSetupTestMocks {
         when(layout.getTypeSettingsProperties()).thenReturn(new UnicodeProperties());
         when(secondLayout.getPlid()).thenReturn(SECOND_PLID);
         when(secondLayout.getTypeSettingsProperties()).thenReturn(new UnicodeProperties());
+        when(thirdLayout.getPlid()).thenReturn(THIRD_PLID);
+        when(thirdLayout.getTypeSettingsProperties()).thenReturn(new UnicodeProperties());
         layoutLocalServiceUtilMockedStatic
             .when(() -> LayoutLocalServiceUtil.getFriendlyURLLayout(anyLong(), anyBoolean(), anyString()))
             .thenReturn(layout);
@@ -106,6 +117,78 @@ class SetupPagesTest extends ValidSetupTestMocks {
             () -> LayoutLocalServiceUtil.updatePriority(SECOND_PLID, 3),
             times(1)
         );
+    }
+
+    /**
+     * Pins both halves of the ordering contract in one assertion: no page is moved
+     * before the whole sibling group has been looked up or created, and the moves are
+     * then applied in ascending page-sequence order instead of document order.
+     * <p>
+     * Applying them in document order gives an insertion sort, where each move shifts
+     * the pages already placed. For the declaration below that produced
+     * /first, /third, /second in a real portal.
+     */
+    @Test
+    void shouldApplyPageSequencesInAscendingOrderAfterWholeSiblingGroupExists() throws PortalException {
+        List<String> calls = recordLayoutCalls();
+
+        SetupPages.setupSitePages(
+            siteWithPublicPages(
+                page("/third", BigInteger.valueOf(2)),
+                page("/second", BigInteger.ONE),
+                page("/first", BigInteger.ZERO)
+            ),
+            GROUP_ID
+        );
+
+        assertEquals(
+            List.of(
+                "lookup /third",
+                "lookup /second",
+                "lookup /first",
+                "priority " + PLID + "=0",
+                "priority " + SECOND_PLID + "=1",
+                "priority " + THIRD_PLID + "=2"
+            ),
+            calls
+        );
+    }
+
+    @Test
+    void shouldNotMovePagesWithoutPageSequenceWhenSiblingsAreSequenced() throws PortalException {
+        List<String> calls = recordLayoutCalls();
+
+        SetupPages.setupSitePages(siteWithPublicPages(page("/second", BigInteger.ONE), page("/first", null)), GROUP_ID);
+
+        assertEquals(List.of("lookup /second", "lookup /first", "priority " + SECOND_PLID + "=1"), calls);
+    }
+
+    /**
+     * Records the order of the layout lookups and the priority updates. Resolving the
+     * layout by friendly URL keeps the expected values in the tests readable, unlike
+     * consecutive thenReturn stubbing.
+     */
+    private List<String> recordLayoutCalls() {
+        Map<String, Layout> layoutsByFriendlyUrl = new HashMap<>();
+        layoutsByFriendlyUrl.put("/first", layout);
+        layoutsByFriendlyUrl.put("/second", secondLayout);
+        layoutsByFriendlyUrl.put("/third", thirdLayout);
+
+        List<String> calls = new ArrayList<>();
+        layoutLocalServiceUtilMockedStatic
+            .when(() -> LayoutLocalServiceUtil.getFriendlyURLLayout(anyLong(), anyBoolean(), anyString()))
+            .thenAnswer(invocation -> {
+                String friendlyUrl = invocation.getArgument(2);
+                calls.add("lookup " + friendlyUrl);
+                return layoutsByFriendlyUrl.get(friendlyUrl);
+            });
+        layoutLocalServiceUtilMockedStatic
+            .when(() -> LayoutLocalServiceUtil.updatePriority(anyLong(), anyInt()))
+            .thenAnswer(invocation -> {
+                calls.add("priority " + invocation.getArgument(0) + "=" + invocation.getArgument(1));
+                return null;
+            });
+        return calls;
     }
 
     private static Site siteWithPublicPages(PageType... pages) {
