@@ -60,6 +60,8 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
+import java.math.BigInteger;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -345,6 +347,9 @@ public final class SetupPages {
         final long company,
         final long userId
     ) throws PortalException {
+        // Page sequences are collected here and applied once the whole sibling group
+        // exists, see applyPageSequences for the reason.
+        List<Entry<Layout, BigInteger>> sequencedLayouts = new ArrayList<>();
         for (PageType page : pages) {
             Layout layout = null;
             try {
@@ -398,6 +403,50 @@ public final class SetupPages {
                 userId,
                 null
             );
+            if (layout != null && page.getPageSequence() != null) {
+                sequencedLayouts.add(new SimpleEntry<>(layout, page.getPageSequence()));
+            }
+        }
+        applyPageSequences(sequencedLayouts);
+    }
+
+    /**
+     * Applies the configured page sequences to one group of sibling pages.
+     * <p>
+     * LayoutLocalServiceUtil.updatePriority is a move to position, not an assignment:
+     * it re-sorts the siblings and re-sequences their priorities to 0..n-1. Moving a
+     * page to a position therefore shifts every sibling that already sits at or after
+     * it. Two consequences:
+     * <ul>
+     * <li>the whole sibling group has to exist before the first move, otherwise a page
+     * created later lands at the end and has to be moved past pages that are already
+     * in place,</li>
+     * <li>the moves have to be applied in ascending sequence order, otherwise an
+     * earlier move is displaced by a later one targeting a lower position.</li>
+     * </ul>
+     * Applying the moves in document order instead produces an insertion sort, which
+     * only happens to give the configured order for some declaration orders. Pages
+     * without a page-sequence are never moved and keep the position they have.
+     *
+     * @param sequencedLayouts existing layouts of one sibling group with a configured
+     *                         page sequence, in document order
+     */
+    private static void applyPageSequences(final List<Entry<Layout, BigInteger>> sequencedLayouts) {
+        if (sequencedLayouts.isEmpty()) {
+            return;
+        }
+        sequencedLayouts.sort(Entry.comparingByValue());
+        for (Entry<Layout, BigInteger> sequencedLayout : sequencedLayouts) {
+            Layout layout = sequencedLayout.getKey();
+            BigInteger pageSequence = sequencedLayout.getValue();
+            try {
+                // the page sequence maps directly to the Liferay layout priority
+                LayoutLocalServiceUtil.updatePriority(layout.getPlid(), pageSequence.intValue());
+            } catch (PortalException e) {
+                // pages linked to a layout set prototype are not sortable, such a failure must not
+                // abort the setup of the remaining pages
+                LOG.warn("Cannot set page sequence {} on page {}", pageSequence, layout.getFriendlyURL(), e);
+            }
         }
     }
 
@@ -463,18 +512,6 @@ public final class SetupPages {
             page.getRolePermissions(),
             getDefaultPermissions(isPrivate)
         );
-
-        if (layout != null && page.getPageSequence() != null) {
-            try {
-                // the page sequence maps directly to the Liferay layout priority, the schema
-                // restricts it to non negative integers, so intValue() is safe here
-                LayoutLocalServiceUtil.updatePriority(layout.getPlid(), page.getPageSequence().intValue());
-            } catch (PortalException e) {
-                // pages linked to a layout set prototype are not sortable, such a failure must not
-                // abort the setup of the remaining pages
-                LOG.error("Cannot set page sequence {} on page {}", page.getPageSequence(), page.getFriendlyUrl(), e);
-            }
-        }
     }
 
     private static HashMap<String, List<String>> getDefaultPermissions(final boolean isPrivate) {
