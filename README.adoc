@@ -271,8 +271,8 @@ Use the optional `page-sequence` attribute of a `page` element to control where 
 
 How to use it:
 
-. Number the pages you care about with contiguous values starting at `0`.
-. Leave the attribute out on pages whose position should not change - a page without `page-sequence` keeps its current position, so an ordering done manually in the portal is not overwritten on the next setup run.
+. Number the pages you care about with contiguous values starting at `0`. The order in which the pages are declared in the XML does not matter, only `page-sequence` does.
+. Leave the attribute out on pages whose position should not change - a page without `page-sequence` is never moved by the setup, so an ordering done manually in the portal is not overwritten on the next setup run. Such a page can still be pushed one position back by a configured page that moves in front of it, because Liferay keeps the priorities of a page set contiguous.
 
 The following example builds a menu in the order: Home, Products, News, Contact.
 
@@ -296,6 +296,8 @@ The following example builds a menu in the order: Home, Products, News, Contact.
 ----
 
 Technically the value is mapped directly to the Liferay `priority` attribute of the layout. Liferay re-sequences the layout priorities of the sibling pages on every change, so an out of range value (e.g. `99`) does not create a gap, it simply moves the page to the end of the list.
+
+Because `LayoutLocalServiceUtil.updatePriority` moves a page to a position rather than assigning a number to it, every move shifts the siblings that already sit at or after that position. The setup therefore creates or updates all pages of one page set first and only then applies the sequences, in ascending order. Doing it the other way around, one page at a time in document order, degenerates into an insertion sort that yields the configured order only for some declaration orders.
 
 ===== Sites linked to a Site Template
 In a site linked to a Site Template with propagation enabled, pages propagated from the template always sort before pages defined locally. Liferay adds a priority buffer of 1,000,000 to the pages created locally in such a site, so `page-sequence` orders the configured pages relative to each other within the local band and the `Layout.priority` stored in the database differs from the configured value (configured `2` can be stored as `1000002`).
