@@ -1,14 +1,14 @@
 package com.ableneo.liferay.portal.setup.core.util;
 
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.search.SearchException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class IndexerUtil {
 
-    private static final Log LOG = LogFactoryUtil.getLog(IndexerUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(IndexerUtil.class);
 
     private IndexerUtil() {}
 
@@ -18,7 +18,7 @@ public final class IndexerUtil {
         try {
             indexer.reindex(modelClass.getName(), id);
         } catch (SearchException e) {
-            LOG.error(e);
+            LOG.error("Error", e);
         }
     }
 }

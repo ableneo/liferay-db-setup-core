@@ -9,17 +9,17 @@ import com.liferay.journal.model.JournalFolder;
 import com.liferay.journal.service.JournalFolderLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class WebFolderUtil {
 
-    private static final Log LOG = LogFactoryUtil.getLog(WebFolderUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(WebFolderUtil.class);
 
     private WebFolderUtil() {}
 
@@ -78,7 +78,7 @@ public final class WebFolderUtil {
                 }
             }
         } catch (SystemException e) {
-            LOG.error(e);
+            LOG.error("Error", e);
         }
         return dir;
     }
@@ -107,7 +107,7 @@ public final class WebFolderUtil {
                 serviceContext
             );
         } catch (PortalException e) {
-            LOG.error(e);
+            LOG.error("Error", e);
         }
         return folder;
     }

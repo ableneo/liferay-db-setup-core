@@ -8,14 +8,14 @@ import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.journal.model.JournalFolder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class FolderUtil {
 
-    private static final Log LOG = LogFactoryUtil.getLog(FolderUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FolderUtil.class);
 
     private FolderUtil() {}
 
@@ -99,7 +99,7 @@ public final class FolderUtil {
                 );
             }
         } catch (SystemException | PortalException e) {
-            LOG.error(e);
+            LOG.error("Error", e);
         }
 
         return folder;

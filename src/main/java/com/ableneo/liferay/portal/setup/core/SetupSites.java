@@ -16,8 +16,6 @@ import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.User;
@@ -39,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by gustavnovotny on 28.08.17.
@@ -46,7 +46,7 @@ import java.util.Set;
 public class SetupSites {
 
     private static final String UNIPARAM_DEFAULT_SITE_ROLE_IDS = "defaultSiteRoleIds";
-    private static final Log LOG = LogFactoryUtil.getLog(SetupSites.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupSites.class);
 
     private SetupSites() {}
 
@@ -79,19 +79,20 @@ public class SetupSites {
                 if (site.getSiteFriendlyUrl() != null) {
                     liferayGroup = GroupLocalServiceUtil.fetchFriendlyURLGroup(companyId, site.getSiteFriendlyUrl());
                 }
-                LOG.info(
-                    String.format(
-                        "Setup: Site %1$s already exists in system, not creating... (pk=%2$s,gid=%3$s)",
-                        site.getName(),
-                        liferayGroup.getPrimaryKey(),
-                        liferayGroup.getGroupId()
-                    )
-                ); // b3farkas
+                if (liferayGroup != null) {
+                    LOG.info(
+                        String.format(
+                            "Setup: Site %1$s already exists in system, not creating... (pk=%2$s,gid=%3$s)",
+                            site.getName(),
+                            liferayGroup.getPrimaryKey(),
+                            liferayGroup.getGroupId()
+                        )
+                    ); // b3farkas
+                }
             } catch (PortalException e) {
                 LOG.debug("Site does not exist.", e);
             }
         }
-        ServiceContext serviceContext = new ServiceContext();
 
         if (liferayGroup == null) {
             LOG.info(String.format("Setup: Group (Site) %1$s does not exist in system, creating...", site.getName()));
@@ -102,7 +103,7 @@ public class SetupSites {
                 GroupConstants.DEFAULT_PARENT_GROUP_ID,
                 Group.class.getName(),
                 0,
-                0,
+                GroupConstants.DEFAULT_LIVE_GROUP_ID,
                 TranslationMapUtil.getTranslationMap(
                     site.getNameTranslation(),
                     groupId,
@@ -116,8 +117,9 @@ public class SetupSites {
                 site.getSiteFriendlyUrl(),
                 true,
                 true,
-                serviceContext
+                null
             );
+
             LOG.info(String.format("New site created."));
         } else {
             if (!Validator.isBlank(site.getSiteFriendlyUrl())) {
@@ -271,7 +273,7 @@ public class SetupSites {
 
                 assignUserMemberRoles(memberUser.getRole(), companyId, liferayGroup, user);
             } catch (PortalException e) {
-                LOG.error(e);
+                LOG.error("Error", e);
             }
         }
     }

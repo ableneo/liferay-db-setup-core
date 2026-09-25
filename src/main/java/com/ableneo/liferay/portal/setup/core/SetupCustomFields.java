@@ -9,8 +9,6 @@ import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
 import com.liferay.expando.kernel.util.ExpandoBridgeFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -18,10 +16,12 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupCustomFields {
 
-    private static final Log LOG = LogFactoryUtil.getLog(SetupCustomFields.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupCustomFields.class);
 
     private SetupCustomFields() {}
 

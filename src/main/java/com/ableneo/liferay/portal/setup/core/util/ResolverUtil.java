@@ -19,8 +19,6 @@ import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Organization;
@@ -34,6 +32,8 @@ import com.liferay.portal.kernel.service.UserGroupLocalServiceUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The util allows to specify special placeholders within configured data. The placeholders will be resolved to values
@@ -63,7 +63,7 @@ public final class ResolverUtil {
     public static final String VALUE_SPLIT = "::";
     public static final String ID_OF_ORG_USER_GROUP_WITH_NAME_KEY = "{{$%%IDTYPE%%_OF_%%LOOKUPTYPE%%_WITH_NAME=";
     public static final String LAYOUTID = "%%LAYOUTID%%";
-    private static final Log LOG = LogFactoryUtil.getLog(ResolverUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResolverUtil.class);
     private static final String COULD_NOT_RESOLVE_SITE_NAME =
         "Could not resolve site name, as the syntax is offended, closing tag (%2$s) is missing for %1$s";
 
@@ -719,7 +719,7 @@ public final class ResolverUtil {
                 try {
                     l = LayoutLocalServiceUtil.getFriendlyURLLayout(siteGroupId, isPrivate, fUrl);
                 } catch (PortalException | SystemException e) {
-                    LOG.error(e);
+                    LOG.error("Error", e);
                 }
 
                 if (l == null) {
@@ -863,10 +863,7 @@ public final class ResolverUtil {
                         }
                     }
                 } catch (PortalException | SystemException e) {
-                    LOG.error(
-                        String.format("Template with key contentCopy %1$s not found for %2$s", name, locationHint)
-                    );
-                    LOG.error((Throwable) e);
+                    LOG.error("Template with key contentCopy {} not found for {}", name, locationHint, e);
                 }
 
                 retVal =

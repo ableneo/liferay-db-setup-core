@@ -9,8 +9,6 @@ import com.ableneo.liferay.portal.setup.domain.RolePermissions;
 import com.liferay.portal.kernel.exception.NestableException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.*;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
@@ -24,12 +22,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupPermissions {
 
     private static final String[] PERMISSION_RO = { ActionKeys.VIEW };
     private static final String[] PERMISSION_RW = { ActionKeys.VIEW, ActionKeys.UPDATE };
-    private static final Log LOG = LogFactoryUtil.getLog(SetupPermissions.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupPermissions.class);
 
     private SetupPermissions() {}
 

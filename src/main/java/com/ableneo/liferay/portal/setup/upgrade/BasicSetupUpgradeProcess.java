@@ -2,13 +2,13 @@ package com.ableneo.liferay.portal.setup.upgrade;
 
 import com.ableneo.liferay.portal.setup.LiferaySetup;
 import com.ableneo.liferay.portal.setup.MarshallUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.UpgradeException;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URISyntaxException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by mapa on 13.3.2015.
@@ -18,7 +18,7 @@ public abstract class BasicSetupUpgradeProcess extends UpgradeProcess {
     /**
      * Logger.
      */
-    private static final Log LOG = LogFactoryUtil.getLog(BasicSetupUpgradeProcess.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BasicSetupUpgradeProcess.class);
 
     /**
      * Does upgrade.

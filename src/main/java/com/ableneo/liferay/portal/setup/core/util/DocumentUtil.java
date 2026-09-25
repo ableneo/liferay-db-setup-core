@@ -5,13 +5,13 @@ import com.liferay.document.library.kernel.exception.NoSuchFileEntryException;
 import com.liferay.document.library.kernel.model.DLVersionNumberIncrease;
 import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.service.ServiceContext;
 import java.sql.Date;
 import java.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This utility allows to manage documents of the documents and media library.
@@ -20,7 +20,7 @@ import java.time.LocalDate;
  */
 public final class DocumentUtil {
 
-    private static final Log LOG = LogFactoryUtil.getLog(DocumentUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(DocumentUtil.class);
 
     private DocumentUtil() {}
 
@@ -73,7 +73,7 @@ public final class DocumentUtil {
             try {
                 entry = DLAppLocalServiceUtil.getFileEntry(groupId, folder.getFolderId(), title);
             } catch (PortalException e) {
-                LOG.error(e);
+                LOG.error("Error", e);
             }
         }
 
@@ -139,7 +139,7 @@ public final class DocumentUtil {
         try {
             DLAppLocalServiceUtil.moveFileEntry(userId, fe.getFolderId(), folderId, new ServiceContext());
         } catch (PortalException e) {
-            LOG.error(e);
+            LOG.error("Error", e);
         }
     }
 

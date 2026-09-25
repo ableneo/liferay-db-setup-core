@@ -5,8 +5,6 @@ import com.ableneo.liferay.portal.setup.domain.CustomFieldSetting;
 import com.ableneo.liferay.portal.setup.domain.Menu;
 import com.ableneo.liferay.portal.setup.domain.MenuItem;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.model.SiteNavigationMenuItem;
@@ -14,13 +12,15 @@ import com.liferay.site.navigation.service.SiteNavigationMenuItemLocalServiceUti
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Created by gustavnovotny on 28.08.17.
  */
 public class SetupMenus {
 
-    private static final Log LOG = LogFactoryUtil.getLog(SetupMenus.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupMenus.class);
 
     private SetupMenus() {}
 

@@ -6,9 +6,9 @@ import com.liferay.expando.kernel.model.ExpandoValue;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoTableLocalServiceUtil;
 import com.liferay.expando.kernel.service.ExpandoValueLocalServiceUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility for setting a custom field.
@@ -17,7 +17,7 @@ import com.liferay.portal.kernel.service.ClassNameLocalServiceUtil;
  */
 public final class CustomFieldSettingUtil {
 
-    private static final Log LOG = LogFactoryUtil.getLog(CustomFieldSettingUtil.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CustomFieldSettingUtil.class);
 
     private CustomFieldSettingUtil() {}
 

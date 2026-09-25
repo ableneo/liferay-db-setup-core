@@ -29,8 +29,6 @@ import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
@@ -62,6 +60,8 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
 import com.liferay.site.navigation.service.SiteNavigationMenuLocalServiceUtil;
+import java.math.BigInteger;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -72,10 +72,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import javax.portlet.ReadOnlyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class SetupPages {
 
-    private static final Log LOG = LogFactoryUtil.getLog(SetupPages.class);
+    private static final Logger LOG = LoggerFactory.getLogger(SetupPages.class);
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PUBLIC;
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PRIVATE;
     private static final HashMap<String, List<String>> DEFAULT_PERMISSIONS_PORTLET_PUBLIC;
@@ -345,6 +347,9 @@ public final class SetupPages {
         final long company,
         final long userId
     ) throws PortalException {
+        // Page sequences are collected here and applied once the whole sibling group
+        // exists, see applyPageSequences for the reason.
+        List<Entry<Layout, BigInteger>> sequencedLayouts = new ArrayList<>();
         for (PageType page : pages) {
             Layout layout = null;
             try {
@@ -376,7 +381,7 @@ public final class SetupPages {
                 }
                 LOG.info(String.format("Setup: Page %1$s created...", page.getName()));
             } catch (Exception ex) {
-                LOG.error(ex);
+                LOG.error("Error", ex);
             }
             // If the page has not a layout set, set the default one. Otherwise set that layout as the default for the
             // subtree
@@ -398,6 +403,50 @@ public final class SetupPages {
                 userId,
                 null
             );
+            if (layout != null && page.getPageSequence() != null) {
+                sequencedLayouts.add(new SimpleEntry<>(layout, page.getPageSequence()));
+            }
+        }
+        applyPageSequences(sequencedLayouts);
+    }
+
+    /**
+     * Applies the configured page sequences to one group of sibling pages.
+     * <p>
+     * LayoutLocalServiceUtil.updatePriority is a move to position, not an assignment:
+     * it re-sorts the siblings and re-sequences their priorities to 0..n-1. Moving a
+     * page to a position therefore shifts every sibling that already sits at or after
+     * it. Two consequences:
+     * <ul>
+     * <li>the whole sibling group has to exist before the first move, otherwise a page
+     * created later lands at the end and has to be moved past pages that are already
+     * in place,</li>
+     * <li>the moves have to be applied in ascending sequence order, otherwise an
+     * earlier move is displaced by a later one targeting a lower position.</li>
+     * </ul>
+     * Applying the moves in document order instead produces an insertion sort, which
+     * only happens to give the configured order for some declaration orders. Pages
+     * without a page-sequence are never moved and keep the position they have.
+     *
+     * @param sequencedLayouts existing layouts of one sibling group with a configured
+     *                         page sequence, in document order
+     */
+    private static void applyPageSequences(final List<Entry<Layout, BigInteger>> sequencedLayouts) {
+        if (sequencedLayouts.isEmpty()) {
+            return;
+        }
+        sequencedLayouts.sort(Entry.comparingByValue());
+        for (Entry<Layout, BigInteger> sequencedLayout : sequencedLayouts) {
+            Layout layout = sequencedLayout.getKey();
+            BigInteger pageSequence = sequencedLayout.getValue();
+            try {
+                // the page sequence maps directly to the Liferay layout priority
+                LayoutLocalServiceUtil.updatePriority(layout.getPlid(), pageSequence.intValue());
+            } catch (PortalException e) {
+                // pages linked to a layout set prototype are not sortable, such a failure must not
+                // abort the setup of the remaining pages
+                LOG.warn("Cannot set page sequence {} on page {}", pageSequence, layout.getFriendlyURL(), e);
+            }
         }
     }
 
@@ -676,7 +725,7 @@ public final class SetupPages {
                     layout.getTypeSettings()
                 );
             } catch (PortalException e) {
-                LOG.error(e);
+                LOG.error("Error", e);
             }
             LOG.info(String.format("setting theme on page: %1$s : %2$s", page.getName(), theme.getName()));
         }
@@ -1158,7 +1207,7 @@ public final class SetupPages {
         try {
             portlets = layoutTypePortlet.getAllPortlets();
         } catch (SystemException e1) {
-            LOG.error(e1);
+            LOG.error("Error", e1);
         }
         if (portlets != null) {
             for (Portlet portlet : portlets) {
@@ -1192,7 +1241,7 @@ public final class SetupPages {
                         }
                     }
                 } catch (PortalException | SystemException e) {
-                    LOG.error(e);
+                    LOG.error("Error", e);
                 }
             }
         }

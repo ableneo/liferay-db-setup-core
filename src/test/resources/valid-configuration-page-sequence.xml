@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+    <configuration>
+        <run-as-user-email>test@liferay.com</run-as-user-email>
+        <company>
+            <companyid>1</companyid>
+        </company>
+    </configuration>
+    <sites>
+        <site name="Test Site">
+            <public-pages language-id="en_US">
+                <page name="Home" friendly-url="/home" page-sequence="0"/>
+                <page name="News" friendly-url="/news" page-sequence="2"/>
+                <page name="Contact" friendly-url="/contact"/>
+            </public-pages>
+        </site>
+    </sites>
+</setup>

@@ -266,6 +266,44 @@ All content like *pages*, *articles*, *documents* etc. is always created within 
 </sites>
 </setup>
 ----
+==== Page order in the navigation menu
+Use the optional `page-sequence` attribute of a `page` element to control where the page appears in the navigation menu. `0` is the first (top/leftmost) position, `1` the second, and so on. Pages compete for position only with their sibling pages within one page set (`public-pages` or `private-pages`).
+
+How to use it:
+
+. Number the pages you care about with contiguous values starting at `0`. The order in which the pages are declared in the XML does not matter, only `page-sequence` does.
+. Leave the attribute out on pages whose position should not change - a page without `page-sequence` is never moved by the setup, so an ordering done manually in the portal is not overwritten on the next setup run. Such a page can still be pushed one position back by a configured page that moves in front of it, because Liferay keeps the priorities of a page set contiguous.
+
+The following example builds a menu in the order: Home, Products, News, Contact.
+
+[source, xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<setup xmlns="http://www.ableneo.com/liferay/setup">
+<sites>
+    <site default="false" site-friendly-url="/corporate" name="Corporate">
+        <public-pages language-id="en_US">
+            <!-- declared out of order on purpose: page-sequence, not document order, decides -->
+            <page name="News" friendly-url="/news" page-sequence="2"/>
+            <page name="Home" friendly-url="/home" page-sequence="0"/>
+            <page name="Products" friendly-url="/products" page-sequence="1"/>
+            <!-- no page-sequence: Contact keeps the position it already has in the portal -->
+            <page name="Contact" friendly-url="/contact"/>
+        </public-pages>
+    </site>
+</sites>
+</setup>
+----
+
+Technically the value is mapped directly to the Liferay `priority` attribute of the layout. Liferay re-sequences the layout priorities of the sibling pages on every change, so an out of range value (e.g. `99`) does not create a gap, it simply moves the page to the end of the list.
+
+Because `LayoutLocalServiceUtil.updatePriority` moves a page to a position rather than assigning a number to it, every move shifts the siblings that already sit at or after that position. The setup therefore creates or updates all pages of one page set first and only then applies the sequences, in ascending order. Doing it the other way around, one page at a time in document order, degenerates into an insertion sort that yields the configured order only for some declaration orders.
+
+===== Sites linked to a Site Template
+In a site linked to a Site Template with propagation enabled, pages propagated from the template always sort before pages defined locally. Liferay adds a priority buffer of 1,000,000 to the pages created locally in such a site, so `page-sequence` orders the configured pages relative to each other within the local band and the `Layout.priority` stored in the database differs from the configured value (configured `2` can be stored as `1000002`).
+
+Pages linked to a layout set prototype are treated by Liferay as not sortable and the portal can reject the requested priority. Such a failure is logged and the setup continues with the remaining pages.
+
 ==== Journal Article structure and template
 Files `new_structure.xml` and `new_structure_template.ftl` are deployed as a part of a module that is using the `db-setup-core` library and reside in it's classpath.
 [source, xml]
@@ -357,6 +395,13 @@ They are probably not perfect, please let me know if anything feels wrong or inc
 
 
 == Changelog
+
+=== Version 7.4.3125.3
+==== Features & bug fixes
+* added optional `page-sequence` page attribute that controls the position of a page in the navigation menu, the value maps directly to the Liferay layout priority <<_page_order_in_the_navigation_menu>>
+
+==== Refactorings & project changes
+* migrated remaining classes from Liferay kernel Log to SLF4J
 
 === Version 7.4.3125.2
 ==== Bug fixe
